@@ -4,5 +4,6 @@
 
 void AMyGameMode::StartPlay()
 {
+	Super::StartPlay();
 	EditState = NewObject<USelectEditState>();
 }
