@@ -9,6 +9,7 @@
 class FSubsystemCollectionBase;
 class UCommonGameDialogDescriptor;
 class UObject;
+class UCommonGameDialog;
 
 /** Possible results from a dialog */
 UENUM(BlueprintType)
@@ -28,7 +29,7 @@ enum class ECommonMessagingResult : uint8
 DECLARE_DELEGATE_OneParam(FCommonMessagingResultDelegate, ECommonMessagingResult /* Result */);
 
 /**
- * 
+ *
  */
 UCLASS(config = Game)
 class COMMONGAME_API UCommonMessagingSubsystem : public ULocalPlayerSubsystem
@@ -36,7 +37,7 @@ class COMMONGAME_API UCommonMessagingSubsystem : public ULocalPlayerSubsystem
 	GENERATED_BODY()
 
 public:
-	UCommonMessagingSubsystem() { }
+	UCommonMessagingSubsystem() {}
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
@@ -46,5 +47,15 @@ public:
 	virtual void ShowError(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate());
 
 private:
+	UPROPERTY()
+	TSubclassOf<UCommonGameDialog> ConfirmationDialogClassPtr;
 
+	UPROPERTY()
+	TSubclassOf<UCommonGameDialog> ErrorDialogClassPtr;
+
+	UPROPERTY(config)
+	TSoftClassPtr<UCommonGameDialog> ConfirmationDialogClass;
+
+	UPROPERTY(config)
+	TSoftClassPtr<UCommonGameDialog> ErrorDialogClass;
 };

@@ -2,14 +2,21 @@
 
 #include "Messaging/CommonMessagingSubsystem.h"
 
+#include "CommonLocalPlayer.h"
 #include "Engine/GameInstance.h"
 #include "Engine/LocalPlayer.h"
+#include "Messaging/CommonGameDialog.h"
+#include "NativeGameplayTags.h"
+#include "PrimaryGameLayout.h"
 #include "UObject/UObjectHash.h"
+
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(CommonMessagingSubsystem)
 
 class FSubsystemCollectionBase;
 class UClass;
+
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_UI_LAYER_MODAL, "UI.Layer.Modal");
 
 void UCommonMessagingSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -37,10 +44,24 @@ bool UCommonMessagingSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 
 void UCommonMessagingSubsystem::ShowConfirmation(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
 {
-	
+	if (UCommonLocalPlayer* LocalPlayer = GetLocalPlayer<UCommonLocalPlayer>())
+	{
+		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
+		{
+			RootLayout->PushWidgetToLayerStack<UCommonGameDialog>(TAG_UI_LAYER_MODAL, ConfirmationDialogClassPtr, [DialogDescriptor, ResultCallback](UCommonGameDialog& Dialog)
+			    { Dialog.SetupDialog(DialogDescriptor, ResultCallback); });
+		}
+	}
 }
 
 void UCommonMessagingSubsystem::ShowError(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
 {
-	
+	if (UCommonLocalPlayer* LocalPlayer = GetLocalPlayer<UCommonLocalPlayer>())
+	{
+		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
+		{
+			RootLayout->PushWidgetToLayerStack<UCommonGameDialog>(TAG_UI_LAYER_MODAL, ErrorDialogClassPtr, [DialogDescriptor, ResultCallback](UCommonGameDialog& Dialog)
+			    { Dialog.SetupDialog(DialogDescriptor, ResultCallback); });
+		}
+	}
 }
