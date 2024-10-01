@@ -7,6 +7,7 @@
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
 #include "GameplayTagContainer.h"
+#include "LogCommonGame.h"
 #include "Widgets/CommonActivatableWidgetContainer.h" // IWYU pragma: keep
 
 #include "PrimaryGameLayout.generated.h"
@@ -100,12 +101,11 @@ public:
 	ActivatableWidgetT* PushWidgetToLayerStack(FGameplayTag LayerName, UClass* ActivatableWidgetClass, TFunctionRef<void(ActivatableWidgetT&)> InitInstanceFunc)
 	{
 		static_assert(TIsDerivedFrom<ActivatableWidgetT, UCommonActivatableWidget>::IsDerived, "Only CommonActivatableWidgets can be used here");
-
-		if (UCommonActivatableWidgetContainerBase* Layer = GetLayerWidget(LayerName))
+		UCommonActivatableWidgetContainerBase* Layer = GetLayerWidget(LayerName);
+		if (ensure(ActivatableWidgetClass && Layer))
 		{
 			return Layer->AddWidget<ActivatableWidgetT>(ActivatableWidgetClass, InitInstanceFunc);
 		}
-
 		return nullptr;
 	}
 
