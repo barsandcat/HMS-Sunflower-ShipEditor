@@ -21,6 +21,9 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_UI_LAYER_MODAL, "UI.Layer.Modal");
 void UCommonMessagingSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+
+	ConfirmationDialogClassPtr = ConfirmationDialogClass.LoadSynchronous();
+	ErrorDialogClassPtr = ErrorDialogClass.LoadSynchronous();
 }
 
 void UCommonMessagingSubsystem::Deinitialize()
