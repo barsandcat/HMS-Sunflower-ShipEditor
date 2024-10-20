@@ -14,9 +14,6 @@ class UClass;
 void UCommonMessagingSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-
-	ConfirmationDialogClassPtr = ConfirmationDialogClass.LoadSynchronous();
-	ErrorDialogClassPtr = ErrorDialogClass.LoadSynchronous();
 }
 
 void UCommonMessagingSubsystem::Deinitialize()
