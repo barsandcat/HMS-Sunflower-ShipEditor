@@ -7,8 +7,7 @@
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
 #include "GameplayTagContainer.h"
-#include "LogCommonGame.h"
-#include "Widgets/CommonActivatableWidgetContainer.h" // IWYU pragma: keep
+#include "Widgets/CommonActivatableWidgetContainer.h"    // IWYU pragma: keep
 
 #include "PrimaryGameLayout.generated.h"
 
@@ -67,26 +66,23 @@ public:
 
 		FStreamableManager& StreamableManager = UAssetManager::Get().GetStreamableManager();
 		TSharedPtr<FStreamableHandle> StreamingHandle = StreamableManager.RequestAsyncLoad(ActivatableWidgetClass.ToSoftObjectPath(), FStreamableDelegate::CreateWeakLambda(this,
-			[this, LayerName, ActivatableWidgetClass, StateFunc, SuspendInputToken]()
-			{
-				UCommonUIExtensions::ResumeInputForPlayer(GetOwningPlayer(), SuspendInputToken);
+		                                                                                                                                  [this, LayerName, ActivatableWidgetClass, StateFunc, SuspendInputToken]()
+		                                                                                                                                  {
+			                                                                                                                                  UCommonUIExtensions::ResumeInputForPlayer(GetOwningPlayer(), SuspendInputToken);
 
-				ActivatableWidgetT* Widget = PushWidgetToLayerStack<ActivatableWidgetT>(LayerName, ActivatableWidgetClass.Get(), [StateFunc](ActivatableWidgetT& WidgetToInit) {
-					StateFunc(EAsyncWidgetLayerState::Initialize, &WidgetToInit);
-				});
+			                                                                                                                                  ActivatableWidgetT* Widget = PushWidgetToLayerStack<ActivatableWidgetT>(LayerName, ActivatableWidgetClass.Get(), [StateFunc](ActivatableWidgetT& WidgetToInit)
+			                                                                                                                                      { StateFunc(EAsyncWidgetLayerState::Initialize, &WidgetToInit); });
 
-				StateFunc(EAsyncWidgetLayerState::AfterPush, Widget);
-			})
-		);
+			                                                                                                                                  StateFunc(EAsyncWidgetLayerState::AfterPush, Widget);
+		                                                                                                                                  }));
 
 		// Setup a cancel delegate so that we can resume input if this handler is canceled.
 		StreamingHandle->BindCancelDelegate(FStreamableDelegate::CreateWeakLambda(this,
-			[this, StateFunc, SuspendInputToken]()
-			{
-				UCommonUIExtensions::ResumeInputForPlayer(GetOwningPlayer(), SuspendInputToken);
-				StateFunc(EAsyncWidgetLayerState::Canceled, nullptr);
-			})
-		);
+		    [this, StateFunc, SuspendInputToken]()
+		    {
+			    UCommonUIExtensions::ResumeInputForPlayer(GetOwningPlayer(), SuspendInputToken);
+			    StateFunc(EAsyncWidgetLayerState::Canceled, nullptr);
+		    }));
 
 		return StreamingHandle;
 	}
@@ -117,13 +113,13 @@ public:
 
 protected:
 	/** Register a layer that widgets can be pushed onto. */
-	UFUNCTION(BlueprintCallable, Category="Layer")
+	UFUNCTION(BlueprintCallable, Category = "Layer")
 	void RegisterLayer(UPARAM(meta = (Categories = "UI.Layer")) FGameplayTag LayerTag, UCommonActivatableWidgetContainerBase* LayerWidget);
-	
+
 	virtual void OnIsDormantChanged();
 
 	void OnWidgetStackTransitioning(UCommonActivatableWidgetContainerBase* Widget, bool bIsTransitioning);
-	
+
 private:
 	bool bIsDormant = false;
 

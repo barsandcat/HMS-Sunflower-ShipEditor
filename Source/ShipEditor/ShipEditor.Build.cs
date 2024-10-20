@@ -14,6 +14,7 @@ public class ShipEditor : ModuleRules
             "Engine",
             "InputCore",
             "EnhancedInput",
+            "GameplayTags",
             "Slate",
             "SlateCore",
             "UMG",
