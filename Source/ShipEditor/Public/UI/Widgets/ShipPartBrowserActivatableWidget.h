@@ -9,9 +9,18 @@
 #include "ShipPartBrowserActivatableWidget.generated.h"
 
 UCLASS()
+class UDummy : public UObject
+{
+	GENERATED_BODY()
+};
+
+UCLASS()
 class SHIPEDITOR_API UShipPartBrowserActivatableWidget : public UCommonActivatableWidget
 {
 	GENERATED_BODY()
+
+	virtual bool Initialize() override;
+	TObjectPtr<UDummy> Dummy;
 
 public:
 	UPROPERTY(BlueprintReadWrite, Meta = (BindWidget))
