@@ -8,10 +8,13 @@
 
 #include "ShipPartBrowserActivatableWidget.generated.h"
 
-UCLASS()
-class UDummy : public UObject
+UCLASS(BlueprintType)
+class UListFilterOption : public UObject
 {
 	GENERATED_BODY()
+public:
+	UPROPERTY(BlueprintReadWrite)
+	FString Name = "Hehehe";
 };
 
 UCLASS()
@@ -20,7 +23,9 @@ class SHIPEDITOR_API UShipPartBrowserActivatableWidget : public UCommonActivatab
 	GENERATED_BODY()
 
 	virtual bool Initialize() override;
-	TObjectPtr<UDummy> Dummy;
+	TObjectPtr<UListFilterOption> Dummy;
+	TArray<TObjectPtr<UListFilterOption>> Catergories;
+	TArray<TObjectPtr<UListFilterOption>> Filters;
 
 public:
 	UPROPERTY(BlueprintReadWrite, Meta = (BindWidget))
