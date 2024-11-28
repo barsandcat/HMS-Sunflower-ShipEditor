@@ -24,8 +24,8 @@ bool UShipPartBrowserActivatableWidget::Initialize()
 		AddOption(Catergories, "Quarters");
 		AddOption(Catergories, "Landing gear");
 
-		AddOption(Filters, "Static");
-		AddOption(Filters, "Dynamic");
+		AddOption(Filters, "Any");
+		AddOption(Filters, "Any");
 
 		Dummy = NewObject<UListFilterOption>();
 		PartList->AddItem(Dummy);
