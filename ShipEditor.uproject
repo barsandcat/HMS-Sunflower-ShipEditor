@@ -7,13 +7,24 @@
     {
       "Name": "ShipEditor",
       "Type": "Runtime",
-      "LoadingPhase": "Default"
+      "LoadingPhase": "Default",
+      "AdditionalDependencies": [
+        "Engine",
+        "CoreUObject",
+        "CommonGame",
+        "CommonUI",
+        "UMG",
+        "SlateCore"
+      ]
     }
   ],
   "Plugins": [
     {
       "Name": "ModelingToolsEditorMode",
-      "Enabled": true
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
     },
     {
       "Name": "GameSubtitles",
@@ -26,14 +37,6 @@
     {
       "Name": "CommonUI",
       "Enabled": true
-    },
-    {
-      "Name": "VisualStudioTools",
-      "Enabled": true
     }
-  ],
-  "TargetPlatforms": [],
-  "AdditionalRootDirectories": [],
-  "AdditionalPluginDirectories": [],
-  "EpicSampleNameHash": ""
+  ]
 }
