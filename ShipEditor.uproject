@@ -1,42 +1,47 @@
 {
-  "FileVersion": 3,
-  "EngineAssociation": "5.4",
-  "Category": "",
-  "Description": "",
-  "Modules": [
-    {
-      "Name": "ShipEditor",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "AdditionalDependencies": [
-        "Engine",
-        "CoreUObject",
-        "CommonGame",
-        "CommonUI",
-        "UMG",
-        "SlateCore"
-      ]
-    }
-  ],
-  "Plugins": [
-    {
-      "Name": "ModelingToolsEditorMode",
-      "Enabled": true,
-      "TargetAllowList": [
-        "Editor"
-      ]
-    },
-    {
-      "Name": "GameSubtitles",
-      "Enabled": true
-    },
-    {
-      "Name": "AsyncMixin",
-      "Enabled": true
-    },
-    {
-      "Name": "CommonUI",
-      "Enabled": true
-    }
-  ]
+	"FileVersion": 3,
+	"EngineAssociation": "5.4",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "ShipEditor",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"CoreUObject",
+				"CommonGame",
+				"CommonUI",
+				"UMG",
+				"SlateCore",
+				"ModelViewViewModel"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "GameSubtitles",
+			"Enabled": true
+		},
+		{
+			"Name": "AsyncMixin",
+			"Enabled": true
+		},
+		{
+			"Name": "CommonUI",
+			"Enabled": true
+		},
+		{
+			"Name": "ModelViewViewModel",
+			"Enabled": true
+		}
+	]
 }
