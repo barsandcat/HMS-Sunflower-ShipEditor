@@ -7,7 +7,10 @@
 void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection)
 {
 	SubsytemCollection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
-	MVVMShiyard = NewObject<UMVVMShipyard>();
+	MVVMShipyard = NewObject<UMVVMShipyard>();
+	MVVMShipyard->AddFieldValueChangedDelegate(UMVVMShipyard::FFieldNotificationClassDescriptor::BrushId,
+	    INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnBrushIdChanged));
+
 	if (const UWorld* World = GetWorld())
 	{
 		if (const UGameInstance* GameInstance = World->GetGameInstance())
@@ -18,10 +21,15 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 				FMVVMViewModelContext Context;
 				Context.ContextClass = UMVVMShipyard::StaticClass();
 				Context.ContextName = "Shipyard";
-				Collection->AddViewModelInstance(Context, MVVMShiyard);
+				Collection->AddViewModelInstance(Context, MVVMShipyard);
 			}
 		}
 	}
+}
+
+void UShipyardSubsystem::OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnBrushIdChanged %s %s %d"), *ViewModel->GetName(), *FieldId.GetName().ToString(), MVVMShipyard->GetBrushId());
 }
 
 ETickableTickType UShipyardSubsystem::GetTickableTickType() const
@@ -31,7 +39,7 @@ ETickableTickType UShipyardSubsystem::GetTickableTickType() const
 
 void UShipyardSubsystem::Tick(float DeltaTime)
 {
-	MVVMShiyard->SetTest(DeltaTime);
+	MVVMShipyard->SetTest(DeltaTime);
 }
 
 TStatId UShipyardSubsystem::GetStatId() const

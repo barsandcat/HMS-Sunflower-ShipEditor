@@ -16,10 +16,12 @@ class SHIPEDITOR_API UShipyardSubsystem : public UGameInstanceSubsystem, public 
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
+	void OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
+
 	virtual ETickableTickType GetTickableTickType() const override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 
-	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<UMVVMShipyard> MVVMShiyard;
+private:
+	TObjectPtr<UMVVMShipyard> MVVMShipyard;
 };

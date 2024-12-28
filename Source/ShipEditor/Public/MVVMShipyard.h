@@ -15,9 +15,12 @@ protected:
 	UPROPERTY(BlueprintReadOnly, FieldNotify)
 	float Test = 5;
 
+	UPROPERTY(BlueprintReadWrite, FieldNotify, Setter, Getter)
+	int32 BrushId = 0;
+
 public:
-	void SetTest(float NewTest)
-	{
-		UE_MVVM_SET_PROPERTY_VALUE(Test, NewTest);
-	}
+	void SetTest(float NewTest);
+
+	void SetBrushId(int32 Id);
+	int32 GetBrushId() const;
 };
