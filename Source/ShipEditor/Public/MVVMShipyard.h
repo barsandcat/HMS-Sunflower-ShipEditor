@@ -4,16 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "MVVMViewModelBase.h"
+
 #include "MVVMShipyard.generated.h"
 
-/**
- * 
- */
 UCLASS()
-class SHIPEDITOR_API UMVVMShipyard: public UMVVMViewModelBase
+class SHIPEDITOR_API UMVVMShipyard : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
-
 protected:
 	UPROPERTY(BlueprintReadOnly, FieldNotify)
 	float Test = 5;

@@ -3,14 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Subsystems/GameInstanceSubsystem.h"
 #include "MVVMShipyard.h"
+#include "Subsystems/GameInstanceSubsystem.h"
 #include "Tickable.h"
+
 #include "ShipyardSubsystem.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class SHIPEDITOR_API UShipyardSubsystem : public UGameInstanceSubsystem, public FTickableGameObject
 {
