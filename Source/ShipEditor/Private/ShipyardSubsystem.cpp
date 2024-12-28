@@ -23,3 +23,18 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 		}
 	}
 }
+
+ETickableTickType UShipyardSubsystem::GetTickableTickType() const
+{
+	return HasAnyFlags(RF_ClassDefaultObject) ? ETickableTickType::Never : ETickableTickType::Always;
+}
+
+void UShipyardSubsystem::Tick(float DeltaTime)
+{
+	MVVMShiyard->SetTest(DeltaTime);
+}
+
+TStatId UShipyardSubsystem::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(UShipyardSubsystem, STATGROUP_Tickables);
+}

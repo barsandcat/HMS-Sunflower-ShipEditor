@@ -10,8 +10,17 @@
  * 
  */
 UCLASS()
-class SHIPEDITOR_API UMVVMShipyard : public UMVVMViewModelBase
+class SHIPEDITOR_API UMVVMShipyard: public UMVVMViewModelBase
 {
 	GENERATED_BODY()
-	
+
+protected:
+	UPROPERTY(BlueprintReadOnly, FieldNotify)
+	float Test = 5;
+
+public:
+	void SetTest(float NewTest)
+	{
+		UE_MVVM_SET_PROPERTY_VALUE(Test, NewTest);
+	}
 };
