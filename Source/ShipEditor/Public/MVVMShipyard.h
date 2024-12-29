@@ -7,6 +7,15 @@
 
 #include "MVVMShipyard.generated.h"
 
+UCLASS(BlueprintType)
+class UPartObject : public UObject
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(BlueprintReadWrite)
+	FString Name = "Hehehe";
+};
+
 UCLASS()
 class SHIPEDITOR_API UMVVMShipyard : public UMVVMViewModelBase
 {
@@ -18,9 +27,14 @@ protected:
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Setter, Getter)
 	int32 BrushId = 0;
 
+	UPROPERTY(BlueprintReadOnly, FieldNotify)
+	TArray<TObjectPtr<UPartObject>> PartList;
+
 public:
 	void SetTest(float NewTest);
 
 	void SetBrushId(int32 Id);
 	int32 GetBrushId() const;
+
+	void SetPartList(TArray<TObjectPtr<UPartObject>>& NewPartList);
 };

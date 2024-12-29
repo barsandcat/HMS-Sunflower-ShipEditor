@@ -11,6 +11,15 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	MVVMShipyard->AddFieldValueChangedDelegate(UMVVMShipyard::FFieldNotificationClassDescriptor::BrushId,
 	    INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnBrushIdChanged));
 
+	TArray<TObjectPtr<UPartObject>> List;
+	TObjectPtr<UPartObject> Obj = NewObject<UPartObject>();
+	Obj->Name = TEXT("PART1");
+	List.Add(Obj);
+	Obj = NewObject<UPartObject>();
+	Obj->Name = TEXT("PART2");
+	List.Add(Obj);
+	MVVMShipyard->SetPartList(List);
+
 	if (const UWorld* World = GetWorld())
 	{
 		if (const UGameInstance* GameInstance = World->GetGameInstance())

@@ -18,3 +18,8 @@ inline int32 UMVVMShipyard::GetBrushId() const
 {
 	return BrushId;
 }
+
+void UMVVMShipyard::SetPartList(TArray<TObjectPtr<UPartObject>>& NewPartList)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(PartList, NewPartList);
+}
