@@ -4,6 +4,19 @@
 
 #include "MVVMGameSubsystem.h"
 
+namespace
+{
+
+void AddPart(TArray<TObjectPtr<UPartObject>>& List, FString Name, int32 Id)
+{
+	TObjectPtr<UPartObject> Part = NewObject<UPartObject>();
+	Part->SetName(Name);
+	Part->SetPartId(Id);
+	List.Add(Part);
+}
+
+}    // namespace
+
 void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection)
 {
 	SubsytemCollection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
@@ -12,12 +25,9 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	    INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnBrushIdChanged));
 
 	TArray<TObjectPtr<UPartObject>> List;
-	TObjectPtr<UPartObject> Obj = NewObject<UPartObject>();
-	Obj->Name = TEXT("PART1");
-	List.Add(Obj);
-	Obj = NewObject<UPartObject>();
-	Obj->Name = TEXT("PART2");
-	List.Add(Obj);
+	AddPart(List, "BL 4-inch Mk IX", 1);
+	AddPart(List, "Vickers .50 cal", 2);
+	AddPart(List, "Lewis .303 cal", 3);
 	MVVMShipyard->SetPartList(List);
 
 	if (const UWorld* World = GetWorld())

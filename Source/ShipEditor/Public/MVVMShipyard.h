@@ -8,12 +8,19 @@
 #include "MVVMShipyard.generated.h"
 
 UCLASS(BlueprintType)
-class UPartObject : public UObject
+class UPartObject : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
+protected:
+	UPROPERTY(BlueprintReadOnly, FieldNotify)
+	FString Name = "PartName";
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify)
+	int32 PartId = 0;
+
 public:
-	UPROPERTY(BlueprintReadWrite)
-	FString Name = "Hehehe";
+	void SetName(const FString& NewName);
+	void SetPartId(int32 NewPartId);
 };
 
 UCLASS()

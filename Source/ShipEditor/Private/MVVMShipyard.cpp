@@ -23,3 +23,13 @@ void UMVVMShipyard::SetPartList(TArray<TObjectPtr<UPartObject>>& NewPartList)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(PartList, NewPartList);
 }
+
+void UPartObject::SetName(const FString& NewName)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(Name, NewName);
+}
+
+void UPartObject::SetPartId(int32 NewPartId)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(PartId, NewPartId);
+}
