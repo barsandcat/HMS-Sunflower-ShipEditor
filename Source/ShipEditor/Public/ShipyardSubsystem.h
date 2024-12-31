@@ -6,8 +6,10 @@
 #include "MVVMShipyard.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Tickable.h"
+#include "UI/VMBrush.h"
 
 #include "ShipyardSubsystem.generated.h"
+class UMVVMViewModelCollectionObject;
 
 UCLASS()
 class SHIPEDITOR_API UShipyardSubsystem : public UGameInstanceSubsystem, public FTickableGameObject
@@ -23,5 +25,7 @@ public:
 	virtual TStatId GetStatId() const override;
 
 private:
+	void AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name);
 	TObjectPtr<UMVVMShipyard> MVVMShipyard;
+	TObjectPtr<UVMBrush> VMBrush;
 };

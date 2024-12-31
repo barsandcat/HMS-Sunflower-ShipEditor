@@ -17,38 +17,48 @@ void AddPart(TArray<TObjectPtr<UPartObject>>& List, FString Name, int32 Id)
 
 }    // namespace
 
+void UShipyardSubsystem::AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name)
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+		return;
+	const UGameInstance* GameInstance = World->GetGameInstance();
+	if (!GameInstance)
+		return;
+	UMVVMViewModelCollectionObject* Collection = GameInstance->GetSubsystem<UMVVMGameSubsystem>()->GetViewModelCollection();
+	if (!Collection)
+		return;
+
+	FMVVMViewModelContext Context;
+	Context.ContextClass = Class;
+	Context.ContextName = Name;
+	Collection->AddViewModelInstance(Context, ViewModel);
+}
+
 void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection)
 {
 	SubsytemCollection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
+
 	MVVMShipyard = NewObject<UMVVMShipyard>();
 	MVVMShipyard->AddFieldValueChangedDelegate(UMVVMShipyard::FFieldNotificationClassDescriptor::BrushId,
 	    INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnBrushIdChanged));
-
 	TArray<TObjectPtr<UPartObject>> List;
 	AddPart(List, "BL 4-inch Mk IX", 1);
 	AddPart(List, "Vickers .50 cal", 2);
 	AddPart(List, "Lewis .303 cal", 3);
 	MVVMShipyard->SetPartList(List);
 
-	if (const UWorld* World = GetWorld())
-	{
-		if (const UGameInstance* GameInstance = World->GetGameInstance())
-		{
-			UMVVMViewModelCollectionObject* Collection = GameInstance->GetSubsystem<UMVVMGameSubsystem>()->GetViewModelCollection();
-			if (Collection)
-			{
-				FMVVMViewModelContext Context;
-				Context.ContextClass = UMVVMShipyard::StaticClass();
-				Context.ContextName = "Shipyard";
-				Collection->AddViewModelInstance(Context, MVVMShipyard);
-			}
-		}
-	}
+	VMBrush = NewObject<UVMBrush>();
+
+	AddModelViewToGlobal(MVVMShipyard, UMVVMShipyard::StaticClass(), "Shipyard");
+	AddModelViewToGlobal(VMBrush, UVMBrush::StaticClass(), "Brush");
 }
 
 void UShipyardSubsystem::OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnBrushIdChanged %s %s %d"), *ViewModel->GetName(), *FieldId.GetName().ToString(), MVVMShipyard->GetBrushId());
+
+	VMBrush->SetReady(MVVMShipyard->GetBrushId() != 0);
 }
 
 ETickableTickType UShipyardSubsystem::GetTickableTickType() const
