@@ -24,6 +24,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 
+	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	void DoBrush();
+
 private:
 	void AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name);
 	TObjectPtr<UMVVMShipyard> MVVMShipyard;

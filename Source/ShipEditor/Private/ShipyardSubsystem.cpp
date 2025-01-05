@@ -37,6 +37,7 @@ void UShipyardSubsystem::AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UCl
 
 void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection)
 {
+	Super::Initialize(SubsytemCollection);
 	SubsytemCollection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
 
 	MVVMShipyard = NewObject<UMVVMShipyard>();
@@ -74,4 +75,9 @@ void UShipyardSubsystem::Tick(float DeltaTime)
 TStatId UShipyardSubsystem::GetStatId() const
 {
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UShipyardSubsystem, STATGROUP_Tickables);
+}
+
+void UShipyardSubsystem::DoBrush()
+{
+	UE_LOG(LogTemp, Warning, TEXT("DoBrush"));
 }
