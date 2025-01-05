@@ -3,16 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MVVMShipyard.h"
 #include "Subsystems/GameInstanceSubsystem.h"
-#include "Tickable.h"
-#include "UI/VMBrush.h"
+#include "UI/ViewModels/VMBrush.h"
+#include "UI/ViewModels/VMPartBrowser.h"
 
 #include "ShipyardSubsystem.generated.h"
-class UMVVMViewModelCollectionObject;
 
 UCLASS()
-class SHIPEDITOR_API UShipyardSubsystem : public UGameInstanceSubsystem, public FTickableGameObject
+class SHIPEDITOR_API UShipyardSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 public:
@@ -20,15 +18,11 @@ public:
 
 	void OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
 
-	virtual ETickableTickType GetTickableTickType() const override;
-	virtual void Tick(float DeltaTime) override;
-	virtual TStatId GetStatId() const override;
-
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
 	void DoBrush();
 
 private:
 	void AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name);
-	TObjectPtr<UMVVMShipyard> MVVMShipyard;
+	TObjectPtr<UVMPartBrowser> VMPartBrowser;
 	TObjectPtr<UVMBrush> VMBrush;
 };

@@ -23,14 +23,10 @@ class SHIPEDITOR_API UShipPartBrowserActivatableWidget : public UCommonActivatab
 	GENERATED_BODY()
 
 	virtual bool Initialize() override;
-	TObjectPtr<UListFilterOption> Dummy;
 	TArray<TObjectPtr<UListFilterOption>> Catergories;
 	TArray<TObjectPtr<UListFilterOption>> Filters;
 
 public:
-	UPROPERTY(BlueprintReadWrite, Meta = (BindWidget))
-	TObjectPtr<UCommonListView> PartList;
-
 	UPROPERTY(BlueprintReadWrite, Meta = (BindWidget))
 	TObjectPtr<UCommonListView> FilterList;
 

@@ -27,8 +27,6 @@ bool UShipPartBrowserActivatableWidget::Initialize()
 		AddOption(Filters, "Any");
 		AddOption(Filters, "Any");
 
-		Dummy = NewObject<UListFilterOption>();
-		// PartList->AddItem(Dummy);
 		FilterList->SetListItems(Filters);
 		CategoryList->SetListItems(Catergories);
 		return true;

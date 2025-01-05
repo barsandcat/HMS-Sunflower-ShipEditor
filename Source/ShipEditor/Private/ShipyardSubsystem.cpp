@@ -7,9 +7,9 @@
 namespace
 {
 
-void AddPart(TArray<TObjectPtr<UPartObject>>& List, FString Name, int32 Id)
+void AddPart(TUVMShipPartArray& List, FString Name, int32 Id)
 {
-	TObjectPtr<UPartObject> Part = NewObject<UPartObject>();
+	TObjectPtr<UVMShipPart> Part = NewObject<UVMShipPart>();
 	Part->SetName(Name);
 	Part->SetPartId(Id);
 	List.Add(Part);
@@ -40,41 +40,26 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	Super::Initialize(SubsytemCollection);
 	SubsytemCollection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
 
-	MVVMShipyard = NewObject<UMVVMShipyard>();
-	MVVMShipyard->AddFieldValueChangedDelegate(UMVVMShipyard::FFieldNotificationClassDescriptor::BrushId,
+	VMPartBrowser = NewObject<UVMPartBrowser>();
+	VMPartBrowser->AddFieldValueChangedDelegate(UVMPartBrowser::FFieldNotificationClassDescriptor::PartId,
 	    INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnBrushIdChanged));
-	TArray<TObjectPtr<UPartObject>> List;
+	TUVMShipPartArray List;
 	AddPart(List, "BL 4-inch Mk IX", 1);
 	AddPart(List, "Vickers .50 cal", 2);
 	AddPart(List, "Lewis .303 cal", 3);
-	MVVMShipyard->SetPartList(List);
+	VMPartBrowser->SetPartList(List);
 
 	VMBrush = NewObject<UVMBrush>();
 
-	AddModelViewToGlobal(MVVMShipyard, UMVVMShipyard::StaticClass(), "Shipyard");
-	AddModelViewToGlobal(VMBrush, UVMBrush::StaticClass(), "Brush");
+	AddModelViewToGlobal(VMPartBrowser, UVMPartBrowser::StaticClass(), "VMPartBrowser");
+	AddModelViewToGlobal(VMBrush, UVMBrush::StaticClass(), "VMBrush");
 }
 
 void UShipyardSubsystem::OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnBrushIdChanged %s %s %d"), *ViewModel->GetName(), *FieldId.GetName().ToString(), MVVMShipyard->GetBrushId());
+	UE_LOG(LogTemp, Warning, TEXT("OnBrushIdChanged %s %s %d"), *ViewModel->GetName(), *FieldId.GetName().ToString(), VMPartBrowser->GetPartId());
 
-	VMBrush->SetReady(MVVMShipyard->GetBrushId() != 0);
-}
-
-ETickableTickType UShipyardSubsystem::GetTickableTickType() const
-{
-	return HasAnyFlags(RF_ClassDefaultObject) ? ETickableTickType::Never : ETickableTickType::Always;
-}
-
-void UShipyardSubsystem::Tick(float DeltaTime)
-{
-	MVVMShipyard->SetTest(DeltaTime);
-}
-
-TStatId UShipyardSubsystem::GetStatId() const
-{
-	RETURN_QUICK_DECLARE_CYCLE_STAT(UShipyardSubsystem, STATGROUP_Tickables);
+	VMBrush->SetReady(VMPartBrowser->GetPartId() != 0);
 }
 
 void UShipyardSubsystem::DoBrush()
