@@ -17,6 +17,11 @@ void AddPart(TUVMShipPartArray& List, FString Name, int32 Id)
 
 }    // namespace
 
+void UShipyardSubsystem::SetCursorPosition(FVector WorldPosition)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SetCursorPosition %s"), *WorldPosition.ToString());
+}
+
 void UShipyardSubsystem::AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name)
 {
 	const UWorld* World = GetWorld();

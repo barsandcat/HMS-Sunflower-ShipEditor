@@ -19,7 +19,8 @@ public class ShipEditor : ModuleRules
             "SlateCore",
             "UMG",
             "CommonInput",
-            "CommonUI"
+            "CommonUI",
+            "ModularGameplayActors"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });

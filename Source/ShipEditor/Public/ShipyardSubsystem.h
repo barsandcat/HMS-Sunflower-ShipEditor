@@ -29,9 +29,13 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Shipyard")
 	FBrushEvent OnBrushCleared;
 
+	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	void SetCursorPosition(FVector WorldPosition);
+
 private:
 	void AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name);
 	TObjectPtr<UVMPartBrowser> VMPartBrowser;
 	TObjectPtr<UVMBrush> VMBrush;
 	int32 BrushId = 0;
+	TObjectPtr<AActor> Cursor;
 };
