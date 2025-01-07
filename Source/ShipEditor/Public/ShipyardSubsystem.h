@@ -9,6 +9,8 @@
 
 #include "ShipyardSubsystem.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBrushEvent);
+
 UCLASS()
 class SHIPEDITOR_API UShipyardSubsystem : public UGameInstanceSubsystem
 {
@@ -21,8 +23,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
 	void DoBrush();
 
+	UPROPERTY(BlueprintAssignable, Category = "Shipyard")
+	FBrushEvent OnBrushReady;
+
+	UPROPERTY(BlueprintAssignable, Category = "Shipyard")
+	FBrushEvent OnBrushCleared;
+
 private:
 	void AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name);
 	TObjectPtr<UVMPartBrowser> VMPartBrowser;
 	TObjectPtr<UVMBrush> VMBrush;
+	int32 BrushId = 0;
 };

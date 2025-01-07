@@ -58,11 +58,20 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 void UShipyardSubsystem::OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnBrushIdChanged %s %s %d"), *ViewModel->GetName(), *FieldId.GetName().ToString(), VMPartBrowser->GetPartId());
-
 	VMBrush->SetReady(VMPartBrowser->GetPartId() != 0);
+	if (BrushId == 0 && VMPartBrowser->GetPartId() != 0)
+	{
+		OnBrushReady.Broadcast();
+	}
+	if (BrushId != 0 && VMPartBrowser->GetPartId() == 0)
+	{
+		OnBrushCleared.Broadcast();
+	}
+	BrushId = VMPartBrowser->GetPartId();
 }
 
 void UShipyardSubsystem::DoBrush()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DoBrush"));
+	UE_LOG(LogTemp, Warning, TEXT("DoBrush %d"), BrushId);
+	VMPartBrowser->SetPartId(0);
 }
