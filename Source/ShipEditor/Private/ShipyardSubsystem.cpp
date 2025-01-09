@@ -19,7 +19,25 @@ void AddPart(TUVMShipPartArray& List, FString Name, int32 Id)
 
 void UShipyardSubsystem::SetCursorPosition(FVector WorldPosition)
 {
-	UE_LOG(LogTemp, Warning, TEXT("SetCursorPosition %s"), *WorldPosition.ToString());
+	if (!CursorClassPtr)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	if (!Cursor)
+	{
+		Cursor = World->SpawnActor<AActor>(CursorClassPtr, WorldPosition, {}, {});
+	}
+	else
+	{
+		Cursor->SetActorLocation(WorldPosition);
+	}
 }
 
 void UShipyardSubsystem::AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name)
@@ -58,6 +76,8 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 
 	AddModelViewToGlobal(VMPartBrowser, UVMPartBrowser::StaticClass(), "VMPartBrowser");
 	AddModelViewToGlobal(VMBrush, UVMBrush::StaticClass(), "VMBrush");
+
+	CursorClassPtr = CursorClass.LoadSynchronous();
 }
 
 void UShipyardSubsystem::OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)

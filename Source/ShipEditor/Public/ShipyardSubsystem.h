@@ -11,7 +11,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBrushEvent);
 
-UCLASS()
+UCLASS(config = Game)
 class SHIPEDITOR_API UShipyardSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
@@ -31,6 +31,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
 	void SetCursorPosition(FVector WorldPosition);
+
+	UPROPERTY()
+	TSubclassOf<AActor> CursorClassPtr;
+
+	UPROPERTY(config)
+	TSoftClassPtr<AActor> CursorClass;
 
 private:
 	void AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name);
