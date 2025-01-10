@@ -4,6 +4,8 @@
 
 #include "MVVMGameSubsystem.h"
 
+const double GRID_SIZE = 100.0f;
+
 namespace
 {
 
@@ -30,13 +32,20 @@ void UShipyardSubsystem::SetCursorPosition(FVector WorldPosition)
 		return;
 	}
 
+	FVector CursorPos = WorldPosition;
+	int32 X = round(WorldPosition.X / GRID_SIZE);
+	int32 Z = round(WorldPosition.Z / GRID_SIZE);
+
+	CursorPos.X = X * GRID_SIZE;
+	CursorPos.Z = Z * GRID_SIZE;
+
 	if (!Cursor)
 	{
-		Cursor = World->SpawnActor<AActor>(CursorClassPtr, WorldPosition, {}, {});
+		Cursor = World->SpawnActor<AActor>(CursorClassPtr, CursorPos, {}, {});
 	}
 	else
 	{
-		Cursor->SetActorLocation(WorldPosition);
+		Cursor->SetActorLocation(CursorPos);
 	}
 }
 
