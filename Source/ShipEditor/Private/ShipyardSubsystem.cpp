@@ -87,6 +87,8 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	AddModelViewToGlobal(VMBrush, UVMBrush::StaticClass(), "VMBrush");
 
 	CursorClassPtr = CursorClass.LoadSynchronous();
+
+	PartClassPtr = StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart.BP_ShipPart_C"), nullptr, LOAD_None, nullptr);
 }
 
 void UShipyardSubsystem::OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
@@ -107,5 +109,25 @@ void UShipyardSubsystem::OnBrushIdChanged(UObject* ViewModel, UE::FieldNotificat
 void UShipyardSubsystem::DoBrush()
 {
 	UE_LOG(LogTemp, Warning, TEXT("DoBrush %d"), BrushId);
+	UWorld* World = GetWorld();
+	if (!World || !Cursor || !BrushId || !PartClassPtr)
+	{
+		return;
+	}
+
+	FVector CursorPos = Cursor->GetActorLocation();
+	FIntVector2 CellId = {int32(round(CursorPos.X / GRID_SIZE)), int32(round(CursorPos.Z / GRID_SIZE))};
+
+	if (ShipPlan.Contains(CellId))
+	{
+		return;
+	}
+	TObjectPtr<AShipPlanCell> ShipPlanCell = World->SpawnActor<AShipPlanCell>(PartClassPtr, CursorPos, {}, {});
+	if (!ShipPlanCell)
+	{
+		return;
+	}
+	ShipPlanCell->PartId = BrushId;
+	ShipPlan.Add(CellId, ShipPlanCell);
 	VMPartBrowser->SetPartId(0);
 }

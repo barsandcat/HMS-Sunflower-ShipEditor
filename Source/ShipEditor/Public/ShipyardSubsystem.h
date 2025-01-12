@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ShipPlanCell.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "UI/ViewModels/VMBrush.h"
 #include "UI/ViewModels/VMPartBrowser.h"
@@ -44,4 +45,6 @@ private:
 	TObjectPtr<UVMBrush> VMBrush;
 	int32 BrushId = 0;
 	TObjectPtr<AActor> Cursor;
+	TMap<FIntVector2, TObjectPtr<AShipPlanCell>> ShipPlan;
+	TSubclassOf<AShipPlanCell> PartClassPtr;
 };
