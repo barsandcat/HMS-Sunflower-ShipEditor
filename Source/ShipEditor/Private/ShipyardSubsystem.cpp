@@ -41,7 +41,7 @@ void UShipyardSubsystem::SetCursorPosition(FVector WorldPosition)
 
 	if (!Cursor)
 	{
-		Cursor = World->SpawnActor<AActor>(CursorClassPtr, CursorPos, {}, {});
+		Cursor = World->SpawnActor<AActor>(CursorClassPtr, CursorPos, FRotator::ZeroRotator, {});
 	}
 	else
 	{
