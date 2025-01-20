@@ -17,6 +17,16 @@ void AddPart(TUVMShipPartArray& List, FString Name, int32 Id)
 	List.Add(Part);
 }
 
+void SetOverlayMaterial(AShipPlanCell* Cell, UMaterialInterface* Material)
+{
+	TInlineComponentArray<UStaticMeshComponent*> StaticMeshes;
+	Cell->GetComponents(StaticMeshes);
+	for (UStaticMeshComponent* StaticMesh : StaticMeshes)
+	{
+		StaticMesh->SetOverlayMaterial(Material);
+	}
+}
+
 }    // namespace
 
 void UShipyardSubsystem::SetCursorPosition(FVector WorldPosition)
@@ -65,6 +75,13 @@ void UShipyardSubsystem::AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UCl
 	Context.ContextClass = Class;
 	Context.ContextName = Name;
 	Collection->AddViewModelInstance(Context, ViewModel);
+}
+
+UShipyardSubsystem::UShipyardSubsystem()
+    : UGameInstanceSubsystem()
+{
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> SelectionYellow(TEXT("/Game/Materials/M_Selection_Yellow.M_Selection_Yellow"));
+	SelectionMaterial = SelectionYellow.Object;
 }
 
 void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection)
@@ -128,6 +145,31 @@ void UShipyardSubsystem::DoBrush()
 		return;
 	}
 	ShipPlanCell->PartId = BrushId;
+
 	ShipPlan.Add(CellId, ShipPlanCell);
 	VMPartBrowser->SetPartId(0);
+}
+
+void UShipyardSubsystem::Select()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Select %d"), BrushId);
+	if (!Cursor || BrushId)
+	{
+		return;
+	}
+
+	FVector CursorPos = Cursor->GetActorLocation();
+	FIntVector2 CellId = {int32(round(CursorPos.X / GRID_SIZE)), int32(round(CursorPos.Z / GRID_SIZE))};
+
+	if (Selection)
+	{
+		SetOverlayMaterial(Selection, nullptr);
+		Selection = nullptr;
+	}
+
+	if (ShipPlan.Contains(CellId))
+	{
+		Selection = *ShipPlan.Find(CellId);
+		SetOverlayMaterial(Selection, SelectionMaterial);
+	}
 }

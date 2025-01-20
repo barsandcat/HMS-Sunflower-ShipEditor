@@ -17,12 +17,16 @@ class SHIPEDITOR_API UShipyardSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 public:
+	UShipyardSubsystem();
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	void OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
 
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
 	void DoBrush();
+
+	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	void Select();
 
 	UPROPERTY(BlueprintAssignable, Category = "Shipyard")
 	FBrushEvent OnBrushReady;
@@ -45,6 +49,9 @@ private:
 	TObjectPtr<UVMBrush> VMBrush;
 	int32 BrushId = 0;
 	TObjectPtr<AActor> Cursor;
+	TObjectPtr<AShipPlanCell> Selection;
 	TMap<FIntVector2, TObjectPtr<AShipPlanCell>> ShipPlan;
+
 	TSubclassOf<AShipPlanCell> PartClassPtr;
+	TObjectPtr<UMaterialInterface> SelectionMaterial;
 };
