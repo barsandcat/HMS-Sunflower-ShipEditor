@@ -28,6 +28,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
 	void Select();
 
+	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	void Delete();
+
 	UPROPERTY(BlueprintAssignable, Category = "Shipyard")
 	FBrushEvent OnBrushReady;
 

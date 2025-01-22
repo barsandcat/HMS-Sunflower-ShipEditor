@@ -173,3 +173,19 @@ void UShipyardSubsystem::Select()
 		SetOverlayMaterial(Selection, SelectionMaterial);
 	}
 }
+
+void UShipyardSubsystem::Delete()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Delete"));
+	if (!Selection)
+	{
+		return;
+	}
+
+	FVector SelectionPos = Selection->GetActorLocation();
+	FIntVector2 CellId = {int32(round(SelectionPos.X / GRID_SIZE)), int32(round(SelectionPos.Z / GRID_SIZE))};
+	ShipPlan.Remove(CellId);
+
+	Selection->Destroy();
+	Selection = nullptr;
+}
