@@ -27,6 +27,16 @@ void SetOverlayMaterial(AShipPlanCell* Cell, UMaterialInterface* Material)
 	}
 }
 
+FIntVector2 WorldToCellId(const FVector& WordlPos)
+{
+	return {int32(round(WordlPos.X / GRID_SIZE)), int32(round(WordlPos.Z / GRID_SIZE))};
+}
+
+FVector CellIdToWorld(const FIntVector2& CellId)
+{
+	return {CellId.X * GRID_SIZE, 0.0f, CellId.Y * GRID_SIZE};
+}
+
 }    // namespace
 
 void UShipyardSubsystem::SetCursorPosition(FVector WorldPosition)
@@ -42,12 +52,8 @@ void UShipyardSubsystem::SetCursorPosition(FVector WorldPosition)
 		return;
 	}
 
-	FVector CursorPos = WorldPosition;
-	int32 X = round(WorldPosition.X / GRID_SIZE);
-	int32 Z = round(WorldPosition.Z / GRID_SIZE);
-
-	CursorPos.X = X * GRID_SIZE;
-	CursorPos.Z = Z * GRID_SIZE;
+	FVector CursorPos = CellIdToWorld(WorldToCellId(WorldPosition));
+	CursorPos.Y = WorldPosition.Y;
 
 	if (!Cursor)
 	{
@@ -133,8 +139,7 @@ void UShipyardSubsystem::DoBrush()
 	}
 
 	FVector CursorPos = Cursor->GetActorLocation();
-	FIntVector2 CellId = {int32(round(CursorPos.X / GRID_SIZE)), int32(round(CursorPos.Z / GRID_SIZE))};
-
+	FIntVector2 CellId = WorldToCellId(CursorPos);
 	if (ShipPlan.Contains(CellId))
 	{
 		return;
@@ -158,15 +163,13 @@ void UShipyardSubsystem::Select()
 		return;
 	}
 
-	FVector CursorPos = Cursor->GetActorLocation();
-	FIntVector2 CellId = {int32(round(CursorPos.X / GRID_SIZE)), int32(round(CursorPos.Z / GRID_SIZE))};
-
 	if (Selection)
 	{
 		SetOverlayMaterial(Selection, nullptr);
 		Selection = nullptr;
 	}
 
+	FIntVector2 CellId = WorldToCellId(Cursor->GetActorLocation());
 	if (ShipPlan.Contains(CellId))
 	{
 		Selection = *ShipPlan.Find(CellId);
@@ -182,10 +185,31 @@ void UShipyardSubsystem::Delete()
 		return;
 	}
 
-	FVector SelectionPos = Selection->GetActorLocation();
-	FIntVector2 CellId = {int32(round(SelectionPos.X / GRID_SIZE)), int32(round(SelectionPos.Z / GRID_SIZE))};
-	ShipPlan.Remove(CellId);
-
+	ShipPlan.Remove(WorldToCellId(Selection->GetActorLocation()));
 	Selection->Destroy();
 	Selection = nullptr;
+}
+
+void UShipyardSubsystem::Grab()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grab"));
+	if (!Cursor)
+	{
+		return;
+	}
+
+	if (Selection)
+	{
+		SetOverlayMaterial(Selection, nullptr);
+		Selection = nullptr;
+	}
+
+	FIntVector2 CellId = WorldToCellId(Cursor->GetActorLocation());
+	if (ShipPlan.Contains(CellId))
+	{
+		TObjectPtr<AShipPlanCell> ShipPlanCell = *ShipPlan.Find(CellId);
+		ShipPlan.Remove(CellId);
+		VMPartBrowser->SetPartId(ShipPlanCell->PartId);
+		ShipPlanCell->Destroy();
+	}
 }
