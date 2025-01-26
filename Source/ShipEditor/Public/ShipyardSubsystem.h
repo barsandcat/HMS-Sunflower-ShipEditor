@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Misc/Optional.h"
 #include "ShipPlanCell.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "UI/ViewModels/VMBrush.h"
@@ -40,8 +41,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Shipyard")
 	FBrushEvent OnBrushCleared;
 
-	UFUNCTION(BlueprintCallable, Category = "Shipyard")
-	void SetCursorPosition(FVector WorldPosition);
+	void SetCursorPosition(const TOptional<FVector>& WorldPosition);
 
 	UPROPERTY()
 	TSubclassOf<AActor> CursorClassPtr;
@@ -60,4 +60,5 @@ private:
 
 	TSubclassOf<AShipPlanCell> PartClassPtr;
 	TObjectPtr<UMaterialInterface> SelectionMaterial;
+	TObjectPtr<UMaterialInterface> PreviewMaterial;
 };

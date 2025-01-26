@@ -39,7 +39,7 @@ FVector CellIdToWorld(const FIntVector2& CellId)
 
 }    // namespace
 
-void UShipyardSubsystem::SetCursorPosition(FVector WorldPosition)
+void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& WorldPosition)
 {
 	if (!CursorClassPtr)
 	{
@@ -52,16 +52,27 @@ void UShipyardSubsystem::SetCursorPosition(FVector WorldPosition)
 		return;
 	}
 
-	FVector CursorPos = CellIdToWorld(WorldToCellId(WorldPosition));
-	CursorPos.Y = WorldPosition.Y;
-
-	if (!Cursor)
+	if (WorldPosition)
 	{
-		Cursor = World->SpawnActor<AActor>(CursorClassPtr, CursorPos, FRotator::ZeroRotator, {});
+		FVector CursorPos = CellIdToWorld(WorldToCellId(*WorldPosition));
+		CursorPos.Y = WorldPosition->Y;
+
+		if (!Cursor)
+		{
+			Cursor = World->SpawnActor<AActor>(CursorClassPtr, CursorPos, FRotator::ZeroRotator, {});
+		}
+		else
+		{
+			Cursor->SetActorLocation(CursorPos);
+		}
 	}
 	else
 	{
-		Cursor->SetActorLocation(CursorPos);
+		if (Cursor)
+		{
+			Cursor->Destroy();
+			Cursor = nullptr;
+		}
 	}
 }
 
@@ -88,6 +99,8 @@ UShipyardSubsystem::UShipyardSubsystem()
 {
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> SelectionYellow(TEXT("/Game/Materials/M_Selection_Yellow.M_Selection_Yellow"));
 	SelectionMaterial = SelectionYellow.Object;
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> PreviewBlue(TEXT("/Game/Materials/M_Preview_Blue.M_Preview_Blue"));
+	PreviewMaterial = PreviewBlue.Object;
 }
 
 void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection)

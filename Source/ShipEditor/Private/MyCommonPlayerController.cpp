@@ -27,25 +27,25 @@ void AMyCommonPlayerController::PlayerTick(float DeltaTime)
 	Shipyard->SetCursorPosition(GetMouseWorldPosition(0));
 }
 
-FVector AMyCommonPlayerController::GetMouseWorldPosition(double PlaneY)
+TOptional<FVector> AMyCommonPlayerController::GetMouseWorldPosition(double PlaneY)
 {
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
 	if (!LocalPlayer || !LocalPlayer->ViewportClient)
 	{
-		return FVector::Zero();
+		return {};
 	}
 
 	FVector2D MouseScreenPosition = FVector2D::Zero();
 	if (!LocalPlayer->ViewportClient->GetMousePosition(MouseScreenPosition))
 	{
-		return FVector::Zero();
+		return {};
 	}
 
 	FVector DeprojectLocation = FVector::Zero();
 	FVector DeprojectDirection = FVector::Zero();
 	if (!DeprojectScreenPositionToWorld(MouseScreenPosition.X, MouseScreenPosition.Y, DeprojectLocation, DeprojectDirection))
 	{
-		return FVector::Zero();
+		return {};
 	}
 
 	FVector WorldMousePosition = FVector::Zero();

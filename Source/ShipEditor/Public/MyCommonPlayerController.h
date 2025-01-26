@@ -4,6 +4,7 @@
 
 #include "CommonPlayerController.h"
 #include "CoreMinimal.h"
+#include "Misc/Optional.h"
 
 #include "MyCommonPlayerController.generated.h"
 
@@ -13,5 +14,5 @@ class SHIPEDITOR_API AMyCommonPlayerController : public ACommonPlayerController
 	GENERATED_BODY()
 public:
 	virtual void PlayerTick(float DeltaTime) override;
-	FVector GetMouseWorldPosition(double planeY);
+	TOptional<FVector> GetMouseWorldPosition(double planeY);
 };
