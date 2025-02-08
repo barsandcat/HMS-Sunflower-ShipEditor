@@ -42,6 +42,7 @@ public:
 	FBrushEvent OnBrushCleared;
 
 	void SetCursorPosition(const TOptional<FVector>& WorldPosition);
+	void SetBrushPosition(const TOptional<FVector>& WorldPosition);
 
 	UPROPERTY()
 	TSubclassOf<AActor> CursorClassPtr;
@@ -54,6 +55,7 @@ private:
 	TObjectPtr<UVMPartBrowser> VMPartBrowser;
 	TObjectPtr<UVMBrush> VMBrush;
 	int32 BrushId = 0;
+	TObjectPtr<AShipPlanCell> Brush;
 	TObjectPtr<AActor> Cursor;
 	TObjectPtr<AShipPlanCell> Selection;
 	TMap<FIntVector2, TObjectPtr<AShipPlanCell>> ShipPlan;

@@ -27,6 +27,22 @@ void SetOverlayMaterial(AShipPlanCell* Cell, UMaterialInterface* Material)
 	}
 }
 
+void SetMaterial(AShipPlanCell* Cell, UMaterialInterface* Material)
+{
+	TInlineComponentArray<UStaticMeshComponent*> StaticMeshes;
+	Cell->GetComponents(StaticMeshes);
+	for (UStaticMeshComponent* StaticMesh : StaticMeshes)
+	{
+		for (int Index = 0; Index < StaticMesh->GetNumMaterials(); Index++)
+		{
+			if (StaticMesh->GetMaterial(Index))
+			{
+				StaticMesh->SetMaterial(Index, Material);
+			}
+		}
+	}
+}
+
 FIntVector2 WorldToCellId(const FVector& WordlPos)
 {
 	return {int32(round(WordlPos.X / GRID_SIZE)), int32(round(WordlPos.Z / GRID_SIZE))};
@@ -73,6 +89,22 @@ void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& WorldPositi
 			Cursor->Destroy();
 			Cursor = nullptr;
 		}
+	}
+}
+
+void UShipyardSubsystem::SetBrushPosition(const TOptional<FVector>& WorldPosition)
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	if (WorldPosition && Brush)
+	{
+		FVector Pos = CellIdToWorld(WorldToCellId(*WorldPosition));
+		Pos.Y = WorldPosition->Y;
+		Brush->SetActorLocation(Pos);
 	}
 }
 
@@ -129,17 +161,33 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 
 void UShipyardSubsystem::OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnBrushIdChanged %s %s %d"), *ViewModel->GetName(), *FieldId.GetName().ToString(), VMPartBrowser->GetPartId());
-	VMBrush->SetReady(VMPartBrowser->GetPartId() != 0);
-	if (BrushId == 0 && VMPartBrowser->GetPartId() != 0)
+	int NewBrushId = VMPartBrowser->GetPartId();
+	UE_LOG(LogTemp, Warning, TEXT("OnBrushIdChanged %s %s %d"), *ViewModel->GetName(), *FieldId.GetName().ToString(), NewBrushId);
+	VMBrush->SetReady(NewBrushId != 0);
+
+	if (BrushId == 0 && NewBrushId != 0)
 	{
 		OnBrushReady.Broadcast();
+		if (!Brush)
+		{
+			if (UWorld* World = GetWorld())
+			{
+				Brush = World->SpawnActor<AShipPlanCell>(PartClassPtr, Cursor->GetActorLocation(), {}, {});
+				SetMaterial(Brush, PreviewMaterial);
+			}
+		}
+		if (Brush)
+		{
+			Brush->PartId = NewBrushId;
+		}
 	}
-	if (BrushId != 0 && VMPartBrowser->GetPartId() == 0)
+	if (BrushId != 0 && NewBrushId == 0)
 	{
+		Brush->Destroy();
+		Brush = nullptr;
 		OnBrushCleared.Broadcast();
 	}
-	BrushId = VMPartBrowser->GetPartId();
+	BrushId = NewBrushId;
 }
 
 void UShipyardSubsystem::DoBrush()
