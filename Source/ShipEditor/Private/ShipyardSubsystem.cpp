@@ -156,7 +156,23 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 
 	CursorClassPtr = CursorClass.LoadSynchronous();
 
-	PartClassPtr = StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart.BP_ShipPart_C"), nullptr, LOAD_None, nullptr);
+	PartClassMap.Add(1, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_01.BP_ShipPart_01_C"), nullptr, LOAD_None, nullptr));
+	PartClassMap.Add(2, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_02.BP_ShipPart_02_C"), nullptr, LOAD_None, nullptr));
+	PartClassMap.Add(3, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_03.BP_ShipPart_03_C"), nullptr, LOAD_None, nullptr));
+	PartClassMap.Add(4, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_04.BP_ShipPart_04_C"), nullptr, LOAD_None, nullptr));
+	PartClassMap.Add(5, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_05.BP_ShipPart_05_C"), nullptr, LOAD_None, nullptr));
+}
+
+TSubclassOf<AShipPlanCell> UShipyardSubsystem::GetPartClass(int32 part_id) const
+{
+	if (auto part_class = PartClassMap.Find(part_id))
+	{
+		return *part_class;
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
 void UShipyardSubsystem::OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
@@ -165,27 +181,45 @@ void UShipyardSubsystem::OnBrushIdChanged(UObject* ViewModel, UE::FieldNotificat
 	UE_LOG(LogTemp, Warning, TEXT("OnBrushIdChanged %s %s %d"), *ViewModel->GetName(), *FieldId.GetName().ToString(), NewBrushId);
 	VMBrush->SetReady(NewBrushId != 0);
 
-	if (BrushId == 0 && NewBrushId != 0)
+	if (NewBrushId == BrushId)
 	{
-		OnBrushReady.Broadcast();
-		if (!Brush)
+		return;
+	}
+
+	if (BrushId != 0)
+	{
+		Brush->Destroy();
+		Brush = nullptr;
+
+		if (NewBrushId == 0)
 		{
-			if (UWorld* World = GetWorld())
+			OnBrushCleared.Broadcast();
+		}
+	}
+
+	if (NewBrushId != 0)
+	{
+		check(!Brush);
+
+		if (UWorld* World = GetWorld())
+		{
+			TSubclassOf<AShipPlanCell> part_class = GetPartClass(NewBrushId);
+			if (part_class)
 			{
-				Brush = World->SpawnActor<AShipPlanCell>(PartClassPtr, Cursor->GetActorLocation(), {}, {});
+				Brush = World->SpawnActor<AShipPlanCell>(part_class, Cursor->GetActorLocation(), {}, {});
 				SetMaterial(Brush, PreviewMaterial);
 			}
 		}
+
 		if (Brush)
 		{
 			Brush->PartId = NewBrushId;
 		}
-	}
-	if (BrushId != 0 && NewBrushId == 0)
-	{
-		Brush->Destroy();
-		Brush = nullptr;
-		OnBrushCleared.Broadcast();
+
+		if (BrushId == 0)
+		{
+			OnBrushReady.Broadcast();
+		}
 	}
 	BrushId = NewBrushId;
 }
@@ -194,7 +228,8 @@ void UShipyardSubsystem::DoBrush()
 {
 	UE_LOG(LogTemp, Warning, TEXT("DoBrush %d"), BrushId);
 	UWorld* World = GetWorld();
-	if (!World || !Cursor || !BrushId || !PartClassPtr)
+	TSubclassOf<AShipPlanCell> part_class = GetPartClass(BrushId);
+	if (!World || !Cursor || !BrushId || !part_class)
 	{
 		return;
 	}
@@ -205,7 +240,7 @@ void UShipyardSubsystem::DoBrush()
 	{
 		return;
 	}
-	TObjectPtr<AShipPlanCell> ShipPlanCell = World->SpawnActor<AShipPlanCell>(PartClassPtr, CursorPos, {}, {});
+	TObjectPtr<AShipPlanCell> ShipPlanCell = World->SpawnActor<AShipPlanCell>(part_class, CursorPos, {}, {});
 	if (!ShipPlanCell)
 	{
 		return;

@@ -51,6 +51,7 @@ public:
 	TSoftClassPtr<AActor> CursorClass;
 
 private:
+	TSubclassOf<AShipPlanCell> GetPartClass(int32 part_id) const;
 	void AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name);
 	TObjectPtr<UVMPartBrowser> VMPartBrowser;
 	TObjectPtr<UVMBrush> VMBrush;
@@ -60,7 +61,7 @@ private:
 	TObjectPtr<AShipPlanCell> Selection;
 	TMap<FIntVector2, TObjectPtr<AShipPlanCell>> ShipPlan;
 
-	TSubclassOf<AShipPlanCell> PartClassPtr;
 	TObjectPtr<UMaterialInterface> SelectionMaterial;
 	TObjectPtr<UMaterialInterface> PreviewMaterial;
+	TMap<int32, TSubclassOf<AShipPlanCell>> PartClassMap;
 };
