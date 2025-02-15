@@ -13,13 +13,13 @@ class UVMShipPart : public UMVVMViewModelBase
 	GENERATED_BODY()
 protected:
 	UPROPERTY(BlueprintReadOnly, FieldNotify)
-	FString Name = "PartName";
+	FText Name;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify)
 	int32 PartId = 0;
 
 public:
-	void SetName(const FString& NewName);
+	void SetName(const FText& NewName);
 	void SetPartId(int32 NewPartId);
 };
 

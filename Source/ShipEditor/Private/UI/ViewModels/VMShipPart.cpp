@@ -2,7 +2,7 @@
 
 #include "UI/ViewModels/VMShipPart.h"
 
-void UVMShipPart::SetName(const FString& NewName)
+void UVMShipPart::SetName(const FText& NewName)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(Name, NewName);
 }

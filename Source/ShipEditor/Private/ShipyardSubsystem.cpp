@@ -9,12 +9,20 @@ const double GRID_SIZE = 100.0f;
 namespace
 {
 
-void AddPart(TUVMShipPartArray& List, FString Name, int32 Id)
+void AddPart(TUVMShipPartArray& List, const FText& Name, int32 Id)
 {
 	TObjectPtr<UVMShipPart> Part = NewObject<UVMShipPart>();
 	Part->SetName(Name);
 	Part->SetPartId(Id);
 	List.Add(Part);
+}
+
+void AddCategory(TUVMShipPartCategoryArray& list, const FText& name, int32 id)
+{
+	TObjectPtr<UVMShipPartCategory> category = NewObject<UVMShipPartCategory>();
+	category->SetName(name);
+	category->SetCategoryId(id);
+	list.Add(category);
 }
 
 void SetOverlayMaterial(AShipPlanCell* Cell, UMaterialInterface* Material)
@@ -144,15 +152,24 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	VMPartBrowser->AddFieldValueChangedDelegate(UVMPartBrowser::FFieldNotificationClassDescriptor::PartId,
 	    INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnBrushIdChanged));
 	TUVMShipPartArray List;
-	AddPart(List, "BL 4-inch Mk IX", 1);
-	AddPart(List, "Vickers .50 cal", 2);
-	AddPart(List, "Lewis .303 cal", 3);
+	AddPart(List, FText::FromString(TEXT("BL 4-inch Mk IX")), 1);
+	AddPart(List, FText::FromString(TEXT("Vickers .50 cal")), 2);
+	AddPart(List, FText::FromString(TEXT("Lewis .303 cal")), 3);
 	VMPartBrowser->SetPartList(List);
+
+	TUVMShipPartCategoryArray categories;
+	AddCategory(categories, FText::FromString(TEXT("Guns")), 1);
+	AddCategory(categories, FText::FromString(TEXT("Engines")), 2);
+	AddCategory(categories, FText::FromString(TEXT("Fuel")), 3);
+	AddCategory(categories, FText::FromString(TEXT("Power")), 4);
+	AddCategory(categories, FText::FromString(TEXT("Magazines")), 5);
+	AddCategory(categories, FText::FromString(TEXT("Quarters")), 6);
+	VMPartBrowser->SetCategoryList(categories);
 
 	VMBrush = NewObject<UVMBrush>();
 
-	AddModelViewToGlobal(VMPartBrowser, UVMPartBrowser::StaticClass(), "VMPartBrowser");
-	AddModelViewToGlobal(VMBrush, UVMBrush::StaticClass(), "VMBrush");
+	AddModelViewToGlobal(VMPartBrowser, UVMPartBrowser::StaticClass(), TEXT("VMPartBrowser"));
+	AddModelViewToGlobal(VMBrush, UVMBrush::StaticClass(), TEXT("VMBrush"));
 
 	CursorClassPtr = CursorClass.LoadSynchronous();
 

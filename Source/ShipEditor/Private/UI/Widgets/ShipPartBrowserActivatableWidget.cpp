@@ -17,18 +17,10 @@ bool UShipPartBrowserActivatableWidget::Initialize()
 {
 	if (Super::Initialize())
 	{
-		AddOption(Catergories, "Gun");
-		AddOption(Catergories, "Engine");
-		AddOption(Catergories, "Fueltank");
-		AddOption(Catergories, "Generator");
-		AddOption(Catergories, "Quarters");
-		AddOption(Catergories, "Landing gear");
-
 		AddOption(Filters, "Any");
 		AddOption(Filters, "Any");
 
 		FilterList->SetListItems(Filters);
-		CategoryList->SetListItems(Catergories);
 		return true;
 	}
 	return false;
