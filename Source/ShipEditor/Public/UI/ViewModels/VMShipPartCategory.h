@@ -18,9 +18,16 @@ protected:
 	UPROPERTY(BlueprintReadOnly, FieldNotify)
 	int32 CategoryId = 0;
 
+	UPROPERTY(BlueprintReadWrite, FieldNotify)
+	bool Selected = true;
+
 public:
 	void SetName(const FText& name);
 	void SetCategoryId(int32 category_id);
+	int32 GetCategoryId() const;
+
+	void SetSelected(bool selected);
+	bool GetSelected();
 };
 
 typedef TArray<TObjectPtr<UVMShipPartCategory>> TUVMShipPartCategoryArray;

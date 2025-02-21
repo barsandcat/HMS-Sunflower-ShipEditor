@@ -28,6 +28,7 @@ public:
 	int32 GetCategoryId() const;
 
 	void SetCategoryList(TUVMShipPartCategoryArray& categoryies);
+	const TUVMShipPartCategoryArray& GetCategoryList() const;
 
 	void SetPartList(TUVMShipPartArray& NewPartList);
 };

@@ -9,11 +9,12 @@ const double GRID_SIZE = 100.0f;
 namespace
 {
 
-void AddPart(TUVMShipPartArray& List, const FText& Name, int32 Id)
+void AddPart(TUVMShipPartArray& List, const FText& name, int32 id, int32 category_id)
 {
 	TObjectPtr<UVMShipPart> Part = NewObject<UVMShipPart>();
-	Part->SetName(Name);
-	Part->SetPartId(Id);
+	Part->SetName(name);
+	Part->SetPartId(id);
+	Part->SetCategoryId(category_id);
 	List.Add(Part);
 }
 
@@ -131,11 +132,15 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	SubsytemCollection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
 
 	VMPartBrowser = NewObject<UVMPartBrowser>();
-	TUVMShipPartArray List;
-	AddPart(List, FText::FromString(TEXT("BL 4-inch Mk IX")), 1);
-	AddPart(List, FText::FromString(TEXT("Vickers .50 cal")), 2);
-	AddPart(List, FText::FromString(TEXT("Lewis .303 cal")), 3);
-	VMPartBrowser->SetPartList(List);
+	AddPart(PartList, FText::FromString(TEXT("BL 4-inch Mk IX")), 1, 1);
+	AddPart(PartList, FText::FromString(TEXT("Vickers .50 cal")), 2, 1);
+	AddPart(PartList, FText::FromString(TEXT("Lewis .303 cal")), 3, 1);
+	AddPart(PartList, FText::FromString(TEXT("Whittle W.1")), 4, 2);
+	AddPart(PartList, FText::FromString(TEXT("Fuel tank 2t")), 5, 3);
+	AddPart(PartList, FText::FromString(TEXT("Petter 1260W")), 6, 4);
+	AddPart(PartList, FText::FromString(TEXT("4-inch magazine")), 7, 5);
+	AddPart(PartList, FText::FromString(TEXT("Quarters 400")), 8, 6);
+	VMPartBrowser->SetPartList(PartList);
 
 	TUVMShipPartCategoryArray categories;
 	AddCategory(categories, FText::FromString(TEXT("Guns")), 1);
@@ -301,4 +306,37 @@ void UShipyardSubsystem::SetBrushId(int32 brush_id)
 		}
 	}
 	BrushId = brush_id;
+}
+
+std::set<int32> UShipyardSubsystem::GetSelectedCategories() const
+{
+	std::set<int32> result;
+	for (const auto& category_vm : VMPartBrowser->GetCategoryList())
+	{
+		if (category_vm->GetSelected())
+		{
+			result.insert(category_vm->GetCategoryId());
+		}
+	}
+	return result;
+}
+
+void UShipyardSubsystem::UpdatePartList()
+{
+	std::set<int32> categories = GetSelectedCategories();
+	if (categories.empty())
+	{
+		VMPartBrowser->SetPartList(PartList);
+		return;
+	}
+
+	TUVMShipPartArray list;
+	for (auto& part_vm : PartList)
+	{
+		if (categories.contains(part_vm->GetCategoryId()))
+		{
+			list.Add(part_vm);
+		}
+	}
+	VMPartBrowser->SetPartList(list);
 }

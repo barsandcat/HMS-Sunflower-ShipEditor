@@ -9,6 +9,8 @@
 #include "UI/ViewModels/VMBrush.h"
 #include "UI/ViewModels/VMPartBrowser.h"
 
+#include <set>
+
 #include "ShipyardSubsystem.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBrushEvent);
@@ -42,6 +44,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Shipyard")
 	FBrushEvent OnBrushCleared;
 
+	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	void UpdatePartList();
+
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UVMPartBrowser> VMPartBrowser;
 
@@ -58,6 +63,8 @@ public:
 	TSoftClassPtr<AActor> CursorClass;
 
 private:
+	std::set<int32> GetSelectedCategories() const;
+
 	TSubclassOf<AShipPlanCell> GetPartClass(int32 part_id) const;
 	int32 BrushId = 0;
 	TObjectPtr<AShipPlanCell> Brush;
@@ -68,4 +75,6 @@ private:
 	TObjectPtr<UMaterialInterface> SelectionMaterial;
 	TObjectPtr<UMaterialInterface> PreviewMaterial;
 	TMap<int32, TSubclassOf<AShipPlanCell>> PartClassMap;
+
+	TUVMShipPartArray PartList;
 };

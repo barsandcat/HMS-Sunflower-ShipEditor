@@ -18,9 +18,14 @@ protected:
 	UPROPERTY(BlueprintReadOnly, FieldNotify)
 	int32 PartId = 0;
 
+	UPROPERTY(BlueprintReadOnly, FieldNotify)
+	int32 CategoryId = 0;
+
 public:
-	void SetName(const FText& NewName);
-	void SetPartId(int32 NewPartId);
+	void SetName(const FText& name);
+	void SetPartId(int32 part_id);
+	void SetCategoryId(int32 category_id);
+	int32 GetCategoryId() const;
 };
 
 typedef TArray<TObjectPtr<UVMShipPart>> TUVMShipPartArray;
