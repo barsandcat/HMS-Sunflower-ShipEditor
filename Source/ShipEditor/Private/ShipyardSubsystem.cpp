@@ -116,24 +116,6 @@ void UShipyardSubsystem::SetBrushPosition(const TOptional<FVector>& WorldPositio
 	}
 }
 
-void UShipyardSubsystem::AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name)
-{
-	const UWorld* World = GetWorld();
-	if (!World)
-		return;
-	const UGameInstance* GameInstance = World->GetGameInstance();
-	if (!GameInstance)
-		return;
-	UMVVMViewModelCollectionObject* Collection = GameInstance->GetSubsystem<UMVVMGameSubsystem>()->GetViewModelCollection();
-	if (!Collection)
-		return;
-
-	FMVVMViewModelContext Context;
-	Context.ContextClass = Class;
-	Context.ContextName = Name;
-	Collection->AddViewModelInstance(Context, ViewModel);
-}
-
 UShipyardSubsystem::UShipyardSubsystem()
     : UGameInstanceSubsystem()
 {
@@ -149,8 +131,6 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	SubsytemCollection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
 
 	VMPartBrowser = NewObject<UVMPartBrowser>();
-	VMPartBrowser->AddFieldValueChangedDelegate(UVMPartBrowser::FFieldNotificationClassDescriptor::PartId,
-	    INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnBrushIdChanged));
 	TUVMShipPartArray List;
 	AddPart(List, FText::FromString(TEXT("BL 4-inch Mk IX")), 1);
 	AddPart(List, FText::FromString(TEXT("Vickers .50 cal")), 2);
@@ -167,8 +147,6 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	VMPartBrowser->SetCategoryList(categories);
 
 	VMBrush = NewObject<UVMBrush>();
-
-	AddModelViewToGlobal(VMPartBrowser, UVMPartBrowser::StaticClass(), TEXT("VMPartBrowser"));
 
 	CursorClassPtr = CursorClass.LoadSynchronous();
 
@@ -189,55 +167,6 @@ TSubclassOf<AShipPlanCell> UShipyardSubsystem::GetPartClass(int32 part_id) const
 	{
 		return nullptr;
 	}
-}
-
-void UShipyardSubsystem::OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
-{
-	int NewBrushId = VMPartBrowser->GetPartId();
-	UE_LOG(LogTemp, Warning, TEXT("OnBrushIdChanged %s %s %d"), *ViewModel->GetName(), *FieldId.GetName().ToString(), NewBrushId);
-	VMBrush->SetReady(NewBrushId != 0);
-
-	if (NewBrushId == BrushId)
-	{
-		return;
-	}
-
-	if (BrushId != 0)
-	{
-		Brush->Destroy();
-		Brush = nullptr;
-
-		if (NewBrushId == 0)
-		{
-			OnBrushCleared.Broadcast();
-		}
-	}
-
-	if (NewBrushId != 0)
-	{
-		check(!Brush);
-
-		if (UWorld* World = GetWorld())
-		{
-			TSubclassOf<AShipPlanCell> part_class = GetPartClass(NewBrushId);
-			if (part_class)
-			{
-				Brush = World->SpawnActor<AShipPlanCell>(part_class, Cursor->GetActorLocation(), {}, {});
-				SetMaterial(Brush, PreviewMaterial);
-			}
-		}
-
-		if (Brush)
-		{
-			Brush->PartId = NewBrushId;
-		}
-
-		if (BrushId == 0)
-		{
-			OnBrushReady.Broadcast();
-		}
-	}
-	BrushId = NewBrushId;
 }
 
 void UShipyardSubsystem::DoBrush()
@@ -321,7 +250,7 @@ void UShipyardSubsystem::Grab()
 	{
 		TObjectPtr<AShipPlanCell> ShipPlanCell = *ShipPlan.Find(CellId);
 		ShipPlan.Remove(CellId);
-		VMPartBrowser->SetPartId(ShipPlanCell->PartId);
+		SetBrushId(ShipPlanCell->PartId);
 		ShipPlanCell->Destroy();
 	}
 }

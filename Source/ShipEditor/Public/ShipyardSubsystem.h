@@ -21,8 +21,6 @@ public:
 	UShipyardSubsystem();
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	void OnBrushIdChanged(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
-
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
 	void DoBrush();
 
@@ -61,7 +59,6 @@ public:
 
 private:
 	TSubclassOf<AShipPlanCell> GetPartClass(int32 part_id) const;
-	void AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name);
 	int32 BrushId = 0;
 	TObjectPtr<AShipPlanCell> Brush;
 	TObjectPtr<AActor> Cursor;
