@@ -264,7 +264,7 @@ void UShipyardSubsystem::DoBrush()
 	ShipPlanCell->PartId = BrushId;
 
 	ShipPlan.Add(CellId, ShipPlanCell);
-	VMPartBrowser->SetPartId(0);
+	SetBrushId(0);
 }
 
 void UShipyardSubsystem::Select()
@@ -324,4 +324,52 @@ void UShipyardSubsystem::Grab()
 		VMPartBrowser->SetPartId(ShipPlanCell->PartId);
 		ShipPlanCell->Destroy();
 	}
+}
+
+void UShipyardSubsystem::SetBrushId(int32 brush_id)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SetBrushId %d"), brush_id);
+	VMBrush->SetReady(brush_id != 0);
+
+	if (brush_id == BrushId)
+	{
+		return;
+	}
+
+	if (BrushId != 0)
+	{
+		Brush->Destroy();
+		Brush = nullptr;
+
+		if (brush_id == 0)
+		{
+			OnBrushCleared.Broadcast();
+		}
+	}
+
+	if (brush_id != 0)
+	{
+		check(!Brush);
+
+		if (UWorld* World = GetWorld())
+		{
+			TSubclassOf<AShipPlanCell> part_class = GetPartClass(brush_id);
+			if (part_class)
+			{
+				Brush = World->SpawnActor<AShipPlanCell>(part_class, Cursor->GetActorLocation(), {}, {});
+				SetMaterial(Brush, PreviewMaterial);
+			}
+		}
+
+		if (Brush)
+		{
+			Brush->PartId = brush_id;
+		}
+
+		if (BrushId == 0)
+		{
+			OnBrushReady.Broadcast();
+		}
+	}
+	BrushId = brush_id;
 }

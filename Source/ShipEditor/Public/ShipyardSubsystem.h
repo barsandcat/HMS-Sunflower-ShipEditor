@@ -35,11 +35,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
 	void Grab();
 
+	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	void SetBrushId(int32 brush_id);
+
 	UPROPERTY(BlueprintAssignable, Category = "Shipyard")
 	FBrushEvent OnBrushReady;
 
 	UPROPERTY(BlueprintAssignable, Category = "Shipyard")
 	FBrushEvent OnBrushCleared;
+
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UVMPartBrowser> VMPartBrowser;
+
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UVMBrush> VMBrush;
 
 	void SetCursorPosition(const TOptional<FVector>& WorldPosition);
 	void SetBrushPosition(const TOptional<FVector>& WorldPosition);
@@ -49,12 +58,6 @@ public:
 
 	UPROPERTY(config)
 	TSoftClassPtr<AActor> CursorClass;
-
-	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<UVMPartBrowser> VMPartBrowser;
-
-	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<UVMBrush> VMBrush;
 
 private:
 	TSubclassOf<AShipPlanCell> GetPartClass(int32 part_id) const;
