@@ -50,11 +50,15 @@ public:
 	UPROPERTY(config)
 	TSoftClassPtr<AActor> CursorClass;
 
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UVMPartBrowser> VMPartBrowser;
+
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UVMBrush> VMBrush;
+
 private:
 	TSubclassOf<AShipPlanCell> GetPartClass(int32 part_id) const;
 	void AddModelViewToGlobal(UMVVMViewModelBase* ViewModel, UClass* Class, const FName& Name);
-	TObjectPtr<UVMPartBrowser> VMPartBrowser;
-	TObjectPtr<UVMBrush> VMBrush;
 	int32 BrushId = 0;
 	TObjectPtr<AShipPlanCell> Brush;
 	TObjectPtr<AActor> Cursor;

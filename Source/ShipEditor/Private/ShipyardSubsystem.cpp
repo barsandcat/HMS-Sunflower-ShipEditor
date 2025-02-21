@@ -169,7 +169,6 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	VMBrush = NewObject<UVMBrush>();
 
 	AddModelViewToGlobal(VMPartBrowser, UVMPartBrowser::StaticClass(), TEXT("VMPartBrowser"));
-	AddModelViewToGlobal(VMBrush, UVMBrush::StaticClass(), TEXT("VMBrush"));
 
 	CursorClassPtr = CursorClass.LoadSynchronous();
 
