@@ -14,9 +14,6 @@ class SHIPEDITOR_API UVMPartBrowser : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(BlueprintReadWrite, FieldNotify, Setter, Getter)
-	int32 CategoryId = 0;
-
 	UPROPERTY(BlueprintReadOnly, FieldNotify)
 	TArray<TObjectPtr<UVMShipPartCategory>> CategoryList;
 
@@ -24,9 +21,6 @@ protected:
 	TArray<TObjectPtr<UVMShipPart>> PartList;
 
 public:
-	void SetCategoryId(int32 id);
-	int32 GetCategoryId() const;
-
 	void SetCategoryList(TUVMShipPartCategoryArray& categoryies);
 	const TUVMShipPartCategoryArray& GetCategoryList() const;
 

@@ -7,6 +7,11 @@ void UVMShipPartCategory::SetName(const FText& name)
 	UE_MVVM_SET_PROPERTY_VALUE(Name, name);
 }
 
+const FText& UVMShipPartCategory::GetName() const
+{
+	return Name;
+}
+
 void UVMShipPartCategory::SetCategoryId(int32 category_id)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(CategoryId, category_id);
@@ -22,7 +27,7 @@ void UVMShipPartCategory::SetSelected(bool selected)
 	UE_MVVM_SET_PROPERTY_VALUE(Selected, selected);
 }
 
-bool UVMShipPartCategory::GetSelected()
+bool UVMShipPartCategory::GetSelected() const
 {
 	return Selected;
 }

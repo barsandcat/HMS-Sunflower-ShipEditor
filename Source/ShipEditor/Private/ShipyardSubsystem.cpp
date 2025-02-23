@@ -18,14 +18,6 @@ void AddPart(TUVMShipPartArray& List, const FText& name, int32 id, int32 categor
 	List.Add(Part);
 }
 
-void AddCategory(TUVMShipPartCategoryArray& list, const FText& name, int32 id)
-{
-	TObjectPtr<UVMShipPartCategory> category = NewObject<UVMShipPartCategory>();
-	category->SetName(name);
-	category->SetCategoryId(id);
-	list.Add(category);
-}
-
 void SetOverlayMaterial(AShipPlanCell* Cell, UMaterialInterface* Material)
 {
 	TInlineComponentArray<UStaticMeshComponent*> StaticMeshes;
@@ -63,6 +55,24 @@ FVector CellIdToWorld(const FIntVector2& CellId)
 }
 
 }    // namespace
+
+void UShipyardSubsystem::AddCategory(TUVMShipPartCategoryArray& list, const FText& name, int32 id)
+{
+	TObjectPtr<UVMShipPartCategory> category = NewObject<UVMShipPartCategory>();
+
+	category->AddFieldValueChangedDelegate(UVMShipPartCategory::FFieldNotificationClassDescriptor::Selected,
+	    INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnCategorySelected));
+
+	category->SetName(name);
+	category->SetCategoryId(id);
+	list.Add(category);
+}
+
+void UShipyardSubsystem::OnCategorySelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnCategorySelected %s %s"), *ViewModel->GetName(), *FieldId.GetName().ToString());
+	UpdatePartList();
+}
 
 void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& WorldPosition)
 {
