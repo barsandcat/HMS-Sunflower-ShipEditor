@@ -68,10 +68,27 @@ void UShipyardSubsystem::AddCategory(TUVMShipPartCategoryArray& list, const FTex
 	list.Add(category);
 }
 
+void UShipyardSubsystem::AddFilter(TUVMShipPartFilterArray& list, const TArray<FName>& options, int32 id)
+{
+	TObjectPtr<UVMShipPartFilter> vm = NewObject<UVMShipPartFilter>();
+
+	vm->AddFieldValueChangedDelegate(UVMShipPartCategory::FFieldNotificationClassDescriptor::Selected,
+	    INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnFilterSelected));
+
+	vm->SetOptions(options);
+	vm->SetFilterId(id);
+	list.Add(vm);
+}
+
 void UShipyardSubsystem::OnCategorySelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnCategorySelected %s %s"), *ViewModel->GetName(), *FieldId.GetName().ToString());
 	UpdatePartList();
+}
+
+void UShipyardSubsystem::OnFilterSelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnFilterSelected %s %s"), *ViewModel->GetName(), *FieldId.GetName().ToString());
 }
 
 void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& WorldPosition)
@@ -160,6 +177,15 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	AddCategory(categories, FText::FromString(TEXT("Magazines")), 5);
 	AddCategory(categories, FText::FromString(TEXT("Quarters")), 6);
 	VMPartBrowser->SetCategoryList(categories);
+
+	TArray<FName> MountFilterOptions = {"All mounts", "Static mount", "Turret mount"};
+	TArray<FName> StructureFilterOptions = {"All structures", "Loadbearing structures", "No loadbearing structures"};
+	TArray<FName> ElevationFilterOptions = {"All elevations", "Low elevation", "Medium elevation", "High elevation"};
+	TUVMShipPartFilterArray filters;
+	AddFilter(filters, MountFilterOptions, 1);
+	AddFilter(filters, StructureFilterOptions, 2);
+	AddFilter(filters, ElevationFilterOptions, 3);
+	VMPartBrowser->SetFilterList(filters);
 
 	VMBrush = NewObject<UVMBrush>();
 

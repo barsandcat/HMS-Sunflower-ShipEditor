@@ -12,9 +12,10 @@ class SHIPEDITOR_API UVMBrush : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(BlueprintReadOnly, FieldNotify)
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
 	bool Ready = false;
 
 public:
 	void SetReady(bool NewReady);
+	bool GetReady() const;
 };

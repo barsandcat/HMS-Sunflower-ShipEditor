@@ -2,7 +2,12 @@
 
 #include "UI/ViewModels/VMBrush.h"
 
-void UVMBrush::SetReady(bool NewReady)
+void UVMBrush::SetReady(bool ready)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(Ready, NewReady);
+	UE_MVVM_SET_PROPERTY_VALUE(Ready, ready);
+}
+
+bool UVMBrush::GetReady() const
+{
+	return Ready;
 }

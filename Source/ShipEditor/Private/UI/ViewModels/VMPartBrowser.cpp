@@ -12,7 +12,22 @@ const TUVMShipPartCategoryArray& UVMPartBrowser::GetCategoryList() const
 	return CategoryList;
 }
 
-void UVMPartBrowser::SetPartList(TUVMShipPartArray& NewPartList)
+void UVMPartBrowser::SetFilterList(TUVMShipPartFilterArray& filters)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(PartList, NewPartList);
+	UE_MVVM_SET_PROPERTY_VALUE(FilterList, filters);
+}
+
+const TArray<TObjectPtr<UVMShipPartFilter>>& UVMPartBrowser::GetFilterList() const
+{
+	return FilterList;
+}
+
+void UVMPartBrowser::SetPartList(TUVMShipPartArray& part_list)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(PartList, part_list);
+}
+
+const TUVMShipPartArray& UVMPartBrowser::GetPartList() const
+{
+	return PartList;
 }

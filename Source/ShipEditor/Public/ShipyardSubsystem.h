@@ -63,10 +63,12 @@ public:
 	TSoftClassPtr<AActor> CursorClass;
 
 	void OnCategorySelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
+	void OnFilterSelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
 
 private:
 	std::set<int32> GetSelectedCategories() const;
 	void AddCategory(TUVMShipPartCategoryArray& list, const FText& name, int32 id);
+	void AddFilter(TUVMShipPartFilterArray& list, const TArray<FName>& options, int32 id);
 	TSubclassOf<AShipPlanCell> GetPartClass(int32 part_id) const;
 	int32 BrushId = 0;
 	TObjectPtr<AShipPlanCell> Brush;

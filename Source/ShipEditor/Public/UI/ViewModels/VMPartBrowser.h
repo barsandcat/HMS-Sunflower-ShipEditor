@@ -6,6 +6,7 @@
 #include "MVVMViewModelBase.h"
 #include "VMShipPart.h"
 #include "VMShipPartCategory.h"
+#include "VMShipPartFilter.h"
 
 #include "VMPartBrowser.generated.h"
 
@@ -14,15 +15,22 @@ class SHIPEDITOR_API UVMPartBrowser : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(BlueprintReadOnly, FieldNotify)
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
 	TArray<TObjectPtr<UVMShipPartCategory>> CategoryList;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify)
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
+	TArray<TObjectPtr<UVMShipPartFilter>> FilterList;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
 	TArray<TObjectPtr<UVMShipPart>> PartList;
 
 public:
 	void SetCategoryList(TUVMShipPartCategoryArray& categoryies);
-	const TUVMShipPartCategoryArray& GetCategoryList() const;
+	const TArray<TObjectPtr<UVMShipPartCategory>>& GetCategoryList() const;
 
-	void SetPartList(TUVMShipPartArray& NewPartList);
+	void SetFilterList(TUVMShipPartFilterArray& filters);
+	const TArray<TObjectPtr<UVMShipPartFilter>>& GetFilterList() const;
+
+	void SetPartList(TUVMShipPartArray& part_list);
+	const TArray<TObjectPtr<UVMShipPart>>& GetPartList() const;
 };
