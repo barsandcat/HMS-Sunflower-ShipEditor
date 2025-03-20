@@ -22,12 +22,12 @@ const TArray<FName>& UVMShipPartFilter::GetOptions() const
 	return Options;
 }
 
-void UVMShipPartFilter::SetSelected(FText selected)
+void UVMShipPartFilter::SetSelected(FName selected)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(Selected, selected);
 }
 
-FText UVMShipPartFilter::GetSelected() const
+FName UVMShipPartFilter::GetSelected() const
 {
 	return Selected;
 }

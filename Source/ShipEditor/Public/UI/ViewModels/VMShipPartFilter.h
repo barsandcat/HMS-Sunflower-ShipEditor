@@ -18,8 +18,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
 	TArray<FName> Options;
 
-	UPROPERTY(BlueprintReadWrite, FieldNotify, Setter, Getter)
-	FText Selected;
+	UPROPERTY(BlueprintReadWrite, FieldNotify, Setter)
+	FName Selected;
 
 public:
 	void SetFilterId(int32 filter_id);
@@ -28,8 +28,8 @@ public:
 	void SetOptions(const TArray<FName>& options);
 	const TArray<FName>& GetOptions() const;
 
-	void SetSelected(FText selected);
-	FText GetSelected() const;
+	void SetSelected(FName selected);
+	FName GetSelected() const;
 };
 
 typedef TArray<TObjectPtr<UVMShipPartFilter>> TUVMShipPartFilterArray;
