@@ -7,13 +7,21 @@ bool UWFilterEntry::Initialize()
 	const bool initialized = Super::Initialize();
 	if (initialized)
 	{
-		Combobox->OnSelectionChanged.AddDynamic(this, &UWFilterEntry::HandleOnSelectionChanged);
+		if (Combobox)
+		{
+			Combobox->OnSelectionChanged.AddDynamic(this, &UWFilterEntry::HandleOnSelectionChanged);
+		}
 	}
 	return initialized;
 }
 
 void UWFilterEntry::SetOptions(const TArray<FName>& options_array)
 {
+	if (!Combobox)
+	{
+		return;
+	}
+
 	Combobox->ClearOptions();
 	for (const FName& option : options_array)
 	{
