@@ -21,12 +21,14 @@ void UWFilterEntry::SetOptions(const TArray<FName>& options_array)
 	{
 		return;
 	}
+	check(options_array.Num() > 0);
 
 	Combobox->ClearOptions();
 	for (const FName& option : options_array)
 	{
 		Combobox->AddOption(option);
 	}
+	Combobox->SetSelectedOption(options_array[0]);
 }
 
 void UWFilterEntry::HandleOnSelectionChanged(FName selected_item, ESelectInfo::Type selection_type)
