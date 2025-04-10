@@ -33,5 +33,7 @@ void UWFilterEntry::SetOptions(const TArray<FName>& options_array)
 
 void UWFilterEntry::HandleOnSelectionChanged(FName selected_item, ESelectInfo::Type selection_type)
 {
+	UE_LOG(LogTemp, Warning, TEXT("HandleOnSelectionChanged %s %d"), *selected_item.ToString(), selection_type);
 	SelectedOption = selected_item;
+	BroadcastFieldValueChanged(FFieldNotificationClassDescriptor::SelectedOption);
 }
