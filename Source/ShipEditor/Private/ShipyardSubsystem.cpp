@@ -3,18 +3,24 @@
 #include "ShipyardSubsystem.h"
 
 #include "MVVMGameSubsystem.h"
+#include "Shipyard/ElevationFilter.h"
+#include "Shipyard/MountFilter.h"
+#include "Shipyard/StructureFilter.h"
 
 const double GRID_SIZE = 100.0f;
 
 namespace
 {
 
-void AddPart(TUVMShipPartArray& List, const FText& name, int32 id, int32 category_id)
+void AddPart(TUVMShipPartArray& List, const FText& name, int32 id, int32 category_id, int32 elevation, bool dynamic, bool loadbearing)
 {
 	TObjectPtr<UVMShipPart> Part = NewObject<UVMShipPart>();
 	Part->SetName(name);
 	Part->SetPartId(id);
 	Part->SetCategoryId(category_id);
+	Part->SetElevation(elevation);
+	Part->SetDynamicMount(dynamic);
+	Part->SetLoadbearing(loadbearing);
 	List.Add(Part);
 }
 
@@ -72,7 +78,7 @@ void UShipyardSubsystem::AddFilter(TUVMShipPartFilterArray& list, const TArray<F
 {
 	TObjectPtr<UVMShipPartFilter> vm = NewObject<UVMShipPartFilter>();
 
-	vm->AddFieldValueChangedDelegate(UVMShipPartCategory::FFieldNotificationClassDescriptor::Selected,
+	vm->AddFieldValueChangedDelegate(UVMShipPartFilter::FFieldNotificationClassDescriptor::Selected,
 	    INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnFilterSelected));
 
 	vm->SetOptions(options);
@@ -89,6 +95,7 @@ void UShipyardSubsystem::OnCategorySelected(UObject* ViewModel, UE::FieldNotific
 void UShipyardSubsystem::OnFilterSelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnFilterSelected %s %s"), *ViewModel->GetName(), *FieldId.GetName().ToString());
+	UpdatePartList();
 }
 
 void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& WorldPosition)
@@ -159,14 +166,14 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	SubsytemCollection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
 
 	VMPartBrowser = NewObject<UVMPartBrowser>();
-	AddPart(PartList, FText::FromString(TEXT("BL 4-inch Mk IX")), 1, 1);
-	AddPart(PartList, FText::FromString(TEXT("Vickers .50 cal")), 2, 1);
-	AddPart(PartList, FText::FromString(TEXT("Lewis .303 cal")), 3, 1);
-	AddPart(PartList, FText::FromString(TEXT("Whittle W.1")), 4, 2);
-	AddPart(PartList, FText::FromString(TEXT("Fuel tank 2t")), 5, 3);
-	AddPart(PartList, FText::FromString(TEXT("Petter 1260W")), 6, 4);
-	AddPart(PartList, FText::FromString(TEXT("4-inch magazine")), 7, 5);
-	AddPart(PartList, FText::FromString(TEXT("Quarters 400")), 8, 6);
+	AddPart(PartList, FText::FromString(TEXT("BL 4-inch Mk IX")), 1, 1, 1, false, true);
+	AddPart(PartList, FText::FromString(TEXT("Vickers .50 cal")), 2, 1, 1, true, false);
+	AddPart(PartList, FText::FromString(TEXT("Lewis .303 cal")), 3, 1, 2, true, false);
+	AddPart(PartList, FText::FromString(TEXT("Whittle W.1")), 4, 2, 0, false, true);
+	AddPart(PartList, FText::FromString(TEXT("Fuel tank 2t")), 5, 3, 1, false, true);
+	AddPart(PartList, FText::FromString(TEXT("Petter 1260W")), 6, 4, 0, false, true);
+	AddPart(PartList, FText::FromString(TEXT("4-inch magazine")), 7, 5, 0, false, true);
+	AddPart(PartList, FText::FromString(TEXT("Quarters 400")), 8, 6, 0, false, true);
 	VMPartBrowser->SetPartList(PartList);
 
 	TUVMShipPartCategoryArray categories;
@@ -178,13 +185,15 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	AddCategory(categories, FText::FromString(TEXT("Quarters")), 6);
 	VMPartBrowser->SetCategoryList(categories);
 
-	TArray<FName> MountFilterOptions = {"All mounts", "Static mount", "Turret mount"};
-	TArray<FName> StructureFilterOptions = {"All structures", "Loadbearing structures", "No loadbearing structures"};
-	TArray<FName> ElevationFilterOptions = {"All elevations", "Low elevation", "Medium elevation", "High elevation"};
+	FilterList.Add(MakeShared<MountFilter>(INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnFilterSelected)));
+	FilterList.Add(MakeShared<StructureFilter>(INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnFilterSelected)));
+	FilterList.Add(MakeShared<ElevationFilter>(INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnFilterSelected)));
+
 	TUVMShipPartFilterArray filters;
-	AddFilter(filters, MountFilterOptions, 1);
-	AddFilter(filters, StructureFilterOptions, 2);
-	AddFilter(filters, ElevationFilterOptions, 3);
+	for (const auto& filter : FilterList)
+	{
+		filters.Add(filter->GetVM());
+	}
 	VMPartBrowser->SetFilterList(filters);
 
 	VMBrush = NewObject<UVMBrush>();
@@ -357,21 +366,30 @@ std::set<int32> UShipyardSubsystem::GetSelectedCategories() const
 	return result;
 }
 
+bool UShipyardSubsystem::IsFitered(const TObjectPtr<UVMShipPart>& part_vm) const
+{
+	for (const auto& filter : FilterList)
+	{
+		if (filter->IsFiltered(part_vm))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 void UShipyardSubsystem::UpdatePartList()
 {
-	std::set<int32> categories = GetSelectedCategories();
-	if (categories.empty())
-	{
-		VMPartBrowser->SetPartList(PartList);
-		return;
-	}
-
 	TUVMShipPartArray list;
-	for (auto& part_vm : PartList)
+	std::set<int32> categories = GetSelectedCategories();
+	for (const auto& part_vm : PartList)
 	{
-		if (categories.contains(part_vm->GetCategoryId()))
+		if (categories.empty() || categories.contains(part_vm->GetCategoryId()))
 		{
-			list.Add(part_vm);
+			if (!IsFitered(part_vm))
+			{
+				list.Add(part_vm);
+			}
 		}
 	}
 	VMPartBrowser->SetPartList(list);

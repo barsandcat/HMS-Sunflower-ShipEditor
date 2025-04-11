@@ -8,6 +8,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "UI/ViewModels/VMBrush.h"
 #include "UI/ViewModels/VMPartBrowser.h"
+#include "Shipyard/IPartFilter.h"
 
 #include <set>
 
@@ -66,7 +67,9 @@ public:
 	void OnFilterSelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
 
 private:
+	TArray<TSharedPtr<IPartFilter>> FilterList;
 	std::set<int32> GetSelectedCategories() const;
+	bool IsFitered(const TObjectPtr<UVMShipPart>& part_vm) const;
 	void AddCategory(TUVMShipPartCategoryArray& list, const FText& name, int32 id);
 	void AddFilter(TUVMShipPartFilterArray& list, const TArray<FName>& options, int32 id);
 	TSubclassOf<AShipPlanCell> GetPartClass(int32 part_id) const;

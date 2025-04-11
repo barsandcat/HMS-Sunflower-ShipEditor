@@ -21,6 +21,15 @@ protected:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
 	int32 CategoryId = 0;
 
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
+	int32 Elevation = 0;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
+	bool DynamicMount = false;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
+	bool Loadbearing = false;
+
 public:
 	void SetName(const FText& name);
 	FText GetName() const;
@@ -28,6 +37,12 @@ public:
 	int32 GetPartId() const;
 	void SetCategoryId(int32 category_id);
 	int32 GetCategoryId() const;
+	void SetElevation(int32 elevation);
+	int32 GetElevation() const;
+	void SetDynamicMount(bool dynamic_mount);
+	bool GetDynamicMount() const;
+	void SetLoadbearing(bool loadbearing);
+	bool GetLoadbearing() const;
 };
 
 typedef TArray<TObjectPtr<UVMShipPart>> TUVMShipPartArray;

@@ -31,3 +31,33 @@ int32 UVMShipPart::GetCategoryId() const
 {
 	return CategoryId;
 }
+
+void UVMShipPart::SetElevation(int32 elevation)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(Elevation, elevation);
+}
+
+int32 UVMShipPart::GetElevation() const
+{
+	return Elevation;
+}
+
+void UVMShipPart::SetDynamicMount(bool dynamic_mount)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(DynamicMount, dynamic_mount);
+}
+
+bool UVMShipPart::GetDynamicMount() const
+{
+	return DynamicMount;
+}
+
+void UVMShipPart::SetLoadbearing(bool loadbearing)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(Loadbearing, loadbearing);
+}
+
+bool UVMShipPart::GetLoadbearing() const
+{
+	return Loadbearing;
+}
