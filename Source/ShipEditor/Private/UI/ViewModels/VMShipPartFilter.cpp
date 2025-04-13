@@ -31,3 +31,13 @@ FName UVMShipPartFilter::GetSelected() const
 {
 	return Selected;
 }
+
+void UVMShipPartFilter::SetMatchingPartsCount(int32 count)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(MatchingPartsCount, count);
+}
+
+int32 UVMShipPartFilter::GetMatchingPartsCount() const
+{
+	return MatchingPartsCount;
+}

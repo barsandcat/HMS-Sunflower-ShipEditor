@@ -69,7 +69,7 @@ public:
 private:
 	TArray<TSharedPtr<IPartFilter>> FilterList;
 	std::set<int32> GetSelectedCategories() const;
-	bool IsFitered(const TObjectPtr<UVMShipPart>& part_vm) const;
+	bool IsAllowedByFiters(const TObjectPtr<UVMShipPart>& part_vm) const;
 	void AddCategory(TUVMShipPartCategoryArray& list, const FText& name, int32 id);
 	void AddFilter(TUVMShipPartFilterArray& list, const TArray<FName>& options, int32 id);
 	TSubclassOf<AShipPlanCell> GetPartClass(int32 part_id) const;

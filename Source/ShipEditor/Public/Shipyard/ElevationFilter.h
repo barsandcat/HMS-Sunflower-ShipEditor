@@ -9,7 +9,7 @@ class SHIPEDITOR_API ElevationFilter : public IPartFilter
 {
 public:
 	ElevationFilter(const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate);
-	virtual bool IsFiltered(const TObjectPtr<UVMShipPart>& part) override;
+	virtual bool IsAllowed(const TObjectPtr<UVMShipPart>& part) override;
 	virtual ~ElevationFilter() = default;
 
 private:

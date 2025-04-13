@@ -18,7 +18,7 @@ public:
 		VM->SetFilterId(id);
 	}
 	virtual TObjectPtr<UVMShipPartFilter> GetVM() const { return VM; };
-	virtual bool IsFiltered(const TObjectPtr<UVMShipPart>& part) = 0;
+	virtual bool IsAllowed(const TObjectPtr<UVMShipPart>& part) = 0;
 
 protected:
 	TObjectPtr<UVMShipPartFilter> VM;

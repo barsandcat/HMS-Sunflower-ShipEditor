@@ -22,6 +22,16 @@ int32 UVMShipPartCategory::GetCategoryId() const
 	return CategoryId;
 }
 
+void UVMShipPartCategory::SetMatchingPartsCount(int32 count)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(MatchingPartsCount, count);
+}
+
+int32 UVMShipPartCategory::GetMatchingPartsCount() const
+{
+	return MatchingPartsCount;
+}
+
 void UVMShipPartCategory::SetSelected(bool selected)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(Selected, selected);

@@ -9,19 +9,19 @@ ElevationFilter::ElevationFilter(const INotifyFieldValueChanged::FFieldValueChan
 	VM->SetOptions(ElevationFilterOptions);
 }
 
-bool ElevationFilter::IsFiltered(const TObjectPtr<UVMShipPart>& part)
+bool ElevationFilter::IsAllowed(const TObjectPtr<UVMShipPart>& part)
 {
 	if (VM->GetSelected() == ElevationFilterOptions[1])
 	{
-		return part->GetElevation() != 0;
+		return part->GetElevation() == 0;
 	}
 	if (VM->GetSelected() == ElevationFilterOptions[2])
 	{
-		return part->GetElevation() != 1;
+		return part->GetElevation() == 1;
 	}
 	if (VM->GetSelected() == ElevationFilterOptions[3])
 	{
-		return part->GetElevation() != 2;
+		return part->GetElevation() == 2;
 	}
-	return false;
+	return true;
 }

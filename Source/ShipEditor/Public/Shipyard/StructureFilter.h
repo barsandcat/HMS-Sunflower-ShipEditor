@@ -9,7 +9,7 @@ class SHIPEDITOR_API StructureFilter : public IPartFilter
 {
 public:
 	StructureFilter(const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate);
-	virtual bool IsFiltered(const TObjectPtr<UVMShipPart>& part) override;
+	virtual bool IsAllowed(const TObjectPtr<UVMShipPart>& part) override;
 	virtual ~StructureFilter() = default;
 
 private:

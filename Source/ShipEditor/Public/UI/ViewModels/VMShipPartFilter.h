@@ -21,6 +21,9 @@ protected:
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Setter)
 	FName Selected;
 
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
+	int32 MatchingPartsCount = 0;
+
 public:
 	void SetFilterId(int32 filter_id);
 	int32 GetFilterId() const;
@@ -30,6 +33,9 @@ public:
 
 	void SetSelected(FName selected);
 	FName GetSelected() const;
+
+	void SetMatchingPartsCount(int32 count);
+	int32 GetMatchingPartsCount() const;
 };
 
 typedef TArray<TObjectPtr<UVMShipPartFilter>> TUVMShipPartFilterArray;

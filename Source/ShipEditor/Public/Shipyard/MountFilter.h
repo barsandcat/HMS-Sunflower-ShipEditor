@@ -9,7 +9,7 @@ class SHIPEDITOR_API MountFilter : public IPartFilter
 {
 public:
 	MountFilter(const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate);
-	virtual bool IsFiltered(const TObjectPtr<UVMShipPart>& part) override;
+	virtual bool IsAllowed(const TObjectPtr<UVMShipPart>& part) override;
 	~MountFilter() = default;
 
 private:

@@ -366,16 +366,16 @@ std::set<int32> UShipyardSubsystem::GetSelectedCategories() const
 	return result;
 }
 
-bool UShipyardSubsystem::IsFitered(const TObjectPtr<UVMShipPart>& part_vm) const
+bool UShipyardSubsystem::IsAllowedByFiters(const TObjectPtr<UVMShipPart>& part_vm) const
 {
 	for (const auto& filter : FilterList)
 	{
-		if (filter->IsFiltered(part_vm))
+		if (!filter->IsAllowed(part_vm))
 		{
-			return true;
+			return false;
 		}
 	}
-	return false;
+	return true;
 }
 
 void UShipyardSubsystem::UpdatePartList()
@@ -386,11 +386,36 @@ void UShipyardSubsystem::UpdatePartList()
 	{
 		if (categories.empty() || categories.contains(part_vm->GetCategoryId()))
 		{
-			if (!IsFitered(part_vm))
+			if (IsAllowedByFiters(part_vm))
 			{
 				list.Add(part_vm);
 			}
 		}
 	}
+	for (const auto& category_vm : VMPartBrowser->GetCategoryList())
+	{
+		int32 count = 0;
+		for (const auto& part_vm : list)
+		{
+			if (part_vm->GetCategoryId() == category_vm->GetCategoryId())
+			{
+				count++;
+			}
+		}
+		category_vm->SetMatchingPartsCount(count);
+	}
+	for (const auto& filter: FilterList)
+	{
+		int32 count = 0;
+		for (const auto& part_vm : list)
+		{
+			if (filter->IsAllowed(part_vm))
+			{
+				count++;
+			}
+		}
+		filter->GetVM()->SetMatchingPartsCount(count);
+	}
+	
 	VMPartBrowser->SetPartList(list);
 }

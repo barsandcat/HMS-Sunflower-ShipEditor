@@ -9,16 +9,16 @@ MountFilter::MountFilter(const INotifyFieldValueChanged::FFieldValueChangedDeleg
 	VM->SetOptions(MountFilterOptions);
 }
 
-bool MountFilter::IsFiltered(const TObjectPtr<UVMShipPart>& part)
+bool MountFilter::IsAllowed(const TObjectPtr<UVMShipPart>& part)
 {
 	if (VM->GetSelected() == MountFilterOptions[1])
 	{
-		return !part->GetDynamicMount();
+		return part->GetDynamicMount();
 	}
 	if (VM->GetSelected() == MountFilterOptions[2])
 	{
-		return part->GetDynamicMount();
+		return !part->GetDynamicMount();
 	}
-	return false;
+	return true;
 }
 

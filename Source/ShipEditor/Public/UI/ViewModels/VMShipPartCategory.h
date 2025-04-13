@@ -21,12 +21,18 @@ protected:
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Setter, Getter)
 	bool Selected = false;
 
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
+	int32 MatchingPartsCount = 0;
+
 public:
 	void SetName(const FText& name);
 	const FText& GetName() const;
 
 	void SetCategoryId(int32 category_id);
 	int32 GetCategoryId() const;
+
+	void SetMatchingPartsCount(int32 count);
+	int32 GetMatchingPartsCount() const;
 
 	void SetSelected(bool selected);
 	bool GetSelected() const;
