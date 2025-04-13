@@ -6,7 +6,7 @@
 StructureFilter::StructureFilter(const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate)
     : IPartFilter(2, delegate)
 {
-	VM->SetOptions(StructureFilterOptions);
+	InitializeOptions(StructureFilterOptions);
 }
 
 bool StructureFilter::IsAllowed(const TObjectPtr<UVMShipPart>& part)

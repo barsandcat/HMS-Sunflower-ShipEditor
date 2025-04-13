@@ -1,12 +1,11 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
-
 #include "Shipyard/MountFilter.h"
 
 MountFilter::MountFilter(const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate)
     : IPartFilter(1, delegate)
 {
-	VM->SetOptions(MountFilterOptions);
+	InitializeOptions(MountFilterOptions);
 }
 
 bool MountFilter::IsAllowed(const TObjectPtr<UVMShipPart>& part)

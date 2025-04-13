@@ -12,13 +12,13 @@ int32 UVMShipPartFilter::GetFilterId() const
 	return FilterId;
 }
 
-void UVMShipPartFilter::SetOptions(const TArray<FName>& options)
+TArray<FName> UVMShipPartFilter::GetOptions() const
 {
-	UE_MVVM_SET_PROPERTY_VALUE(Options, options);
-}
-
-const TArray<FName>& UVMShipPartFilter::GetOptions() const
-{
+	TArray<FName> Options;
+	for (const TObjectPtr<UVMShipPartFilterEntry>& entry : VMEntries)
+	{
+		Options.Add(entry->GetName());
+	}
 	return Options;
 }
 
@@ -32,12 +32,13 @@ FName UVMShipPartFilter::GetSelected() const
 	return Selected;
 }
 
-void UVMShipPartFilter::SetMatchingPartsCount(int32 count)
+void UVMShipPartFilter::SetVMEntries(const TUVMShipPartFilterEntryArray& entries)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(MatchingPartsCount, count);
+	UE_MVVM_SET_PROPERTY_VALUE(VMEntries, entries);
+	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(GetOptions);
 }
 
-int32 UVMShipPartFilter::GetMatchingPartsCount() const
+const TUVMShipPartFilterEntryArray& UVMShipPartFilter::GetVMEntries() const
 {
-	return MatchingPartsCount;
+	return VMEntries;
 }

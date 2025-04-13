@@ -6,7 +6,7 @@
 ElevationFilter::ElevationFilter(const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate)
     : IPartFilter(3, delegate)
 {
-	VM->SetOptions(ElevationFilterOptions);
+	InitializeOptions(ElevationFilterOptions);
 }
 
 bool ElevationFilter::IsAllowed(const TObjectPtr<UVMShipPart>& part)

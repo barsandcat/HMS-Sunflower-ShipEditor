@@ -74,18 +74,6 @@ void UShipyardSubsystem::AddCategory(TUVMShipPartCategoryArray& list, const FTex
 	list.Add(category);
 }
 
-void UShipyardSubsystem::AddFilter(TUVMShipPartFilterArray& list, const TArray<FName>& options, int32 id)
-{
-	TObjectPtr<UVMShipPartFilter> vm = NewObject<UVMShipPartFilter>();
-
-	vm->AddFieldValueChangedDelegate(UVMShipPartFilter::FFieldNotificationClassDescriptor::Selected,
-	    INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnFilterSelected));
-
-	vm->SetOptions(options);
-	vm->SetFilterId(id);
-	list.Add(vm);
-}
-
 void UShipyardSubsystem::OnCategorySelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnCategorySelected %s %s"), *ViewModel->GetName(), *FieldId.GetName().ToString());
@@ -403,18 +391,6 @@ void UShipyardSubsystem::UpdatePartList()
 			}
 		}
 		category_vm->SetMatchingPartsCount(count);
-	}
-	for (const auto& filter: FilterList)
-	{
-		int32 count = 0;
-		for (const auto& part_vm : list)
-		{
-			if (filter->IsAllowed(part_vm))
-			{
-				count++;
-			}
-		}
-		filter->GetVM()->SetMatchingPartsCount(count);
 	}
 	
 	VMPartBrowser->SetPartList(list);

@@ -10,17 +10,12 @@ class IPartFilter
 {
 public:
 	virtual ~IPartFilter() = default;
-	IPartFilter(int32 id, const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate)
-	    : FilterId(id)
-	{
-		VM = NewObject<UVMShipPartFilter>();
-		VM->AddFieldValueChangedDelegate(UVMShipPartFilter::FFieldNotificationClassDescriptor::Selected, delegate);
-		VM->SetFilterId(id);
-	}
+	IPartFilter(int32 id, const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate);
 	virtual TObjectPtr<UVMShipPartFilter> GetVM() const { return VM; };
 	virtual bool IsAllowed(const TObjectPtr<UVMShipPart>& part) = 0;
 
 protected:
+	void InitializeOptions(const TArray<FName>& options_array);
 	TObjectPtr<UVMShipPartFilter> VM;
 	const int32 FilterId = 0;
 };

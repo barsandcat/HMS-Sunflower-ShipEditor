@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MVVMViewModelBase.h"
+#include "VMShipPartFilterEntry.h"
 
 #include "VMShipPartFilter.generated.h"
 
@@ -15,27 +16,37 @@ protected:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
 	int32 FilterId = 0;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
-	TArray<FName> Options;
-
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Setter)
 	FName Selected;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
-	int32 MatchingPartsCount = 0;
+	TArray<TObjectPtr<UVMShipPartFilterEntry>> VMEntries;
 
 public:
+	UFUNCTION(BlueprintPure, FieldNotify)
+	TArray<FName> GetOptions() const;
+
 	void SetFilterId(int32 filter_id);
 	int32 GetFilterId() const;
-
-	void SetOptions(const TArray<FName>& options);
-	const TArray<FName>& GetOptions() const;
 
 	void SetSelected(FName selected);
 	FName GetSelected() const;
 
-	void SetMatchingPartsCount(int32 count);
-	int32 GetMatchingPartsCount() const;
+	void SetVMEntries(const TUVMShipPartFilterEntryArray& entries);
+	const TArray<TObjectPtr<UVMShipPartFilterEntry>>& GetVMEntries() const;
+
+	UFUNCTION(BlueprintCallable)
+	UVMShipPartFilterEntry* GetEntryByName(FName name) const
+	{
+		for (const TObjectPtr<UVMShipPartFilterEntry>& entry : VMEntries)
+		{
+			if (entry->GetName() == name)
+			{
+				return entry;
+			}
+		}
+		return nullptr;
+	}
 };
 
 typedef TArray<TObjectPtr<UVMShipPartFilter>> TUVMShipPartFilterArray;
