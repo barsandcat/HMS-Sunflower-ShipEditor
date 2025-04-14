@@ -392,6 +392,11 @@ void UShipyardSubsystem::UpdatePartList()
 		}
 		category_vm->SetMatchingPartsCount(count);
 	}
+
+	for (const auto& filter : FilterList)
+	{
+		filter->UpdateMatchingPartsCount(list);
+	}
 	
 	VMPartBrowser->SetPartList(list);
 }

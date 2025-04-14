@@ -8,6 +8,11 @@ IPartFilter::IPartFilter(int32 id, const INotifyFieldValueChanged::FFieldValueCh
 	VM->SetFilterId(id);
 }
 
+bool IPartFilter::IsAllowed(const TObjectPtr<UVMShipPart>& part)
+{
+	return IsAllowed(VM->GetSelected(), part);
+}
+
 void IPartFilter::InitializeOptions(const TArray<FName>& options_array)
 {
 	TUVMShipPartFilterEntryArray vm_entries;
@@ -20,4 +25,21 @@ void IPartFilter::InitializeOptions(const TArray<FName>& options_array)
 	}
 
 	VM->SetVMEntries(vm_entries);
+}
+
+
+void IPartFilter::UpdateMatchingPartsCount(TUVMShipPartArray& list)
+{
+	for (const auto& entry : VM->GetVMEntries())
+	{
+		int32 count = 0;
+		for (const auto& part : list)
+		{
+			if (IsAllowed(entry->GetName(), part))
+			{
+				count++;
+			}
+		}
+		entry->SetMatchingPartsCount(count);
+	}
 }

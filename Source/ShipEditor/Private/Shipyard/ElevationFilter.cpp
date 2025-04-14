@@ -9,17 +9,17 @@ ElevationFilter::ElevationFilter(const INotifyFieldValueChanged::FFieldValueChan
 	InitializeOptions(ElevationFilterOptions);
 }
 
-bool ElevationFilter::IsAllowed(const TObjectPtr<UVMShipPart>& part)
+bool ElevationFilter::IsAllowed(const FName& option, const TObjectPtr<UVMShipPart>& part) const
 {
-	if (VM->GetSelected() == ElevationFilterOptions[1])
+	if (option == ElevationFilterOptions[1])
 	{
 		return part->GetElevation() == 0;
 	}
-	if (VM->GetSelected() == ElevationFilterOptions[2])
+	if (option == ElevationFilterOptions[2])
 	{
 		return part->GetElevation() == 1;
 	}
-	if (VM->GetSelected() == ElevationFilterOptions[3])
+	if (option == ElevationFilterOptions[3])
 	{
 		return part->GetElevation() == 2;
 	}

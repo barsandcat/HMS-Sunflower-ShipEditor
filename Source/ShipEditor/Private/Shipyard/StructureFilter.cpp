@@ -9,13 +9,13 @@ StructureFilter::StructureFilter(const INotifyFieldValueChanged::FFieldValueChan
 	InitializeOptions(StructureFilterOptions);
 }
 
-bool StructureFilter::IsAllowed(const TObjectPtr<UVMShipPart>& part)
+bool StructureFilter::IsAllowed(const FName& option, const TObjectPtr<UVMShipPart>& part) const
 {
-	if (VM->GetSelected() == StructureFilterOptions[1])
+	if (option == StructureFilterOptions[1])
 	{
 		return part->GetLoadbearing();
 	}
-	if (VM->GetSelected() == StructureFilterOptions[2])
+	if (option == StructureFilterOptions[2])
 	{
 		return !part->GetLoadbearing();
 	}

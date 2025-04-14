@@ -9,8 +9,10 @@ class SHIPEDITOR_API MountFilter : public IPartFilter
 {
 public:
 	MountFilter(const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate);
-	virtual bool IsAllowed(const TObjectPtr<UVMShipPart>& part) override;
 	~MountFilter() = default;
+
+protected:
+	virtual bool IsAllowed(const FName& option, const TObjectPtr<UVMShipPart>& part) const override;
 
 private:
 	const TArray<FName> MountFilterOptions = {"All mounts", "Turret mount", "Static mount"};

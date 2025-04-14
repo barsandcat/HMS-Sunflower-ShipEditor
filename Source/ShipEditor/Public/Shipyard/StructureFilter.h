@@ -9,8 +9,9 @@ class SHIPEDITOR_API StructureFilter : public IPartFilter
 {
 public:
 	StructureFilter(const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate);
-	virtual bool IsAllowed(const TObjectPtr<UVMShipPart>& part) override;
 	virtual ~StructureFilter() = default;
+protected:
+	virtual bool IsAllowed(const FName& option, const TObjectPtr<UVMShipPart>& part) const override;
 
 private:
 	TArray<FName> StructureFilterOptions = {"All structures", "Loadbearing structures", "No loadbearing structures"};
