@@ -305,7 +305,11 @@ void UShipyardSubsystem::SetBrushId(int32 brush_id)
 
 	if (BrushId != 0)
 	{
-		Brush->Destroy();
+		if (ensure(Brush))
+		{
+			Brush->Destroy();
+		}
+
 		Brush = nullptr;
 
 		if (brush_id == 0)
