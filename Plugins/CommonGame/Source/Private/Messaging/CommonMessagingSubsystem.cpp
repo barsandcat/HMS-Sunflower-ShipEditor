@@ -44,3 +44,11 @@ void UCommonMessagingSubsystem::ShowError(UCommonGameDialogDescriptor* DialogDes
 {
 	
 }
+
+void UCommonMessagingSubsystem::ShowOpenFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
+{
+}
+
+void UCommonMessagingSubsystem::ShowSaveFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
+{
+}

@@ -25,7 +25,7 @@ enum class ECommonMessagingResult : uint8
 	Unknown UMETA(Hidden)
 };
 
-DECLARE_DELEGATE_OneParam(FCommonMessagingResultDelegate, ECommonMessagingResult /* Result */);
+DECLARE_DELEGATE_TwoParams(FCommonMessagingResultDelegate, ECommonMessagingResult /* Result */, FString /* File */);
 
 /**
  * 
@@ -44,6 +44,8 @@ public:
 
 	virtual void ShowConfirmation(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate());
 	virtual void ShowError(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate());
+	virtual void ShowOpenFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate());
+	virtual void ShowSaveFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate());
 
 private:
 

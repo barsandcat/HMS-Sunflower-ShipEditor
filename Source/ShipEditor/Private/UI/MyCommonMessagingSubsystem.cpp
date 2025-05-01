@@ -18,6 +18,8 @@ void UMyCommonMessagingSubsystem::Initialize(FSubsystemCollectionBase& Collectio
 
 	ConfirmationDialogClassPtr = ConfirmationDialogClass.LoadSynchronous();
 	ErrorDialogClassPtr = ErrorDialogClass.LoadSynchronous();
+	OpenFileDialogClassPtr = OpenFileDialogClass.LoadSynchronous();
+	SaveFileDialogClassPtr = SaveFileDialogClass.LoadSynchronous();
 }
 
 void UMyCommonMessagingSubsystem::ShowConfirmation(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
@@ -39,6 +41,30 @@ void UMyCommonMessagingSubsystem::ShowError(UCommonGameDialogDescriptor* DialogD
 		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
 		{
 			RootLayout->PushWidgetToLayerStack<UCommonGameDialog>(TAG_UI_LAYER_MODAL, ErrorDialogClassPtr, [DialogDescriptor, ResultCallback](UCommonGameDialog& Dialog)
+			    { Dialog.SetupDialog(DialogDescriptor, ResultCallback); });
+		}
+	}
+}
+
+void UMyCommonMessagingSubsystem::ShowOpenFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
+{
+	if (UCommonLocalPlayer* LocalPlayer = GetLocalPlayer<UCommonLocalPlayer>())
+	{
+		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
+		{
+			RootLayout->PushWidgetToLayerStack<UCommonGameDialog>(TAG_UI_LAYER_MODAL, OpenFileDialogClassPtr, [DialogDescriptor, ResultCallback](UCommonGameDialog& Dialog)
+			    { Dialog.SetupDialog(DialogDescriptor, ResultCallback); });
+		}
+	}
+}
+
+void UMyCommonMessagingSubsystem::ShowSaveFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
+{
+	if (UCommonLocalPlayer* LocalPlayer = GetLocalPlayer<UCommonLocalPlayer>())
+	{
+		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
+		{
+			RootLayout->PushWidgetToLayerStack<UCommonGameDialog>(TAG_UI_LAYER_MODAL, SaveFileDialogClassPtr, [DialogDescriptor, ResultCallback](UCommonGameDialog& Dialog)
 			    { Dialog.SetupDialog(DialogDescriptor, ResultCallback); });
 		}
 	}

@@ -37,6 +37,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Button", meta = (InlineEditConditionToggle))
 	uint8 OverrideButtonText : 1;
 
-	UPROPERTY(EditAnywhere, Category = "Button", meta = (editcondition = "bOverride_ButtonText"))
+	UPROPERTY(EditAnywhere, Category = "Button", meta = (editcondition = "OverrideButtonText"))
 	FText ButtonText;
 };

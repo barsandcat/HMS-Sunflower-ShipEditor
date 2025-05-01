@@ -48,6 +48,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText Body;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString Name;
+
 	/** The confirm button's input action to use. */
 	UPROPERTY(BlueprintReadWrite)
 	TArray<FConfirmationDialogAction> ButtonActions;

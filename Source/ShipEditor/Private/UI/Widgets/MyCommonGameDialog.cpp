@@ -68,7 +68,7 @@ void UMyCommonGameDialog::NativeOnInitialized()
 void UMyCommonGameDialog::CloseConfirmationWindow(ECommonMessagingResult Result)
 {
 	DeactivateWidget();
-	OnResultCallback.ExecuteIfBound(Result);
+	OnResultCallback.ExecuteIfBound(Result, "");
 }
 
 FEventReply UMyCommonGameDialog::HandleTapToCloseZoneMouseButtonDown(FGeometry MyGeometry, const FPointerEvent& MouseEvent)

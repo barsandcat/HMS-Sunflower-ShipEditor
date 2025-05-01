@@ -47,7 +47,7 @@ public:
 	FCommonMessagingResultMCDelegate OnResult;
 
 private:
-	void HandleConfirmationResult(ECommonMessagingResult ConfirmationResult);
+	void HandleConfirmationResult(ECommonMessagingResult ConfirmationResult, FString Name);
 
 	UPROPERTY(Transient)
 	TObjectPtr<UObject> WorldContextObject;

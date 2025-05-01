@@ -75,10 +75,10 @@ void UAsyncAction_ShowConfirmation::Activate()
 	}
 	
 	// If we couldn't make the confirmation, just handle an unknown result and broadcast nothing
-	HandleConfirmationResult(ECommonMessagingResult::Unknown);
+	HandleConfirmationResult(ECommonMessagingResult::Unknown, "");
 }
 
-void UAsyncAction_ShowConfirmation::HandleConfirmationResult(ECommonMessagingResult ConfirmationResult)
+void UAsyncAction_ShowConfirmation::HandleConfirmationResult(ECommonMessagingResult ConfirmationResult, FString Name)
 {
 	OnResult.Broadcast(ConfirmationResult);
 
