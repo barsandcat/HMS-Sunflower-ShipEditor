@@ -9,6 +9,7 @@
 #include "UI/ViewModels/VMBrush.h"
 #include "UI/ViewModels/VMPartBrowser.h"
 #include "Shipyard/IPartFilter.h"
+#include "UI/ViewModels/VMShipPlan.h"
 
 #include <set>
 
@@ -39,6 +40,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
 	void SetBrushId(int32 brush_id);
 
+	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	void SaveShipPlan(const FString& name);
+
+	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	void LoadShipPlan(const FString& name);
+
 	UPROPERTY(BlueprintAssignable, Category = "Shipyard")
 	FBrushEvent OnBrushReady;
 
@@ -53,6 +60,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UVMBrush> VMBrush;
+
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UVMShipPlan> VMShipPlan;
 
 	void SetCursorPosition(const TOptional<FVector>& WorldPosition);
 	void SetBrushPosition(const TOptional<FVector>& WorldPosition);

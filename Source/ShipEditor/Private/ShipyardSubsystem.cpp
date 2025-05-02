@@ -186,6 +186,9 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 
 	VMBrush = NewObject<UVMBrush>();
 
+	VMShipPlan = NewObject<UVMShipPlan>();
+	VMShipPlan->SetName(FString("Flower"));
+
 	CursorClassPtr = CursorClass.LoadSynchronous();
 
 	PartClassMap.Add(1, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_01.BP_ShipPart_01_C"), nullptr, LOAD_None, nullptr));
@@ -343,6 +346,18 @@ void UShipyardSubsystem::SetBrushId(int32 brush_id)
 		}
 	}
 	BrushId = brush_id;
+}
+
+void UShipyardSubsystem::SaveShipPlan(const FString& name)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SaveShipPlan %s"), *name);
+	VMShipPlan->SetName(name);
+}
+
+void UShipyardSubsystem::LoadShipPlan(const FString& name)
+{
+	UE_LOG(LogTemp, Warning, TEXT("LoadShipPlan %s"), *name);
+	VMShipPlan->SetName(name);
 }
 
 std::set<int32> UShipyardSubsystem::GetSelectedCategories() const

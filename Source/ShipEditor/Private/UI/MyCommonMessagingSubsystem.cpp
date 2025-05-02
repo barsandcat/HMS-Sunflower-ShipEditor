@@ -24,6 +24,10 @@ void UMyCommonMessagingSubsystem::Initialize(FSubsystemCollectionBase& Collectio
 
 void UMyCommonMessagingSubsystem::ShowConfirmation(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
 {
+	if (!ensure(ConfirmationDialogClassPtr))
+	{
+		return;
+	}
 	if (UCommonLocalPlayer* LocalPlayer = GetLocalPlayer<UCommonLocalPlayer>())
 	{
 		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
@@ -36,6 +40,11 @@ void UMyCommonMessagingSubsystem::ShowConfirmation(UCommonGameDialogDescriptor* 
 
 void UMyCommonMessagingSubsystem::ShowError(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
 {
+	if (!ensure(ErrorDialogClassPtr))
+	{
+		return;
+	}
+
 	if (UCommonLocalPlayer* LocalPlayer = GetLocalPlayer<UCommonLocalPlayer>())
 	{
 		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
@@ -48,6 +57,10 @@ void UMyCommonMessagingSubsystem::ShowError(UCommonGameDialogDescriptor* DialogD
 
 void UMyCommonMessagingSubsystem::ShowOpenFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
 {
+	if (!ensure(OpenFileDialogClassPtr))
+	{
+		return;
+	}
 	if (UCommonLocalPlayer* LocalPlayer = GetLocalPlayer<UCommonLocalPlayer>())
 	{
 		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
@@ -60,6 +73,10 @@ void UMyCommonMessagingSubsystem::ShowOpenFileDialog(UCommonGameDialogDescriptor
 
 void UMyCommonMessagingSubsystem::ShowSaveFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
 {
+	if (!ensure(SaveFileDialogClassPtr))
+	{
+		return;
+	}
 	if (UCommonLocalPlayer* LocalPlayer = GetLocalPlayer<UCommonLocalPlayer>())
 	{
 		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
