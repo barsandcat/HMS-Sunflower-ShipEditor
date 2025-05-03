@@ -1,9 +1,8 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
-
 #include "UI/ViewModels/VMFileSystem.h"
-#include "HAL/FileManagerGeneric.h"
 
+#include "HAL/FileManagerGeneric.h"
 
 void UVMFileSystem::SetCWD(const FString& cwd)
 {
@@ -18,7 +17,7 @@ FString UVMFileSystem::GetCWD() const
 TArray<UVMFileName*> UVMFileSystem::GetFiles() const
 {
 	IFileManager& FileManager = IFileManager::Get();
-	
+
 	FString path = "*.*";
 	TArray<FString> output;
 	FileManager.FindFiles(output, *path, true, true);

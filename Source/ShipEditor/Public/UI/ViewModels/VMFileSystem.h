@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "MVVMViewModelBase.h"
 #include "VMFileName.h"
+
 #include "VMFileSystem.generated.h"
 
 UCLASS()
@@ -12,7 +13,6 @@ class SHIPEDITOR_API UVMFileSystem : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 protected:
-
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
 	FString CWD;
 
@@ -21,5 +21,5 @@ public:
 	TArray<UVMFileName*> GetFiles() const;
 
 	void SetCWD(const FString& cwd);
-	FString GetCWD() const;	
+	FString GetCWD() const;
 };
