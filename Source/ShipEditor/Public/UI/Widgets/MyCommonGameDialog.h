@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Messaging/CommonGameDialog.h"
+
 #include "MyCommonGameDialog.generated.h"
 
 class IWidgetCompilerLog;
@@ -12,6 +13,7 @@ class UCommonTextBlock;
 class UCommonRichTextBlock;
 class UDynamicEntryBox;
 class UCommonBorder;
+class UInputAction;
 
 UCLASS()
 class SHIPEDITOR_API UMyCommonGameDialog : public UCommonGameDialog
@@ -48,6 +50,6 @@ private:
 	UPROPERTY(Meta = (BindWidget))
 	TObjectPtr<UCommonBorder> Border_TapToCloseZone;
 
-	UPROPERTY(EditDefaultsOnly, meta = (RowType = "/Script/CommonUI.CommonInputActionDataBase"))
-	FDataTableRowHandle CancelAction;
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UInputAction> CancelAction;
 };

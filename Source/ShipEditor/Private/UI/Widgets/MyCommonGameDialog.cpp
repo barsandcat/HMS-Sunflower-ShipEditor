@@ -12,7 +12,8 @@
 #include "CommonTextBlock.h"
 #include "Components/DynamicEntryBox.h"
 #include "ICommonInputModule.h"
-#include "UI\Widgets\MyCommonButtonBase.h"
+#include "InputAction.h"
+#include "UI/Widgets/MyCommonButtonBase.h"
 
 void UMyCommonGameDialog::SetupDialog(UCommonGameDialogDescriptor* Descriptor, FCommonMessagingResultDelegate ResultCallback)
 {
@@ -26,18 +27,18 @@ void UMyCommonGameDialog::SetupDialog(UCommonGameDialogDescriptor* Descriptor, F
 
 	for (const FConfirmationDialogAction& Action : Descriptor->ButtonActions)
 	{
-		FDataTableRowHandle ActionRow;
+		UInputAction* input_action;
 
 		switch (Action.Result)
 		{
 			case ECommonMessagingResult::Confirmed:
-				ActionRow = ICommonInputModule::GetSettings().GetDefaultClickAction();
+				input_action = ICommonInputModule::GetSettings().GetEnhancedInputClickAction();
 				break;
 			case ECommonMessagingResult::Declined:
-				ActionRow = ICommonInputModule::GetSettings().GetDefaultBackAction();
+				input_action = ICommonInputModule::GetSettings().GetEnhancedInputBackAction();
 				break;
 			case ECommonMessagingResult::Cancelled:
-				ActionRow = CancelAction;
+				input_action = CancelAction;
 				break;
 			default:
 				ensure(false);
@@ -45,7 +46,7 @@ void UMyCommonGameDialog::SetupDialog(UCommonGameDialogDescriptor* Descriptor, F
 		}
 
 		UMyCommonButtonBase* Button = EntryBox_Buttons->CreateEntry<UMyCommonButtonBase>();
-		Button->SetTriggeringInputAction(ActionRow);
+		Button->SetTriggeringEnhancedInputAction(input_action);
 		Button->OnClicked().AddUObject(this, &ThisClass::CloseConfirmationWindow, Action.Result);
 		Button->SetButtonText(Action.OptionalDisplayText);
 	}
