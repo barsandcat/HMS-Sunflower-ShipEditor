@@ -17,9 +17,12 @@ protected:
 	FString CWD;
 
 public:
+	UVMFileSystem(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	UFUNCTION(BlueprintPure, FieldNotify)
 	TArray<UVMFileName*> GetFiles() const;
 
-	void SetCWD(const FString& cwd);
+	UFUNCTION(BlueprintCallable)
+	void SetCWD(const FString& new_cwd);
+
 	FString GetCWD() const;
 };

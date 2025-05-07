@@ -4,14 +4,22 @@
 
 #include "HAL/FileManagerGeneric.h"
 
-void UVMFileSystem::SetCWD(const FString& cwd)
+void UVMFileSystem::SetCWD(const FString& new_cwd)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(CWD, cwd);
+	IFileManager::Get().MakeDirectory(*new_cwd, true);
+	UE_MVVM_SET_PROPERTY_VALUE(CWD, new_cwd);
+	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(GetFiles);
 }
 
 FString UVMFileSystem::GetCWD() const
 {
 	return CWD;
+}
+
+UVMFileSystem::UVMFileSystem(const FObjectInitializer& object_initializer)
+    : UMVVMViewModelBase(object_initializer)
+{
+	SetCWD(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("ShipPlans")));
 }
 
 TArray<UVMFileName*> UVMFileSystem::GetFiles() const
@@ -43,13 +51,8 @@ TArray<UVMFileName*> UVMFileSystem::GetFiles() const
 		}
 	};
 
-	IFileManager& file_manager = IFileManager::Get();
-
-	FString path = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("ShipPlans"));
-	UE_LOG(LogTemp, Warning, TEXT("path: %s"), *path);
-	file_manager.MakeDirectory(*path, true);
 	FShipPlansVisitor visitor;
-	file_manager.IterateDirectory(*path, visitor);
+	IFileManager::Get().IterateDirectory(*CWD, visitor);
 
 	return visitor.Result;
 }
