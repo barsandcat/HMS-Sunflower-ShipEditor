@@ -8,6 +8,7 @@ void UVMFileSystem::SetCWD(const FString& new_cwd)
 {
 	IFileManager::Get().MakeDirectory(*new_cwd, true);
 	UE_MVVM_SET_PROPERTY_VALUE(CWD, new_cwd);
+	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(GetNavigation);
 	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(GetFiles);
 }
 
@@ -16,10 +17,15 @@ FString UVMFileSystem::GetCWD() const
 	return CWD;
 }
 
+inline FString UVMFileSystem::GetRoot() const
+{
+	return FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("ShipPlans"));
+}
+
 UVMFileSystem::UVMFileSystem(const FObjectInitializer& object_initializer)
     : UMVVMViewModelBase(object_initializer)
 {
-	SetCWD(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("ShipPlans")));
+	SetCWD(GetRoot());
 }
 
 TArray<UVMFileName*> UVMFileSystem::GetFiles() const
@@ -45,6 +51,7 @@ TArray<UVMFileName*> UVMFileSystem::GetFiles() const
 			}
 			UVMFileName* vm = NewObject<UVMFileName>();
 			vm->SetName(file_name);
+			vm->SetPath(FilenameOrDirectory);
 			vm->SetIsDirectory(is_directory);
 			Result.Add(vm);
 			return true;
@@ -55,4 +62,24 @@ TArray<UVMFileName*> UVMFileSystem::GetFiles() const
 	IFileManager::Get().IterateDirectory(*CWD, visitor);
 
 	return visitor.Result;
+}
+
+TArray<UVMFileName*> UVMFileSystem::GetNavigation() const
+{
+	FString relative_path = CWD;
+	FPaths::MakePathRelativeTo(relative_path, *GetRoot());
+
+	TArray<UVMFileName*> result;
+
+	FPathViews::IterateComponents(relative_path,
+	    [&result](FStringView path_component)
+	    {
+		    UVMFileName* vm = NewObject<UVMFileName>();
+		    vm->SetName(FString(path_component));
+		    vm->SetPath(FString(path_component));
+		    vm->SetIsDirectory(true);
+		    result.Add(vm);
+	    });
+
+	return result;
 }

@@ -1,6 +1,5 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
-
 #include "UI/ViewModels/VMFileName.h"
 
 void UVMFileName::SetName(const FString& name)
@@ -21,4 +20,14 @@ void UVMFileName::SetIsDirectory(bool isDirectory)
 bool UVMFileName::GetIsDirectory() const
 {
 	return IsDirectory;
+}
+
+void UVMFileName::SetPath(const FString& path)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(Path, path);
+}
+
+FString UVMFileName::GetPath() const
+{
+	return Path;
 }

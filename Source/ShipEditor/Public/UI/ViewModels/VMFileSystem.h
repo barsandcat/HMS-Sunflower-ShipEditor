@@ -18,11 +18,17 @@ protected:
 
 public:
 	UVMFileSystem(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
 	UFUNCTION(BlueprintPure, FieldNotify)
 	TArray<UVMFileName*> GetFiles() const;
+
+	UFUNCTION(BlueprintPure, FieldNotify)
+	TArray<UVMFileName*> GetNavigation() const;
 
 	UFUNCTION(BlueprintCallable)
 	void SetCWD(const FString& new_cwd);
 
 	FString GetCWD() const;
+
+	FString GetRoot() const;
 };

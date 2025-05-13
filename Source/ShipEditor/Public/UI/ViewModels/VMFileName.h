@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MVVMViewModelBase.h"
+
 #include "VMFileName.generated.h"
 
 UCLASS()
@@ -15,6 +16,9 @@ protected:
 	FString Name;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
+	FString Path;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
 	bool IsDirectory;
 
 public:
@@ -23,4 +27,7 @@ public:
 
 	void SetIsDirectory(bool isDirectory);
 	bool GetIsDirectory() const;
+
+	void SetPath(const FString& path);
+	FString GetPath() const;
 };
