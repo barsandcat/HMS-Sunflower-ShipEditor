@@ -88,11 +88,14 @@ TArray<UVMFileName*> UVMFileSystem::GetNavigation() const
 		    });
 	}
 
+	FStringView root_path;
+	FPathViews::Split(root, root_path, filename, extension);
+	FString current_path(root_path);
 	for (UVMFileName* vm : result)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("- %s %s"), *root, *vm->GetName())
-		root = FPaths::Combine(root, vm->GetName());
-		vm->SetPath(root);
+		current_path = FPaths::Combine(current_path, vm->GetName());
+		vm->SetPath(current_path);
+		UE_LOG(LogTemp, Warning, TEXT("- %s %s"), *vm->GetPath(), *vm->GetName())
 	}
 
 	return result;
