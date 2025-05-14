@@ -66,20 +66,34 @@ TArray<UVMFileName*> UVMFileSystem::GetFiles() const
 
 TArray<UVMFileName*> UVMFileSystem::GetNavigation() const
 {
+	FString root = GetRoot();
 	FString relative_path = CWD;
-	FPaths::MakePathRelativeTo(relative_path, *GetRoot());
+	FPaths::MakePathRelativeTo(relative_path, *root);
+
+	FStringView path;
+	FStringView filename;
+	FStringView extension;
+	FPathViews::Split(relative_path, path, filename, extension);
 
 	TArray<UVMFileName*> result;
+	if (!path.IsEmpty())
+	{
+		FPathViews::IterateComponents(path,
+		    [&result](FStringView str)
+		    {
+			    UVMFileName* vm = NewObject<UVMFileName>();
+			    vm->SetName(FString(str));
+			    vm->SetIsDirectory(true);
+			    result.Add(vm);
+		    });
+	}
 
-	FPathViews::IterateComponents(relative_path,
-	    [&result](FStringView path_component)
-	    {
-		    UVMFileName* vm = NewObject<UVMFileName>();
-		    vm->SetName(FString(path_component));
-		    vm->SetPath(FString(path_component));
-		    vm->SetIsDirectory(true);
-		    result.Add(vm);
-	    });
+	for (UVMFileName* vm : result)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("- %s %s"), *root, *vm->GetName())
+		root = FPaths::Combine(root, vm->GetName());
+		vm->SetPath(root);
+	}
 
 	return result;
 }
