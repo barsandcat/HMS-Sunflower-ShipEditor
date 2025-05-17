@@ -47,7 +47,7 @@ void UMyCommonGameDialog::SetupDialog(UCommonGameDialogDescriptor* Descriptor, F
 
 		UMyCommonButtonBase* Button = EntryBox_Buttons->CreateEntry<UMyCommonButtonBase>();
 		Button->SetTriggeringEnhancedInputAction(input_action);
-		Button->OnClicked().AddUObject(this, &ThisClass::CloseDialogWithResult, Action.Result, FString(""));
+		Button->OnClicked().AddUObject(this, &ThisClass::OnAction, Action.Result);
 		Button->SetButtonText(Action.OptionalDisplayText);
 	}
 
@@ -64,6 +64,11 @@ void UMyCommonGameDialog::NativeOnInitialized()
 	Super::NativeOnInitialized();
 
 	Border_TapToCloseZone->OnMouseButtonDownEvent.BindDynamic(this, &UMyCommonGameDialog::HandleTapToCloseZoneMouseButtonDown);
+}
+
+void UMyCommonGameDialog::OnAction_Implementation(ECommonMessagingResult result)
+{
+	CloseDialogWithResult(result, "");
 }
 
 void UMyCommonGameDialog::CloseDialogWithResult(ECommonMessagingResult Result, FString name)
