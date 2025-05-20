@@ -1,14 +1,12 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
-#include "UI/Widgets/FileCommonGameDialog.h"
+#include "UI/Widgets/MyCommonGameFileDialog.h"
 
 #include "CommonTextBlock.h"
 
-void UFileCommonGameDialog::SetupDialog(UCommonGameDialogDescriptor* descriptor, FCommonMessagingResultDelegate result_callback)
+void UMyCommonGameFileDialog::SetupDialog(bool save_dialog, FText header, FString file, FFileDialogResultDelegate result_callback)
 {
-	Super::SetupDialog(descriptor, result_callback);
-
-	TextTitle->SetText(descriptor->Header);
+	TextTitle->SetText(header);
 
 	{
 		UInputAction* input_action = CancelAction;
@@ -19,9 +17,4 @@ void UFileCommonGameDialog::SetupDialog(UCommonGameDialogDescriptor* descriptor,
 	}
 
 	OnResultCallback = result_callback;
-}
-
-void UFileCommonGameDialog::KillDialog()
-{
-	Super::KillDialog();
 }

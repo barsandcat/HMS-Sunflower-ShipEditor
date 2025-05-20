@@ -3,9 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Messaging/CommonGameDialog.h"
+#include "Messaging/CommonGameFileDialog.h"
 
-#include "FileCommonGameDialog.generated.h"
+#include "MyCommonGameFileDialog.generated.h"
 
 class IWidgetCompilerLog;
 
@@ -13,15 +13,14 @@ class UCommonTextBlock;
 class UInputAction;
 
 UCLASS()
-class SHIPEDITOR_API UFileCommonGameDialog : public UCommonGameDialog
+class SHIPEDITOR_API UMyCommonGameFileDialog : public UCommonGameFileDialog
 {
 	GENERATED_BODY()
 public:
-	virtual void SetupDialog(UCommonGameDialogDescriptor* descriptor, FCommonMessagingResultDelegate result_callback);
-	virtual void KillDialog();
+	virtual void SetupDialog(bool save_dialog, FText header, FString file, FFileDialogResultDelegate result_callback);
 
 private:
-	FCommonMessagingResultDelegate OnResultCallback;
+	FFileDialogResultDelegate OnResultCallback;
 
 	UPROPERTY(Meta = (BindWidget))
 	TObjectPtr<UCommonTextBlock> TextTitle;

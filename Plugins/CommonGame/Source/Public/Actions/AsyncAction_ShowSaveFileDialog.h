@@ -4,12 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintAsyncActionBase.h"
+
 #include "AsyncAction_ShowSaveFileDialog.generated.h"
 
 enum class ECommonMessagingResult : uint8;
 
 class FText;
-class UCommonGameDialogDescriptor;
 class ULocalPlayer;
 struct FFrame;
 
@@ -19,10 +19,10 @@ UCLASS()
 class COMMONGAME_API UAsyncAction_ShowSaveFileDialog : public UBlueprintAsyncActionBase
 {
 	GENERATED_BODY()
-	
+
 public:
 	UFUNCTION(BlueprintCallable, BlueprintCosmetic, meta = (BlueprintInternalUseOnly = "true", WorldContext = "InWorldContextObject"))
-	static UAsyncAction_ShowSaveFileDialog* ShowSaveFileDialog(UObject* InWorldContextObject, FText Title, FText Message);
+	static UAsyncAction_ShowSaveFileDialog* ShowSaveFileDialog(UObject* InWorldContextObject, FText Header, FString File);
 
 	virtual void Activate() override;
 
@@ -40,5 +40,8 @@ private:
 	TObjectPtr<ULocalPlayer> TargetLocalPlayer;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UCommonGameDialogDescriptor> Descriptor;
+	FText Header;
+
+	UPROPERTY(Transient)
+	FString File;
 };

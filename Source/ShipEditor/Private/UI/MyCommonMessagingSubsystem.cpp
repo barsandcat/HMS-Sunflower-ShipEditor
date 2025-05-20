@@ -4,6 +4,7 @@
 
 #include "CommonLocalPlayer.h"
 #include "Messaging/CommonGameDialog.h"
+#include "Messaging/CommonGameFileDialog.h"
 #include "NativeGameplayTags.h"
 #include "PrimaryGameLayout.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
@@ -18,8 +19,7 @@ void UMyCommonMessagingSubsystem::Initialize(FSubsystemCollectionBase& Collectio
 
 	ConfirmationDialogClassPtr = ConfirmationDialogClass.LoadSynchronous();
 	ErrorDialogClassPtr = ErrorDialogClass.LoadSynchronous();
-	OpenFileDialogClassPtr = OpenFileDialogClass.LoadSynchronous();
-	SaveFileDialogClassPtr = SaveFileDialogClass.LoadSynchronous();
+	FileDialogClassPtr = FileDialogClass.LoadSynchronous();
 }
 
 void UMyCommonMessagingSubsystem::ShowConfirmation(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
@@ -55,9 +55,9 @@ void UMyCommonMessagingSubsystem::ShowError(UCommonGameDialogDescriptor* DialogD
 	}
 }
 
-void UMyCommonMessagingSubsystem::ShowOpenFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
+void UMyCommonMessagingSubsystem::ShowFileDialog(bool SaveDialog, FText Header, FString File, FFileDialogResultDelegate ResultCallback)
 {
-	if (!ensure(OpenFileDialogClassPtr))
+	if (!ensure(FileDialogClassPtr))
 	{
 		return;
 	}
@@ -65,24 +65,11 @@ void UMyCommonMessagingSubsystem::ShowOpenFileDialog(UCommonGameDialogDescriptor
 	{
 		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
 		{
-			RootLayout->PushWidgetToLayerStack<UCommonGameDialog>(TAG_UI_LAYER_MODAL, OpenFileDialogClassPtr, [DialogDescriptor, ResultCallback](UCommonGameDialog& Dialog)
-			    { Dialog.SetupDialog(DialogDescriptor, ResultCallback); });
-		}
-	}
-}
-
-void UMyCommonMessagingSubsystem::ShowSaveFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
-{
-	if (!ensure(SaveFileDialogClassPtr))
-	{
-		return;
-	}
-	if (UCommonLocalPlayer* LocalPlayer = GetLocalPlayer<UCommonLocalPlayer>())
-	{
-		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
-		{
-			RootLayout->PushWidgetToLayerStack<UCommonGameDialog>(TAG_UI_LAYER_MODAL, SaveFileDialogClassPtr, [DialogDescriptor, ResultCallback](UCommonGameDialog& Dialog)
-			    { Dialog.SetupDialog(DialogDescriptor, ResultCallback); });
+			RootLayout->PushWidgetToLayerStack<UCommonGameFileDialog>(TAG_UI_LAYER_MODAL, FileDialogClassPtr,
+			    [SaveDialog, Header, File, ResultCallback](UCommonGameFileDialog& Dialog)
+			    {
+				    Dialog.SetupDialog(SaveDialog, Header, File, ResultCallback);
+			    });
 		}
 	}
 }

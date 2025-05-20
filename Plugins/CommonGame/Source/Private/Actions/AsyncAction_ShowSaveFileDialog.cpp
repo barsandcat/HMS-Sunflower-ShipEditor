@@ -1,17 +1,17 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
-
 #include "Actions/AsyncAction_ShowSaveFileDialog.h"
+
 #include "Engine/GameInstance.h"
 #include "Messaging/CommonGameDialog.h"
 #include "Messaging/CommonMessagingSubsystem.h"
 
-
-UAsyncAction_ShowSaveFileDialog* UAsyncAction_ShowSaveFileDialog::ShowSaveFileDialog(UObject* InWorldContextObject, FText Title, FText Message)
+UAsyncAction_ShowSaveFileDialog* UAsyncAction_ShowSaveFileDialog::ShowSaveFileDialog(UObject* InWorldContextObject, FText Header, FString File)
 {
 	UAsyncAction_ShowSaveFileDialog* Action = NewObject<UAsyncAction_ShowSaveFileDialog>();
 	Action->WorldContextObject = InWorldContextObject;
-	Action->Descriptor = UCommonGameDialogDescriptor::CreateConfirmationYesNo(Title, Message);
+	Action->Header = Header;
+	Action->File = File;
 	Action->RegisterWithGameInstance(InWorldContextObject);
 
 	return Action;
@@ -42,8 +42,8 @@ void UAsyncAction_ShowSaveFileDialog::Activate()
 	{
 		if (UCommonMessagingSubsystem* Messaging = TargetLocalPlayer->GetSubsystem<UCommonMessagingSubsystem>())
 		{
-			FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate::CreateUObject(this, &UAsyncAction_ShowSaveFileDialog::HandleResult);
-			Messaging->ShowSaveFileDialog(Descriptor, ResultCallback);
+			FFileDialogResultDelegate ResultCallback = FFileDialogResultDelegate::CreateUObject(this, &UAsyncAction_ShowSaveFileDialog::HandleResult);
+			Messaging->ShowFileDialog(true, Header, File, ResultCallback);
 			return;
 		}
 	}
@@ -52,9 +52,9 @@ void UAsyncAction_ShowSaveFileDialog::Activate()
 	HandleResult(ECommonMessagingResult::Unknown, "");
 }
 
-void UAsyncAction_ShowSaveFileDialog::HandleResult(ECommonMessagingResult ConfirmationResult, FString Name)
+void UAsyncAction_ShowSaveFileDialog::HandleResult(ECommonMessagingResult ConfirmationResult, FString ResultFile)
 {
-	OnResult.Broadcast(ConfirmationResult, Name);
+	OnResult.Broadcast(ConfirmationResult, ResultFile);
 
 	SetReadyToDestroy();
 }

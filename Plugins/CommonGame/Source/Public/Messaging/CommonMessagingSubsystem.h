@@ -25,10 +25,11 @@ enum class ECommonMessagingResult : uint8
 	Unknown UMETA(Hidden)
 };
 
-DECLARE_DELEGATE_TwoParams(FCommonMessagingResultDelegate, ECommonMessagingResult /* Result */, FString /* File */);
+DECLARE_DELEGATE_OneParam(FCommonMessagingResultDelegate, ECommonMessagingResult /* Result */);
+DECLARE_DELEGATE_TwoParams(FFileDialogResultDelegate, ECommonMessagingResult /* Result */, FString /* File */);
 
 /**
- * 
+ *
  */
 UCLASS(config = Game)
 class COMMONGAME_API UCommonMessagingSubsystem : public ULocalPlayerSubsystem
@@ -36,7 +37,7 @@ class COMMONGAME_API UCommonMessagingSubsystem : public ULocalPlayerSubsystem
 	GENERATED_BODY()
 
 public:
-	UCommonMessagingSubsystem() { }
+	UCommonMessagingSubsystem() {}
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
@@ -44,9 +45,7 @@ public:
 
 	virtual void ShowConfirmation(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate());
 	virtual void ShowError(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate());
-	virtual void ShowOpenFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate());
-	virtual void ShowSaveFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate());
+	virtual void ShowFileDialog(bool SaveDialog, FText Header, FString File, FFileDialogResultDelegate ResultCallback);
 
 private:
-
 };

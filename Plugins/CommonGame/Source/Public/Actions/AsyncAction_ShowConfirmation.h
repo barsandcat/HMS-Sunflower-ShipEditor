@@ -3,8 +3,8 @@
 #pragma once
 
 #include "Kismet/BlueprintAsyncActionBase.h"
-
 #include "UObject/ObjectPtr.h"
+
 #include "AsyncAction_ShowConfirmation.generated.h"
 
 enum class ECommonMessagingResult : uint8;
@@ -27,18 +27,15 @@ class UAsyncAction_ShowConfirmation : public UBlueprintAsyncActionBase
 public:
 	UFUNCTION(BlueprintCallable, BlueprintCosmetic, meta = (BlueprintInternalUseOnly = "true", WorldContext = "InWorldContextObject"))
 	static UAsyncAction_ShowConfirmation* ShowConfirmationYesNo(
-		UObject* InWorldContextObject, FText Title, FText Message
-	);
+	    UObject* InWorldContextObject, FText Title, FText Message);
 
 	UFUNCTION(BlueprintCallable, BlueprintCosmetic, meta = (BlueprintInternalUseOnly = "true", WorldContext = "InWorldContextObject"))
 	static UAsyncAction_ShowConfirmation* ShowConfirmationOkCancel(
-		UObject* InWorldContextObject, FText Title, FText Message
-	);
+	    UObject* InWorldContextObject, FText Title, FText Message);
 
 	UFUNCTION(BlueprintCallable, BlueprintCosmetic, meta = (BlueprintInternalUseOnly = "true", WorldContext = "InWorldContextObject"))
 	static UAsyncAction_ShowConfirmation* ShowConfirmationCustom(
-		UObject* InWorldContextObject, UCommonGameDialogDescriptor* Descriptor
-	);
+	    UObject* InWorldContextObject, UCommonGameDialogDescriptor* Descriptor);
 
 	virtual void Activate() override;
 
@@ -47,7 +44,7 @@ public:
 	FCommonMessagingResultMCDelegate OnResult;
 
 private:
-	void HandleConfirmationResult(ECommonMessagingResult ConfirmationResult, FString Name);
+	void HandleConfirmationResult(ECommonMessagingResult ConfirmationResult);
 
 	UPROPERTY(Transient)
 	TObjectPtr<UObject> WorldContextObject;

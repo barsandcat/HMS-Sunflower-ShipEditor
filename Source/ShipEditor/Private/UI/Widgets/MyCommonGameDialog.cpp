@@ -47,7 +47,7 @@ void UMyCommonGameDialog::SetupDialog(UCommonGameDialogDescriptor* Descriptor, F
 
 		UMyCommonButtonBase* Button = EntryBox_Buttons->CreateEntry<UMyCommonButtonBase>();
 		Button->SetTriggeringEnhancedInputAction(input_action);
-		Button->OnClicked().AddUObject(this, &ThisClass::OnAction, Action.Result);
+		Button->OnClicked().AddUObject(this, &ThisClass::CloseDialogWithResult, Action.Result);
 		Button->SetButtonText(Action.OptionalDisplayText);
 	}
 
@@ -66,15 +66,10 @@ void UMyCommonGameDialog::NativeOnInitialized()
 	Border_TapToCloseZone->OnMouseButtonDownEvent.BindDynamic(this, &UMyCommonGameDialog::HandleTapToCloseZoneMouseButtonDown);
 }
 
-void UMyCommonGameDialog::OnAction_Implementation(ECommonMessagingResult result)
-{
-	CloseDialogWithResult(result, "");
-}
-
-void UMyCommonGameDialog::CloseDialogWithResult(ECommonMessagingResult Result, FString name)
+void UMyCommonGameDialog::CloseDialogWithResult(ECommonMessagingResult Result)
 {
 	DeactivateWidget();
-	OnResultCallback.ExecuteIfBound(Result, name);
+	OnResultCallback.ExecuteIfBound(Result);
 }
 
 FEventReply UMyCommonGameDialog::HandleTapToCloseZoneMouseButtonDown(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
@@ -84,7 +79,7 @@ FEventReply UMyCommonGameDialog::HandleTapToCloseZoneMouseButtonDown(FGeometry M
 
 	if (MouseEvent.IsTouchEvent() || MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
-		CloseDialogWithResult(ECommonMessagingResult::Declined, "");
+		CloseDialogWithResult(ECommonMessagingResult::Declined);
 		Reply.NativeReply = FReply::Handled();
 	}
 

@@ -9,7 +9,7 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AsyncAction_ShowConfirmation)
 
 UAsyncAction_ShowConfirmation::UAsyncAction_ShowConfirmation(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+    : Super(ObjectInitializer)
 {
 }
 
@@ -73,16 +73,14 @@ void UAsyncAction_ShowConfirmation::Activate()
 			return;
 		}
 	}
-	
+
 	// If we couldn't make the confirmation, just handle an unknown result and broadcast nothing
-	HandleConfirmationResult(ECommonMessagingResult::Unknown, "");
+	HandleConfirmationResult(ECommonMessagingResult::Unknown);
 }
 
-void UAsyncAction_ShowConfirmation::HandleConfirmationResult(ECommonMessagingResult ConfirmationResult, FString Name)
+void UAsyncAction_ShowConfirmation::HandleConfirmationResult(ECommonMessagingResult ConfirmationResult)
 {
 	OnResult.Broadcast(ConfirmationResult);
 
 	SetReadyToDestroy();
 }
-
-

@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintAsyncActionBase.h"
-#include "AsyncAction_ShowOpenFileDialog.generated.h"
 
+#include "AsyncAction_ShowOpenFileDialog.generated.h"
 
 enum class ECommonMessagingResult : uint8;
 
@@ -23,7 +23,7 @@ class COMMONGAME_API UAsyncAction_ShowOpenFileDialog : public UBlueprintAsyncAct
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintCosmetic, meta = (BlueprintInternalUseOnly = "true", WorldContext = "InWorldContextObject"))
-	static UAsyncAction_ShowOpenFileDialog* ShowOpenFileDialog(UObject* InWorldContextObject, FText Title, FText Message);
+	static UAsyncAction_ShowOpenFileDialog* ShowOpenFileDialog(UObject* InWorldContextObject, FText Header, FString File);
 
 	virtual void Activate() override;
 
@@ -41,5 +41,8 @@ private:
 	TObjectPtr<ULocalPlayer> TargetLocalPlayer;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UCommonGameDialogDescriptor> Descriptor;
+	FText Header;
+
+	UPROPERTY(Transient)
+	FString File;
 };

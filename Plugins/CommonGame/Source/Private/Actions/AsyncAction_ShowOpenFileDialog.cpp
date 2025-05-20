@@ -1,22 +1,21 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
-
 #include "Actions/AsyncAction_ShowOpenFileDialog.h"
 
 #include "Engine/GameInstance.h"
 #include "Messaging/CommonGameDialog.h"
 #include "Messaging/CommonMessagingSubsystem.h"
 
-UAsyncAction_ShowOpenFileDialog* UAsyncAction_ShowOpenFileDialog::ShowOpenFileDialog(UObject* InWorldContextObject, FText Title, FText Message)
+UAsyncAction_ShowOpenFileDialog* UAsyncAction_ShowOpenFileDialog::ShowOpenFileDialog(UObject* InWorldContextObject, FText Header, FString File)
 {
 	UAsyncAction_ShowOpenFileDialog* Action = NewObject<UAsyncAction_ShowOpenFileDialog>();
 	Action->WorldContextObject = InWorldContextObject;
-	Action->Descriptor = UCommonGameDialogDescriptor::CreateConfirmationYesNo(Title, Message);
+	Action->Header = Header;
+	Action->File = File;
 	Action->RegisterWithGameInstance(InWorldContextObject);
 
 	return Action;
 }
-
 
 void UAsyncAction_ShowOpenFileDialog::Activate()
 {
@@ -43,8 +42,8 @@ void UAsyncAction_ShowOpenFileDialog::Activate()
 	{
 		if (UCommonMessagingSubsystem* Messaging = TargetLocalPlayer->GetSubsystem<UCommonMessagingSubsystem>())
 		{
-			FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate::CreateUObject(this, &UAsyncAction_ShowOpenFileDialog::HandleResult);
-			Messaging->ShowOpenFileDialog(Descriptor, ResultCallback);
+			FFileDialogResultDelegate ResultCallback = FFileDialogResultDelegate::CreateUObject(this, &UAsyncAction_ShowOpenFileDialog::HandleResult);
+			Messaging->ShowFileDialog(false, Header, File, ResultCallback);
 			return;
 		}
 	}
@@ -53,9 +52,9 @@ void UAsyncAction_ShowOpenFileDialog::Activate()
 	HandleResult(ECommonMessagingResult::Unknown, "");
 }
 
-void UAsyncAction_ShowOpenFileDialog::HandleResult(ECommonMessagingResult ConfirmationResult, FString Name)
+void UAsyncAction_ShowOpenFileDialog::HandleResult(ECommonMessagingResult ConfirmationResult, FString ResultFile)
 {
-	OnResult.Broadcast(ConfirmationResult, Name);
+	OnResult.Broadcast(ConfirmationResult, ResultFile);
 
 	SetReadyToDestroy();
 }

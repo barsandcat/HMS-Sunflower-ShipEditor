@@ -37,18 +37,12 @@ bool UCommonMessagingSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 
 void UCommonMessagingSubsystem::ShowConfirmation(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
 {
-	
 }
 
 void UCommonMessagingSubsystem::ShowError(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
 {
-	
 }
 
-void UCommonMessagingSubsystem::ShowOpenFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
-{
-}
-
-void UCommonMessagingSubsystem::ShowSaveFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback)
+void UCommonMessagingSubsystem::ShowFileDialog(bool SaveDialog, FText Header, FString File, FFileDialogResultDelegate ResultCallback)
 {
 }

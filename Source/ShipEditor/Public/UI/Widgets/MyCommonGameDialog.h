@@ -26,12 +26,8 @@ public:
 protected:
 	virtual void NativeOnInitialized() override;
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void OnAction(ECommonMessagingResult result);
-	void OnAction_Implementation(ECommonMessagingResult result);
-
 	UFUNCTION(BlueprintCallable)
-	virtual void CloseDialogWithResult(ECommonMessagingResult Result, FString name);
+	virtual void CloseDialogWithResult(ECommonMessagingResult Result);
 
 #if WITH_EDITOR
 	virtual void ValidateCompiledDefaults(IWidgetCompilerLog& CompileLog) const override;

@@ -9,6 +9,7 @@
 
 class FSubsystemCollectionBase;
 class UCommonGameDialog;
+class UCommonGameFileDialog;
 class UCommonGameDialogDescriptor;
 class UObject;
 
@@ -25,8 +26,7 @@ public:
 	virtual void ShowConfirmation(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate()) override;
 	virtual void ShowError(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback = FCommonMessagingResultDelegate()) override;
 
-	virtual void ShowOpenFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback) override;
-	virtual void ShowSaveFileDialog(UCommonGameDialogDescriptor* DialogDescriptor, FCommonMessagingResultDelegate ResultCallback) override;
+	virtual void ShowFileDialog(bool SaveDialog, FText Header, FString File, FFileDialogResultDelegate ResultCallback);
 
 private:
 	UPROPERTY()
@@ -36,10 +36,7 @@ private:
 	TSubclassOf<UCommonGameDialog> ErrorDialogClassPtr;
 
 	UPROPERTY()
-	TSubclassOf<UCommonGameDialog> OpenFileDialogClassPtr;
-
-	UPROPERTY()
-	TSubclassOf<UCommonGameDialog> SaveFileDialogClassPtr;
+	TSubclassOf<UCommonGameFileDialog> FileDialogClassPtr;
 
 	UPROPERTY(config)
 	TSoftClassPtr<UCommonGameDialog> ConfirmationDialogClass;
@@ -48,8 +45,5 @@ private:
 	TSoftClassPtr<UCommonGameDialog> ErrorDialogClass;
 
 	UPROPERTY(config)
-	TSoftClassPtr<UCommonGameDialog> OpenFileDialogClass;
-
-	UPROPERTY(config)
-	TSoftClassPtr<UCommonGameDialog> SaveFileDialogClass;
+	TSoftClassPtr<UCommonGameFileDialog> FileDialogClass;
 };
