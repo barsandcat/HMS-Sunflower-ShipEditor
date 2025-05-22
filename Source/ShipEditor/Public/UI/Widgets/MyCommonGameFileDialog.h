@@ -23,6 +23,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CloseDialogWithResult(ECommonMessagingResult result, FString file);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnConfirmClicked();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnCancelClicked();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnSetup(bool is_save_dialog, const FString& file);
+
 protected:
 	UPROPERTY(Transient, BlueprintReadWrite)
 	FString File;
@@ -34,7 +43,7 @@ private:
 	FFileDialogResultDelegate OnResultCallback;
 
 	UPROPERTY(Meta = (BindWidget))
-	TObjectPtr<UDynamicEntryBox> EntryBox_Buttons;
+	TObjectPtr<UDynamicEntryBox> EntryBoxButtons;
 
 	UPROPERTY(Meta = (BindWidget))
 	TObjectPtr<UCommonTextBlock> TextTitle;

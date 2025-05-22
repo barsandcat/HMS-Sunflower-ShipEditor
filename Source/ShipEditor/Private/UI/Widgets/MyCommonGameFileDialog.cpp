@@ -8,6 +8,8 @@
 #include "InputAction.h"
 #include "UI/Widgets/MyCommonButtonBase.h"
 
+#define LOCTEXT_NAMESPACE "Messaging"
+
 void UMyCommonGameFileDialog::SetupDialog(bool save_dialog, FText header, FString file, FFileDialogResultDelegate result_callback)
 {
 	File = file;
@@ -15,20 +17,25 @@ void UMyCommonGameFileDialog::SetupDialog(bool save_dialog, FText header, FStrin
 	TextTitle->SetText(header);
 	OnResultCallback = result_callback;
 
-	EntryBox_Buttons->Reset<UMyCommonButtonBase>([](UMyCommonButtonBase& Button)
+	EntryBoxButtons->Reset<UMyCommonButtonBase>([](UMyCommonButtonBase& Button)
 	    { Button.OnClicked().Clear(); });
 
+	if (IsSaveDialog)
 	{
-		UMyCommonButtonBase* Button = EntryBox_Buttons->CreateEntry<UMyCommonButtonBase>();
+		UMyCommonButtonBase* Button = EntryBoxButtons->CreateEntry<UMyCommonButtonBase>();
 		Button->SetTriggeringEnhancedInputAction(ICommonInputModule::GetSettings().GetEnhancedInputClickAction());
-		Button->OnClicked().AddUObject(this, &ThisClass::CloseDialogWithResult, ECommonMessagingResult::Confirmed, File);
+		Button->OnClicked().AddUObject(this, &ThisClass::OnConfirmClicked);
+		Button->SetButtonText(LOCTEXT("Ok", "Ok"));
 	}
 
 	{
-		UMyCommonButtonBase* Button = EntryBox_Buttons->CreateEntry<UMyCommonButtonBase>();
+		UMyCommonButtonBase* Button = EntryBoxButtons->CreateEntry<UMyCommonButtonBase>();
 		Button->SetTriggeringEnhancedInputAction(CancelAction);
-		Button->OnClicked().AddUObject(this, &ThisClass::CloseDialogWithResult, ECommonMessagingResult::Cancelled, FString());
+		Button->OnClicked().AddUObject(this, &ThisClass::OnCancelClicked);
+		Button->SetButtonText(LOCTEXT("Cancel", "Cancel"));
 	}
+
+	OnSetup(save_dialog, file);
 }
 
 void UMyCommonGameFileDialog::CloseDialogWithResult(ECommonMessagingResult result, FString file)
