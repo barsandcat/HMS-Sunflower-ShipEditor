@@ -52,7 +52,7 @@ bool UVMShipPart::GetDynamicMount() const
 	return DynamicMount;
 }
 
-void UVMShipPart::SetLoadbearing(bool loadbearing)
+void UVMShipPart::SetLoadBearing(bool loadbearing)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(Loadbearing, loadbearing);
 }

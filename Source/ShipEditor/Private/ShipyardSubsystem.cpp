@@ -12,7 +12,7 @@ const double GRID_SIZE = 100.0f;
 namespace
 {
 
-void AddPart(TUVMShipPartArray& List, const FText& name, int32 id, int32 category_id, int32 elevation, bool dynamic, bool loadbearing)
+void AddPart(TUVMShipPartArray& List, const FText& name, int32 id, int32 category_id, int32 elevation, bool dynamic, bool load_bearing)
 {
 	TObjectPtr<UVMShipPart> Part = NewObject<UVMShipPart>();
 	Part->SetName(name);
@@ -20,7 +20,7 @@ void AddPart(TUVMShipPartArray& List, const FText& name, int32 id, int32 categor
 	Part->SetCategoryId(category_id);
 	Part->SetElevation(elevation);
 	Part->SetDynamicMount(dynamic);
-	Part->SetLoadbearing(loadbearing);
+	Part->SetLoadBearing(load_bearing);
 	List.Add(Part);
 }
 
@@ -50,9 +50,9 @@ void SetMaterial(AShipPlanCell* Cell, UMaterialInterface* Material)
 	}
 }
 
-FIntVector2 WorldToCellId(const FVector& WordlPos)
+FIntVector2 WorldToCellId(const FVector& WorldPos)
 {
-	return {int32(round(WordlPos.X / GRID_SIZE)), int32(round(WordlPos.Z / GRID_SIZE))};
+	return {int32(round(WorldPos.X / GRID_SIZE)), int32(round(WorldPos.Z / GRID_SIZE))};
 }
 
 FVector CellIdToWorld(const FIntVector2& CellId)

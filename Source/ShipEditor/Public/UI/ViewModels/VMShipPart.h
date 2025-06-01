@@ -41,7 +41,7 @@ public:
 	int32 GetElevation() const;
 	void SetDynamicMount(bool dynamic_mount);
 	bool GetDynamicMount() const;
-	void SetLoadbearing(bool loadbearing);
+	void SetLoadBearing(bool loadbearing);
 	bool GetLoadbearing() const;
 };
 
