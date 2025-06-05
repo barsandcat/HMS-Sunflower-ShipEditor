@@ -89,7 +89,7 @@ FEventReply UMyCommonGameDialog::HandleTapToCloseZoneMouseButtonDown(FGeometry M
 #if WITH_EDITOR
 void UMyCommonGameDialog::ValidateCompiledDefaults(IWidgetCompilerLog& CompileLog) const
 {
-	if (CancelAction.IsNull())
+	if (!CancelAction)
 	{
 		CompileLog.Error(FText::Format(FText::FromString(TEXT("{0} has unset property: CancelAction.")), FText::FromString(GetName())));
 	}
