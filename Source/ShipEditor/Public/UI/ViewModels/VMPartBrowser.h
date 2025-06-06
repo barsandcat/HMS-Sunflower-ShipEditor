@@ -10,6 +10,8 @@
 
 #include "VMPartBrowser.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectPart, int32 , part_id);
+
 UCLASS()
 class SHIPEDITOR_API UVMPartBrowser : public UMVVMViewModelBase
 {
@@ -33,4 +35,7 @@ public:
 
 	void SetPartList(TUVMShipPartArray& part_list);
 	const TArray<TObjectPtr<UVMShipPart>>& GetPartList() const;
+
+	UPROPERTY(BlueprintCallable)
+	FSelectPart SelectPart;
 };

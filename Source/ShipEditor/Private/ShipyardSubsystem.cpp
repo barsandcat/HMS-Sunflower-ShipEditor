@@ -183,6 +183,7 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 		filters.Add(filter->GetVM());
 	}
 	VMPartBrowser->SetFilterList(filters);
+	VMPartBrowser->SelectPart.AddDynamic(this, &UShipyardSubsystem::SetBrushId);
 
 	VMBrush = NewObject<UVMBrush>();
 
