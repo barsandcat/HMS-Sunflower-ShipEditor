@@ -2,9 +2,9 @@
 
 #include "UI/ViewModels/VMPartBrowser.h"
 
-void UVMPartBrowser::SetCategoryList(TUVMShipPartCategoryArray& categoryies)
+void UVMPartBrowser::SetCategoryList(TUVMShipPartCategoryArray& categories)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(CategoryList, categoryies);
+	UE_MVVM_SET_PROPERTY_VALUE(CategoryList, categories);
 }
 
 const TUVMShipPartCategoryArray& UVMPartBrowser::GetCategoryList() const

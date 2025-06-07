@@ -27,7 +27,7 @@ protected:
 	TArray<TObjectPtr<UVMShipPart>> PartList;
 
 public:
-	void SetCategoryList(TUVMShipPartCategoryArray& categoryies);
+	void SetCategoryList(TUVMShipPartCategoryArray& categories);
 	const TArray<TObjectPtr<UVMShipPartCategory>>& GetCategoryList() const;
 
 	void SetFilterList(TUVMShipPartFilterArray& filters);
