@@ -189,6 +189,8 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 
 	VMShipPlan = NewObject<UVMShipPlan>();
 	VMShipPlan->SetName(FString("Flower"));
+	VMShipPlan->SaveShipPlan.AddDynamic(this, &UShipyardSubsystem::SaveShipPlan);
+	VMShipPlan->LoadShipPlan.AddDynamic(this, &UShipyardSubsystem::LoadShipPlan);
 
 	CursorClassPtr = CursorClass.LoadSynchronous();
 
