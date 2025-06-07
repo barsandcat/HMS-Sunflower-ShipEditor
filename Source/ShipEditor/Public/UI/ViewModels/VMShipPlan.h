@@ -6,8 +6,8 @@
 #include "MVVMViewModelBase.h"
 #include "VMShipPlan.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSaveShipPlan, const FString&, Name);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLoadShipPlan, const FString&, Name);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSaveShipPlan, const FString&, name);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLoadShipPlan, const FString&, name);
 
 UCLASS()
 class SHIPEDITOR_API UVMShipPlan : public UMVVMViewModelBase
