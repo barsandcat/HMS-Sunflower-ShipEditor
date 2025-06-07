@@ -28,7 +28,7 @@ protected:
 	bool DynamicMount = false;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
-	bool Loadbearing = false;
+	bool LoadBearing = false;
 
 public:
 	void SetName(const FText& name);
@@ -41,8 +41,8 @@ public:
 	int32 GetElevation() const;
 	void SetDynamicMount(bool dynamic_mount);
 	bool GetDynamicMount() const;
-	void SetLoadBearing(bool loadbearing);
-	bool GetLoadbearing() const;
+	void SetLoadBearing(bool load_bearing);
+	bool GetLoadBearing() const;
 };
 
 typedef TArray<TObjectPtr<UVMShipPart>> TUVMShipPartArray;

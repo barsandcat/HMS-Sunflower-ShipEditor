@@ -13,11 +13,11 @@ bool StructureFilter::IsAllowed(const FName& option, const TObjectPtr<UVMShipPar
 {
 	if (option == StructureFilterOptions[1])
 	{
-		return part->GetLoadbearing();
+		return part->GetLoadBearing();
 	}
 	if (option == StructureFilterOptions[2])
 	{
-		return !part->GetLoadbearing();
+		return !part->GetLoadBearing();
 	}
 	return true;
 }
