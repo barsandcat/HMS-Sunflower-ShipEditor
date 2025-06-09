@@ -2,19 +2,6 @@
 
 #include "UI/Widgets/WFilterEntry.h"
 
-bool UWFilterEntry::Initialize()
-{
-	const bool initialized = Super::Initialize();
-	if (initialized)
-	{
-		if (Combobox)
-		{
-			Combobox->OnSelectionChanged.AddDynamic(this, &UWFilterEntry::HandleOnSelectionChanged);
-		}
-	}
-	return initialized;
-}
-
 void UWFilterEntry::SetOptions(const TArray<FName>& options_array)
 {
 	if (!Combobox)
@@ -29,11 +16,4 @@ void UWFilterEntry::SetOptions(const TArray<FName>& options_array)
 		Combobox->AddOption(option);
 	}
 	Combobox->SetSelectedOption(options_array[0]);
-}
-
-void UWFilterEntry::HandleOnSelectionChanged(FName selected_item, ESelectInfo::Type selection_type)
-{
-	UE_LOG(LogTemp, Warning, TEXT("HandleOnSelectionChanged %s %d"), *selected_item.ToString(), selection_type);
-	SelectedOption = selected_item;
-	BroadcastFieldValueChanged(FFieldNotificationClassDescriptor::SelectedOption);
 }
