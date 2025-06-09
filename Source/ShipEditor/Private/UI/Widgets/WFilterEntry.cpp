@@ -9,12 +9,18 @@ void UWFilterEntry::SetVMEntries(const TArray<UVMShipPartFilterEntry*>& entries)
 	{
 		return;
 	}
-	check(entries.Num() > 0);
 
 	Combobox->ClearOptions();
+
 	for (const UVMShipPartFilterEntry* entry : entries)
 	{
 		Combobox->AddOption(entry->GetName());
 	}
+
+	if (entries.IsEmpty())
+	{
+		return;
+	}
+
 	Combobox->SetSelectedOption(entries[0]->GetName());
 }
