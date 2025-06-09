@@ -1,19 +1,20 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
 #include "UI/Widgets/WFilterEntry.h"
+#include "UI/ViewModels/VMShipPartFilterEntry.h"
 
-void UWFilterEntry::SetOptions(const TArray<FName>& options_array)
+void UWFilterEntry::SetVMEntries(const TArray<UVMShipPartFilterEntry*>& entries)
 {
 	if (!Combobox)
 	{
 		return;
 	}
-	check(options_array.Num() > 0);
+	check(entries.Num() > 0);
 
 	Combobox->ClearOptions();
-	for (const FName& option : options_array)
+	for (const UVMShipPartFilterEntry* entry : entries)
 	{
-		Combobox->AddOption(option);
+		Combobox->AddOption(entry->GetName());
 	}
-	Combobox->SetSelectedOption(options_array[0]);
+	Combobox->SetSelectedOption(entries[0]->GetName());
 }

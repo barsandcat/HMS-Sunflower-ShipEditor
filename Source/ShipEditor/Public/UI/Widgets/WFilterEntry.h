@@ -8,6 +8,8 @@
 
 #include "WFilterEntry.generated.h"
 
+class UVMShipPartFilterEntry;
+
 UCLASS()
 class SHIPEDITOR_API UWFilterEntry : public UMyCommonButtonBase
 {
@@ -15,7 +17,7 @@ class SHIPEDITOR_API UWFilterEntry : public UMyCommonButtonBase
 public:
 
 	UFUNCTION(BlueprintCallable)
-	void SetOptions(const TArray<FName>& options_array);
+	void SetVMEntries(const TArray<UVMShipPartFilterEntry*>& entries);
 
 	UPROPERTY(BlueprintReadWrite, Meta = (BindWidget))
 	TObjectPtr<UComboBoxKey> Combobox;

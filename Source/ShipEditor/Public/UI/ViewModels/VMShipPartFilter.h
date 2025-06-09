@@ -23,8 +23,6 @@ protected:
 	TArray<TObjectPtr<UVMShipPartFilterEntry>> VMEntries;
 
 public:
-	UFUNCTION(BlueprintPure, FieldNotify)
-	TArray<FName> GetOptions() const;
 
 	void SetFilterId(int32 filter_id);
 	int32 GetFilterId() const;
