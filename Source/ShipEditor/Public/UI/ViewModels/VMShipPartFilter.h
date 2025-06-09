@@ -34,17 +34,7 @@ public:
 	const TArray<TObjectPtr<UVMShipPartFilterEntry>>& GetVMEntries() const;
 
 	UFUNCTION(BlueprintCallable)
-	UVMShipPartFilterEntry* GetEntryByName(FName name) const
-	{
-		for (const TObjectPtr<UVMShipPartFilterEntry>& entry : VMEntries)
-		{
-			if (entry->GetName() == name)
-			{
-				return entry;
-			}
-		}
-		return nullptr;
-	}
+	UVMShipPartFilterEntry* GetEntryByName(FName name) const;
 };
 
 typedef TArray<TObjectPtr<UVMShipPartFilter>> TUVMShipPartFilterArray;

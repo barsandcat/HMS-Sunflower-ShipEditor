@@ -31,3 +31,15 @@ const TUVMShipPartFilterEntryArray& UVMShipPartFilter::GetVMEntries() const
 {
 	return VMEntries;
 }
+
+UVMShipPartFilterEntry* UVMShipPartFilter::GetEntryByName(FName name) const
+{
+	for (const TObjectPtr<UVMShipPartFilterEntry>& entry : VMEntries)
+	{
+		if (entry->GetName() == name)
+		{
+			return entry;
+		}
+	}
+	return nullptr;
+}
