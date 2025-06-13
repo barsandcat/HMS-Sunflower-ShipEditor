@@ -20,7 +20,8 @@ public class ShipEditor : ModuleRules
             "UMG",
             "CommonInput",
             "CommonUI",
-            "ModularGameplayActors"
+            "ModularGameplayActors",
+            "DeveloperSettings"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
