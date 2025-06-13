@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MVVMViewModelBase.h"
+
 #include "VMShipPlan.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSaveShipPlan, const FString&, name);

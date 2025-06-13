@@ -2,8 +2,8 @@
 
 #pragma once
 #include "CoreMinimal.h"
-#include "UI/ViewModels/VMShipPartFilter.h"
 #include "UI/ViewModels/VMShipPart.h"
+#include "UI/ViewModels/VMShipPartFilter.h"
 
 class IPartFilter
 {

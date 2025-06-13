@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "CommonButtonBase.h"
+#include "CoreMinimal.h"
+
 #include "MyCommonButtonBase.generated.h"
 
 UCLASS()

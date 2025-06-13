@@ -1,6 +1,5 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
-
 #include "Shipyard/ElevationFilter.h"
 
 ElevationFilter::ElevationFilter(const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate)

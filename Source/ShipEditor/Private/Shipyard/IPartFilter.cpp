@@ -27,7 +27,6 @@ void IPartFilter::InitializeOptions(const TArray<FName>& options_array)
 	VM->SetVMEntries(vm_entries);
 }
 
-
 void IPartFilter::UpdateMatchingPartsCount(TUVMShipPartArray& list)
 {
 	for (const auto& entry : VM->GetVMEntries())

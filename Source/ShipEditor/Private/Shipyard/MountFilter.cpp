@@ -20,4 +20,3 @@ bool MountFilter::IsAllowed(const FName& option, const TObjectPtr<UVMShipPart>& 
 	}
 	return true;
 }
-

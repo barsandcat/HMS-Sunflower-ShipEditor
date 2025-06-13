@@ -15,7 +15,6 @@ class SHIPEDITOR_API UWFilterEntry : public UMyCommonButtonBase
 {
 	GENERATED_BODY()
 public:
-
 	UFUNCTION(BlueprintCallable)
 	void SetVMEntries(const TArray<UVMShipPartFilterEntry*>& entries);
 

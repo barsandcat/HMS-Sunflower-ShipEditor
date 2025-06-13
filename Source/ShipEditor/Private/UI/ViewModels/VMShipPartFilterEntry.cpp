@@ -1,6 +1,5 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
-
 #include "UI/ViewModels/VMShipPartFilterEntry.h"
 
 void UVMShipPartFilterEntry::SetText(const FText& text)

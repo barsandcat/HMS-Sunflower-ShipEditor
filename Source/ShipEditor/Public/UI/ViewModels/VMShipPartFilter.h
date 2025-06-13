@@ -23,7 +23,6 @@ protected:
 	TArray<TObjectPtr<UVMShipPartFilterEntry>> VMEntries;
 
 public:
-
 	void SetFilterId(int32 filter_id);
 	int32 GetFilterId() const;
 

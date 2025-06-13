@@ -10,7 +10,7 @@
 
 #include "VMPartBrowser.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectPart, int32 , part_id);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectPart, int32, part_id);
 
 UCLASS()
 class SHIPEDITOR_API UVMPartBrowser : public UMVVMViewModelBase

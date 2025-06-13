@@ -419,6 +419,6 @@ void UShipyardSubsystem::UpdatePartList()
 	{
 		filter->UpdateMatchingPartsCount(list);
 	}
-	
+
 	VMPartBrowser->SetPartList(list);
 }
