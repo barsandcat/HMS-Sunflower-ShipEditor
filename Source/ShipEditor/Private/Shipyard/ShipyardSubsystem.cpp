@@ -3,9 +3,9 @@
 #include "ShipyardSubsystem.h"
 
 #include "MVVMGameSubsystem.h"
-#include "Shipyard/ElevationFilter.h"
-#include "Shipyard/MountFilter.h"
-#include "Shipyard/StructureFilter.h"
+#include "Shipyard/Filter/ElevationFilter.h"
+#include "Shipyard/Filter/MountFilter.h"
+#include "Shipyard/Filter/StructureFilter.h"
 
 const double GRID_SIZE = 100.0f;
 

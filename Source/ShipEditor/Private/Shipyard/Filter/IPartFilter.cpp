@@ -1,4 +1,4 @@
-#include "Shipyard/IPartFilter.h"
+#include "Shipyard/Filter/IPartFilter.h"
 
 IPartFilter::IPartFilter(int32 id, const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate)
     : FilterId(id)

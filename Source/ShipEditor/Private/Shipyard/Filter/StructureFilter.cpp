@@ -1,6 +1,6 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
-#include "Shipyard/StructureFilter.h"
+#include "Shipyard/Filter/StructureFilter.h"
 
 StructureFilter::StructureFilter(const INotifyFieldValueChanged::FFieldValueChangedDelegate& delegate)
     : IPartFilter(2, delegate)

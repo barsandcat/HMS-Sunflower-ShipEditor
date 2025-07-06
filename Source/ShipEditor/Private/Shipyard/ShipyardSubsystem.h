@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Misc/Optional.h"
 #include "ShipPlanCell.h"
-#include "Shipyard/IPartFilter.h"
+#include "Shipyard/Filter/IPartFilter.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "UI/ViewModels/VMBrush.h"
 #include "UI/ViewModels/VMPartBrowser.h"
