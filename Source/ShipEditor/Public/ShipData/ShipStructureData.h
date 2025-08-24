@@ -7,13 +7,8 @@
 
 #include "ShipStructureData.generated.h"
 
-
-/**
- * 
- */
-UCLASS()
-class SHIPEDITOR_API UShipStructureData : public UObject
+USTRUCT()
+struct SHIPEDITOR_API FShipStructureData
 {
 	GENERATED_BODY()
-	
 };

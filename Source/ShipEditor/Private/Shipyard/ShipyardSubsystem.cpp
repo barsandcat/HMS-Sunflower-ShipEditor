@@ -2,7 +2,9 @@
 
 #include "ShipyardSubsystem.h"
 
+#include "JsonObjectConverter.h"
 #include "MVVMGameSubsystem.h"
+#include "ShipData/ShipPlanData.h"
 #include "Shipyard/Filter/ElevationFilter.h"
 #include "Shipyard/Filter/MountFilter.h"
 #include "Shipyard/Filter/StructureFilter.h"
@@ -354,13 +356,43 @@ void UShipyardSubsystem::SetBrushId(int32 brush_id)
 void UShipyardSubsystem::SaveShipPlan(const FString& name)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SaveShipPlan %s"), *name);
+	FShipPlanData ship_plan_data;
+	ship_plan_data.Name = "SuperFlower";
+	FString file_content;
+
+	if (!FJsonObjectConverter::UStructToJsonObjectString<FShipPlanData>(ship_plan_data, file_content, 0, 0))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed convert ship plan to %s"), *name);
+		return;
+	}
+
+	if (!FFileHelper::SaveStringToFile(file_content, *name))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to save ship plan to %s"), *name);
+		return;
+	}
+
 	VMShipPlan->SetName(name);
 }
 
 void UShipyardSubsystem::LoadShipPlan(const FString& name)
 {
 	UE_LOG(LogTemp, Warning, TEXT("LoadShipPlan %s"), *name);
-	VMShipPlan->SetName(name);
+	FString file_content;
+	if (!FFileHelper::LoadFileToString(file_content, *name))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to load ship plan from %s"), *name);
+		return;
+	}
+
+	FShipPlanData ship_plan_data;
+	FText reason;
+	if (!FJsonObjectConverter::JsonObjectStringToUStruct<FShipPlanData>(file_content, &ship_plan_data, 0, 0, false, &reason))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to load ship plan from %s. Reason: %s"), *name, *reason.ToString());
+	}
+
+	VMShipPlan->SetName(ship_plan_data.Name);
 }
 
 std::set<int32> UShipyardSubsystem::GetSelectedCategories() const

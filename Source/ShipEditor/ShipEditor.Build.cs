@@ -21,7 +21,9 @@ public class ShipEditor : ModuleRules
             "CommonInput",
             "CommonUI",
             "ModularGameplayActors",
-            "DeveloperSettings"
+            "DeveloperSettings",
+            "Json",
+            "JsonUtilities"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });

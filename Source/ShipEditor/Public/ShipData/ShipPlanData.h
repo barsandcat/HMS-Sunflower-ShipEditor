@@ -3,17 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ShipPartData.h"
 #include "UObject/NoExportTypes.h"
 
 #include "ShipPlanData.generated.h"
 
-class UShipPartData;
-
-UCLASS()
-class SHIPEDITOR_API UShipPlanData : public UObject
+USTRUCT()
+struct SHIPEDITOR_API FShipPlanData
 {
 	GENERATED_BODY()
-private:
+
 	UPROPERTY()
-	TMap<FIntVector2, UShipPartData*> ShipParts;
+	FString Name;
+
+	UPROPERTY()
+	TMap<FIntVector2, FShipPartData> ShipParts;
 };
