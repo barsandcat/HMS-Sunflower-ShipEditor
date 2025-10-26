@@ -5,6 +5,7 @@
 #include "JsonObjectConverter.h"
 #include "MVVMGameSubsystem.h"
 #include "ShipData/ShipPlanData.h"
+#include "ShipPlanRender.h"
 #include "Shipyard/Filter/ElevationFilter.h"
 #include "Shipyard/Filter/MountFilter.h"
 #include "Shipyard/Filter/StructureFilter.h"
@@ -142,7 +143,7 @@ void UShipyardSubsystem::SetBrushPosition(const TOptional<FVector>& WorldPositio
 }
 
 UShipyardSubsystem::UShipyardSubsystem()
-    : UGameInstanceSubsystem()
+    : UWorldSubsystem()
 {
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> SelectionYellow(TEXT("/Game/Materials/M_Selection_Yellow.M_Selection_Yellow"));
 	SelectionMaterial = SelectionYellow.Object;
@@ -153,7 +154,6 @@ UShipyardSubsystem::UShipyardSubsystem()
 void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection)
 {
 	Super::Initialize(SubsytemCollection);
-	SubsytemCollection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
 
 	VMPartBrowser = NewObject<UVMPartBrowser>();
 	AddPart(PartList, FText::FromString(TEXT("BL 4-inch Mk IX")), 1, 1, 1, false, true);
@@ -201,6 +201,12 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	PartClassMap.Add(3, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_03.BP_ShipPart_03_C"), nullptr, LOAD_None, nullptr));
 	PartClassMap.Add(4, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_04.BP_ShipPart_04_C"), nullptr, LOAD_None, nullptr));
 	PartClassMap.Add(5, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_05.BP_ShipPart_05_C"), nullptr, LOAD_None, nullptr));
+
+	ShipPlanRender = GetWorld()->SpawnActor<AShipPlanRender>();    // Use a bp class?
+	ShipPlanRender->AddWall(FInt32Point(1, -1));
+	ShipPlanRender->AddWall(FInt32Point(-1, 1));
+	ShipPlanRender->AddWall(FInt32Point(1, 1));
+	ShipPlanRender->AddWall(FInt32Point(-1, -1));
 }
 
 TSubclassOf<AShipPlanCell> UShipyardSubsystem::GetPartClass(int32 part_id) const

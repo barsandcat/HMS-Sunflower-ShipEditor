@@ -6,7 +6,7 @@
 #include "Misc/Optional.h"
 #include "ShipPlanCell.h"
 #include "Shipyard/Filter/IPartFilter.h"
-#include "Subsystems/GameInstanceSubsystem.h"
+#include "Subsystems/WorldSubsystem.h"
 #include "UI/ViewModels/VMBrush.h"
 #include "UI/ViewModels/VMPartBrowser.h"
 #include "UI/ViewModels/VMShipPlan.h"
@@ -15,10 +15,12 @@
 
 #include "ShipyardSubsystem.generated.h"
 
+class AShipPlanRender;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBrushEvent);
 
 UCLASS(config = Game)
-class SHIPEDITOR_API UShipyardSubsystem : public UGameInstanceSubsystem
+class SHIPEDITOR_API UShipyardSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 public:
@@ -75,6 +77,9 @@ public:
 
 	void OnCategorySelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
 	void OnFilterSelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
+
+	UPROPERTY()
+	TObjectPtr<AShipPlanRender> ShipPlanRender;
 
 private:
 	TArray<TSharedPtr<IPartFilter>> FilterList;

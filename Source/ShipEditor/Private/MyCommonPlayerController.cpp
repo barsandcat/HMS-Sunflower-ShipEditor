@@ -13,13 +13,14 @@ void AMyCommonPlayerController::PlayerTick(float DeltaTime)
 	{
 		return;
 	}
-	const UGameInstance* GameInstance = GetGameInstance();
-	if (!GameInstance)
+
+	UWorld* world = GetWorld();
+	if (!world)
 	{
 		return;
 	}
 
-	UShipyardSubsystem* Shipyard = GameInstance->GetSubsystem<UShipyardSubsystem>();
+	UShipyardSubsystem* Shipyard = world->GetSubsystem<UShipyardSubsystem>();
 	if (!Shipyard)
 	{
 		return;
