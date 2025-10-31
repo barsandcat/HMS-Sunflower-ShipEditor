@@ -202,11 +202,12 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	PartClassMap.Add(4, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_04.BP_ShipPart_04_C"), nullptr, LOAD_None, nullptr));
 	PartClassMap.Add(5, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_05.BP_ShipPart_05_C"), nullptr, LOAD_None, nullptr));
 
-	ShipPlanRender = GetWorld()->SpawnActor<AShipPlanRender>();    // Use a bp class?
-	ShipPlanRender->AddWall(FInt32Point(1, -1));
-	ShipPlanRender->AddWall(FInt32Point(-1, 1));
-	ShipPlanRender->AddWall(FInt32Point(1, 1));
-	ShipPlanRender->AddWall(FInt32Point(-1, -1));
+	if (GetWorld() && GetWorld()->IsGameWorld())
+	{
+		FActorSpawnParameters spawn_params;
+		spawn_params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ShipPlanRender = GetWorld()->SpawnActor<AShipPlanRender>(FVector(0, 0, 0), FRotator::ZeroRotator, spawn_params);
+	}
 }
 
 TSubclassOf<AShipPlanCell> UShipyardSubsystem::GetPartClass(int32 part_id) const
@@ -224,28 +225,37 @@ TSubclassOf<AShipPlanCell> UShipyardSubsystem::GetPartClass(int32 part_id) const
 void UShipyardSubsystem::DoBrush()
 {
 	UE_LOG(LogTemp, Warning, TEXT("DoBrush %d"), BrushId);
+	FVector CursorPos = Cursor->GetActorLocation();
+	FIntVector2 CellId = WorldToCellId(CursorPos);
+	if (ShipPlanRender)
+	{
+		ShipPlanRender->AddWall(CellId);
+	}
+
+	/*
 	UWorld* World = GetWorld();
 	TSubclassOf<AShipPlanCell> part_class = GetPartClass(BrushId);
 	if (!World || !Cursor || !BrushId || !part_class)
 	{
-		return;
+	    return;
 	}
 
 	FVector CursorPos = Cursor->GetActorLocation();
 	FIntVector2 CellId = WorldToCellId(CursorPos);
 	if (ShipPlan.Contains(CellId))
 	{
-		return;
+	    return;
 	}
 	TObjectPtr<AShipPlanCell> ShipPlanCell = World->SpawnActor<AShipPlanCell>(part_class, CursorPos, {}, {});
 	if (!ShipPlanCell)
 	{
-		return;
+	    return;
 	}
 	ShipPlanCell->PartId = BrushId;
 
 	ShipPlan.Add(CellId, ShipPlanCell);
 	SetBrushId(0);
+	*/
 }
 
 void UShipyardSubsystem::Select()

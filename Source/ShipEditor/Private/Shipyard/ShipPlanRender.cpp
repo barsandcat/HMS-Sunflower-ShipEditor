@@ -15,11 +15,11 @@ AShipPlanRender::AShipPlanRender()
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = SceneComponent;
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> wall_mesh_helper(TEXT("/Game/Wall_01.Wall_01"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> wall_mesh_helper(TEXT("/Game/Wall_02.Wall_02"));
 	WallMesh = wall_mesh_helper.Object;
 }
 
-void AShipPlanRender::AddWall(const FInt32Point& pos)
+void AShipPlanRender::AddWall(const FIntVector2& pos)
 {
 	if (WallMeshComponents.Contains(pos))
 	{
@@ -37,8 +37,9 @@ void AShipPlanRender::AddWall(const FInt32Point& pos)
 		{
 			mesh->SetStaticMesh(WallMesh);
 		}
+		mesh->SetRelativeLocation(FVector(pos.X * MeshSpacing, 0.0f, pos.Y * MeshSpacing));
 		mesh->RegisterComponent();
-		mesh->SetRelativeLocation(FVector(pos.X * MeshSpacing, pos.Y * MeshSpacing, 0.0f));
+		mesh->UpdateComponentToWorld();
 		WallMeshComponents.Add(pos, mesh);
 	}
 }

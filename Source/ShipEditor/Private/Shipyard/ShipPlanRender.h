@@ -17,17 +17,17 @@ public:
 	// Sets default values for this actor's properties
 	AShipPlanRender();
 
-	void AddWall(const FInt32Point& pos);
+	void AddWall(const FIntVector2& pos);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	UStaticMesh* WallMesh;
 
 	UPROPERTY()
-	TMap<FInt32Point, UStaticMeshComponent*> WallMeshComponents;
+	TMap<FIntVector2, UStaticMeshComponent*> WallMeshComponents;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> SceneComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	float MeshSpacing = 200.0f;
+	float MeshSpacing = 100.0f;
 };
