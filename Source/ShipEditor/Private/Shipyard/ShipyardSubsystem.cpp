@@ -230,6 +230,7 @@ void UShipyardSubsystem::DoBrush()
 	if (ShipPlanRender)
 	{
 		ShipPlanRender->AddWall(CellId);
+		ShipPlanRender->AddFloor(CellId);
 	}
 
 	/*

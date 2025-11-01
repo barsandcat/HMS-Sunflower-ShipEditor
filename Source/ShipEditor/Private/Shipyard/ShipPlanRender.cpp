@@ -17,6 +17,34 @@ AShipPlanRender::AShipPlanRender()
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> wall_mesh_helper(TEXT("/Game/Wall_02.Wall_02"));
 	WallMesh = wall_mesh_helper.Object;
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> floor_mesh_helper(TEXT("/Game/Floor_01.Floor_01"));
+	FloorMesh = floor_mesh_helper.Object;
+}
+
+void AShipPlanRender::AddFloor(const FIntVector2& pos)
+{
+	if (FloorMeshComponents.Contains(pos))
+	{
+		return;
+	}
+
+	// Create mesh components at runtime and attach to the scene root
+
+	const FString name = FString::Printf(TEXT("MeshComponent_Floor_%d_%d"), pos.X, pos.Y);
+	UStaticMeshComponent* mesh = NewObject<UStaticMeshComponent>(this, *name);
+	if (mesh)
+	{
+		mesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+		if (FloorMesh)
+		{
+			mesh->SetStaticMesh(FloorMesh);
+		}
+		mesh->SetRelativeLocation(FVector(pos.X * MeshSpacing, 0.0f, pos.Y * MeshSpacing));
+		mesh->RegisterComponent();
+		mesh->UpdateComponentToWorld();
+		FloorMeshComponents.Add(pos, mesh);
+	}
 }
 
 void AShipPlanRender::AddWall(const FIntVector2& pos)

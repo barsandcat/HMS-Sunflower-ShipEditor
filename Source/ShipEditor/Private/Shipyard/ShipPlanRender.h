@@ -18,12 +18,19 @@ public:
 	AShipPlanRender();
 
 	void AddWall(const FIntVector2& pos);
+	void AddFloor(const FIntVector2& pos);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	UStaticMesh* WallMesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	UStaticMesh* FloorMesh;
+
 	UPROPERTY()
 	TMap<FIntVector2, UStaticMeshComponent*> WallMeshComponents;
+
+	UPROPERTY()
+	TMap<FIntVector2, UStaticMeshComponent*> FloorMeshComponents;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> SceneComponent;
