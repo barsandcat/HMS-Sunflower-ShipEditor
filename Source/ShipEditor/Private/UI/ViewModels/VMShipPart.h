@@ -16,7 +16,7 @@ protected:
 	FText Name;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
-	int32 PartId = 0;
+	FName PartId = NAME_None;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
 	int32 CategoryId = 0;
@@ -31,10 +31,12 @@ protected:
 	bool LoadBearing = false;
 
 public:
+	void Initialize(const FText& name, FName id, int32 category_id, int32 elevation, bool dynamic, bool load_bearing);
+
 	void SetName(const FText& name);
 	FText GetName() const;
-	void SetPartId(int32 part_id);
-	int32 GetPartId() const;
+	void SetPartId(FName part_id);
+	FName GetPartId() const;
 	void SetCategoryId(int32 category_id);
 	int32 GetCategoryId() const;
 	void SetElevation(int32 elevation);

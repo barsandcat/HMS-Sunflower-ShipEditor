@@ -2,8 +2,10 @@
 
 #include "ShipyardSubsystem.h"
 
+#include "Engine/AssetManager.h"
 #include "JsonObjectConverter.h"
 #include "MVVMGameSubsystem.h"
+#include "ShipData/ShipPartAsset.h"
 #include "ShipData/ShipPlanData.h"
 #include "ShipPlanRender.h"
 #include "Shipyard/Filter/ElevationFilter.h"
@@ -15,7 +17,7 @@ const double GRID_SIZE = 100.0f;
 namespace
 {
 
-void AddPart(TUVMShipPartArray& List, const FText& name, int32 id, int32 category_id, int32 elevation, bool dynamic, bool load_bearing)
+void AddPart(TUVMShipPartArray& List, const FText& name, FName id, int32 category_id, int32 elevation, bool dynamic, bool load_bearing)
 {
 	TObjectPtr<UVMShipPart> Part = NewObject<UVMShipPart>();
 	Part->SetName(name);
@@ -155,7 +157,10 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 {
 	Super::Initialize(SubsytemCollection);
 
+	LoadAllShipPartAssetsAsync();
+
 	VMPartBrowser = NewObject<UVMPartBrowser>();
+	/*
 	AddPart(PartList, FText::FromString(TEXT("BL 4-inch Mk IX")), 1, 1, 1, false, true);
 	AddPart(PartList, FText::FromString(TEXT("Vickers .50 cal")), 2, 1, 1, true, false);
 	AddPart(PartList, FText::FromString(TEXT("Lewis .303 cal")), 3, 1, 2, true, false);
@@ -164,6 +169,7 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	AddPart(PartList, FText::FromString(TEXT("Petter 1260W")), 6, 4, 0, false, true);
 	AddPart(PartList, FText::FromString(TEXT("4-inch magazine")), 7, 5, 0, false, true);
 	AddPart(PartList, FText::FromString(TEXT("Quarters 400")), 8, 6, 0, false, true);
+	*/
 	VMPartBrowser->SetPartList(PartList);
 
 	TUVMShipPartCategoryArray categories;
@@ -210,6 +216,52 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	}
 }
 
+void UShipyardSubsystem::LoadAllShipPartAssetsAsync()
+{
+	UAssetManager& asset_manager = UAssetManager::Get();
+
+	ShipPartAssetIds.Reset();
+	asset_manager.GetPrimaryAssetIdList(TEXT("ShipPartAsset"), ShipPartAssetIds);
+
+	if (ShipPartAssetIds.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No ShipPart assets found."));
+		return;
+	}
+
+	asset_manager.LoadPrimaryAssets(ShipPartAssetIds, {}, FStreamableDelegate::CreateUObject(this, &UShipyardSubsystem::OnShipPartAssetsLoaded));
+}
+
+void UShipyardSubsystem::OnShipPartAssetsLoaded()
+{
+	UAssetManager& asset_manager = UAssetManager::Get();
+
+	UE_LOG(LogTemp, Log, TEXT("All ShipPart assets loaded: %d"), ShipPartAssetIds.Num());
+
+	for (const FPrimaryAssetId& id : ShipPartAssetIds)
+	{
+		UShipPartAsset* ship_part_asset = asset_manager.GetPrimaryAssetObject<UShipPartAsset>(id);
+		if (ship_part_asset)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Loaded ShipPart asset: %s"), *ship_part_asset->PartName.ToString());
+			PartAssetMap.Add(id, ship_part_asset);
+			TObjectPtr<UVMShipPart> Part = NewObject<UVMShipPart>();
+			Part->Initialize(
+			    ship_part_asset->PartName,
+			    ship_part_asset->PartId,
+			    ship_part_asset->CategoryId,
+			    ship_part_asset->Elevation,
+			    ship_part_asset->DynamicMount,
+			    ship_part_asset->LoadBearing);
+			PartList.Add(Part);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to load ShipPart asset: %s"), *id.ToString());
+		}
+	}
+}
+
 TSubclassOf<AShipPlanCell> UShipyardSubsystem::GetPartClass(int32 part_id) const
 {
 	if (auto part_class = PartClassMap.Find(part_id))
@@ -224,7 +276,7 @@ TSubclassOf<AShipPlanCell> UShipyardSubsystem::GetPartClass(int32 part_id) const
 
 void UShipyardSubsystem::DoBrush()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DoBrush %d"), BrushId);
+	UE_LOG(LogTemp, Warning, TEXT("DoBrush %s"), *BrushId.ToString());
 	FVector CursorPos = Cursor->GetActorLocation();
 	FIntVector2 CellId = WorldToCellId(CursorPos);
 	if (ShipPlanRender)
@@ -261,8 +313,8 @@ void UShipyardSubsystem::DoBrush()
 
 void UShipyardSubsystem::Select()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Select %d"), BrushId);
-	if (!Cursor || BrushId)
+	UE_LOG(LogTemp, Warning, TEXT("Select %s"), *BrushId.ToString());
+	if (!Cursor || BrushId != NAME_None)
 	{
 		return;
 	}
@@ -311,58 +363,58 @@ void UShipyardSubsystem::Grab()
 	FIntVector2 CellId = WorldToCellId(Cursor->GetActorLocation());
 	if (ShipPlan.Contains(CellId))
 	{
-		TObjectPtr<AShipPlanCell> ShipPlanCell = *ShipPlan.Find(CellId);
-		ShipPlan.Remove(CellId);
-		SetBrushId(ShipPlanCell->PartId);
-		ShipPlanCell->Destroy();
+		// TObjectPtr<AShipPlanCell> ShipPlanCell = *ShipPlan.Find(CellId);
+		// ShipPlan.Remove(CellId);
+		// SetBrushId(ShipPlanCell->PartId);
+		// ShipPlanCell->Destroy();
 	}
 }
 
-void UShipyardSubsystem::SetBrushId(int32 brush_id)
+void UShipyardSubsystem::SetBrushId(FName brush_id)
 {
-	UE_LOG(LogTemp, Warning, TEXT("SetBrushId %d"), brush_id);
-	VMBrush->SetReady(brush_id != 0);
+	UE_LOG(LogTemp, Warning, TEXT("SetBrushId %s"), *brush_id.ToString());
+	VMBrush->SetReady(brush_id != NAME_None);
 
 	if (brush_id == BrushId)
 	{
 		return;
 	}
 
-	if (BrushId != 0)
+	if (BrushId != NAME_None)
 	{
-		if (ensure(Brush))
-		{
-			Brush->Destroy();
-		}
+		// if (ensure(Brush))
+		//{
+		//	Brush->Destroy();
+		// }
 
-		Brush = nullptr;
+		// Brush = nullptr;
 
-		if (brush_id == 0)
+		if (brush_id == NAME_None)
 		{
 			OnBrushCleared.Broadcast();
 		}
 	}
 
-	if (brush_id != 0)
+	if (brush_id != NAME_None)
 	{
-		check(!Brush);
+		// check(!Brush);
 
-		if (UWorld* World = GetWorld())
-		{
-			TSubclassOf<AShipPlanCell> part_class = GetPartClass(brush_id);
-			if (part_class)
-			{
-				Brush = World->SpawnActor<AShipPlanCell>(part_class, Cursor->GetActorLocation(), {}, {});
-				SetMaterial(Brush, PreviewMaterial);
-			}
-		}
+		// if (UWorld* World = GetWorld())
+		//{
+		//	TSubclassOf<AShipPlanCell> part_class = GetPartClass(brush_id);
+		//	if (part_class)
+		//	{
+		//		Brush = World->SpawnActor<AShipPlanCell>(part_class, Cursor->GetActorLocation(), {}, {});
+		//		SetMaterial(Brush, PreviewMaterial);
+		//	}
+		// }
 
-		if (Brush)
-		{
-			Brush->PartId = brush_id;
-		}
+		// if (Brush)
+		//{
+		//	Brush->PartId = brush_id;
+		// }
 
-		if (BrushId == 0)
+		if (BrushId == NAME_None)
 		{
 			OnBrushReady.Broadcast();
 		}

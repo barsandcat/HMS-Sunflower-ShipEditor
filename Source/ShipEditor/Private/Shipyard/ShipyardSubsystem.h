@@ -16,6 +16,7 @@
 #include "ShipyardSubsystem.generated.h"
 
 class AShipPlanRender;
+class UShipPartAsset;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBrushEvent);
 
@@ -40,7 +41,7 @@ public:
 	void Grab();
 
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
-	void SetBrushId(int32 brush_id);
+	void SetBrushId(FName brush_id);
 
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
 	void SaveShipPlan(const FString& name);
@@ -87,7 +88,11 @@ private:
 	bool IsAllowedByFiters(const TObjectPtr<UVMShipPart>& part_vm) const;
 	void AddCategory(TUVMShipPartCategoryArray& list, const FText& name, int32 id);
 	TSubclassOf<AShipPlanCell> GetPartClass(int32 part_id) const;
-	int32 BrushId = 0;
+
+	void LoadAllShipPartAssetsAsync();
+	void OnShipPartAssetsLoaded();
+
+	FName BrushId = NAME_None;
 	TObjectPtr<AShipPlanCell> Brush;
 	TObjectPtr<AActor> Cursor;
 	TObjectPtr<AShipPlanCell> Selection;
@@ -96,6 +101,9 @@ private:
 	TObjectPtr<UMaterialInterface> SelectionMaterial;
 	TObjectPtr<UMaterialInterface> PreviewMaterial;
 	TMap<int32, TSubclassOf<AShipPlanCell>> PartClassMap;
+
+	TMap<FPrimaryAssetId, UShipPartAsset*> PartAssetMap;
+	TArray<FPrimaryAssetId> ShipPartAssetIds;
 
 	TUVMShipPartArray PartList;
 };

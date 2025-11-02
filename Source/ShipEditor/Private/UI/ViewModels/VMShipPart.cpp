@@ -2,6 +2,16 @@
 
 #include "UI/ViewModels/VMShipPart.h"
 
+void UVMShipPart::Initialize(const FText& name, FName id, int32 category_id, int32 elevation, bool dynamic, bool load_bearing)
+{
+	SetName(name);
+	SetPartId(id);
+	SetCategoryId(category_id);
+	SetElevation(elevation);
+	SetDynamicMount(dynamic);
+	SetLoadBearing(load_bearing);
+}
+
 void UVMShipPart::SetName(const FText& name)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(Name, name);
@@ -12,12 +22,12 @@ FText UVMShipPart::GetName() const
 	return Name;
 }
 
-void UVMShipPart::SetPartId(int32 part_id)
+void UVMShipPart::SetPartId(FName part_id)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(PartId, part_id);
 }
 
-int32 UVMShipPart::GetPartId() const
+FName UVMShipPart::GetPartId() const
 {
 	return PartId;
 }
