@@ -102,7 +102,7 @@ private:
 	TObjectPtr<UMaterialInterface> PreviewMaterial;
 	TMap<int32, TSubclassOf<AShipPlanCell>> PartClassMap;
 
-	TMap<FPrimaryAssetId, UShipPartAsset*> PartAssetMap;
+	TMap<FName, UShipPartAsset*> PartAssetMap;
 	TArray<FPrimaryAssetId> ShipPartAssetIds;
 
 	TUVMShipPartArray PartList;

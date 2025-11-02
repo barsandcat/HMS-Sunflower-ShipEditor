@@ -244,7 +244,7 @@ void UShipyardSubsystem::OnShipPartAssetsLoaded()
 		if (ship_part_asset)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Loaded ShipPart asset: %s"), *ship_part_asset->PartName.ToString());
-			PartAssetMap.Add(id, ship_part_asset);
+			PartAssetMap.Add(ship_part_asset->PartId, ship_part_asset);
 			TObjectPtr<UVMShipPart> Part = NewObject<UVMShipPart>();
 			Part->Initialize(
 			    ship_part_asset->PartName,
@@ -277,38 +277,46 @@ TSubclassOf<AShipPlanCell> UShipyardSubsystem::GetPartClass(int32 part_id) const
 void UShipyardSubsystem::DoBrush()
 {
 	UE_LOG(LogTemp, Warning, TEXT("DoBrush %s"), *BrushId.ToString());
-	FVector CursorPos = Cursor->GetActorLocation();
-	FIntVector2 CellId = WorldToCellId(CursorPos);
-	if (ShipPlanRender)
-	{
-		ShipPlanRender->AddWall(CellId);
-		ShipPlanRender->AddFloor(CellId);
-	}
 
-	/*
 	UWorld* World = GetWorld();
-	TSubclassOf<AShipPlanCell> part_class = GetPartClass(BrushId);
-	if (!World || !Cursor || !BrushId || !part_class)
+	UShipPartAsset* part_asset = PartAssetMap.FindRef(BrushId);
+	if (!World || !Cursor || BrushId == NAME_None || !part_asset)
 	{
 	    return;
 	}
 
-	FVector CursorPos = Cursor->GetActorLocation();
-	FIntVector2 CellId = WorldToCellId(CursorPos);
-	if (ShipPlan.Contains(CellId))
-	{
-	    return;
-	}
-	TObjectPtr<AShipPlanCell> ShipPlanCell = World->SpawnActor<AShipPlanCell>(part_class, CursorPos, {}, {});
-	if (!ShipPlanCell)
-	{
-	    return;
-	}
-	ShipPlanCell->PartId = BrushId;
+	FIntVector2 CellId = WorldToCellId(Cursor->GetActorLocation());
 
-	ShipPlan.Add(CellId, ShipPlanCell);
-	SetBrushId(0);
-	*/
+	/*if (ShipPlan.Contains(CellId))
+	{
+	    return;
+	}*/
+
+	for (const auto& wall : part_asset->Walls)
+	{
+		if (wall.Value)
+		{
+			if (ShipPlanRender)
+			{
+				ShipPlanRender->AddWall(CellId + wall.Key);
+			}
+		}
+	}
+
+	for (const auto& floor : part_asset->Floors)
+	{
+		if (floor.Value)
+		{
+			if (ShipPlanRender)
+			{
+				ShipPlanRender->AddFloor(CellId + floor.Key);
+			}
+		}
+	}
+
+	// ShipPlanCell->PartId = BrushId;
+
+	SetBrushId(NAME_None);
 }
 
 void UShipyardSubsystem::Select()
