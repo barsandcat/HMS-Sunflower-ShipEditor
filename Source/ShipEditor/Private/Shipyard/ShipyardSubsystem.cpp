@@ -221,7 +221,7 @@ void UShipyardSubsystem::LoadAllShipPartAssetsAsync()
 	UAssetManager& asset_manager = UAssetManager::Get();
 
 	ShipPartAssetIds.Reset();
-	asset_manager.GetPrimaryAssetIdList(TEXT("ShipPartAsset"), ShipPartAssetIds);
+	asset_manager.GetPrimaryAssetIdList(UShipPartAsset::StaticClass()->GetFName(), ShipPartAssetIds);
 
 	if (ShipPartAssetIds.Num() == 0)
 	{
