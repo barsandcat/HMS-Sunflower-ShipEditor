@@ -3,8 +3,9 @@
 #include "ShipPlanRender.h"
 
 #include "Components/SceneComponent.h"
+#include "ShipData/ShipPartAsset.h"
+#include "ShipPartInstance.h"
 #include "UObject/ConstructorHelpers.h"
-
 
 // Sets default values
 AShipPlanRender::AShipPlanRender()
@@ -20,6 +21,68 @@ AShipPlanRender::AShipPlanRender()
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> floor_mesh_helper(TEXT("/Game/Floor_01.Floor_01"));
 	FloorMesh = floor_mesh_helper.Object;
+}
+
+bool AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const FIntVector2& pos)
+{
+	check(part_asset);
+	if (!CanPlacePart(part_asset, pos))
+	{
+		return false;
+	}
+
+	UShipPartInstance* ship_part_instance = NewObject<UShipPartInstance>(this);
+	ship_part_instance->PartAsset = part_asset;
+	ship_part_instance->Position = pos;
+
+	for (const auto& wall : part_asset->Walls)
+	{
+		if (wall.Value)
+		{
+			AddWall(pos + wall.Key);
+			ShipPartInstanceMap.Add(pos + wall.Key, ship_part_instance);
+		}
+	}
+
+	for (const auto& floor : part_asset->Floors)
+	{
+		if (floor.Value)
+		{
+			AddFloor(pos + floor.Key);
+			ShipPartInstanceMap.Add(pos + floor.Key, ship_part_instance);
+		}
+	}
+
+	return true;
+}
+
+bool AShipPlanRender::CanPlacePart(UShipPartAsset* part_asset, const FIntVector2& pos) const
+{
+	check(part_asset);
+
+	for (const auto& wall : part_asset->Walls)
+	{
+		if (wall.Value)
+		{
+			if (ShipPartInstanceMap.Contains(pos + wall.Key))
+			{
+				return false;
+			}
+		}
+	}
+
+	for (const auto& floor : part_asset->Floors)
+	{
+		if (floor.Value)
+		{
+			if (ShipPartInstanceMap.Contains(pos + floor.Key))
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 void AShipPlanRender::AddFloor(const FIntVector2& pos)

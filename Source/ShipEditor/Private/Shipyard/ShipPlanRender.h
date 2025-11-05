@@ -8,6 +8,9 @@
 
 #include "ShipPlanRender.generated.h"
 
+class UShipPartInstance;
+class UShipPartAsset;
+
 UCLASS()
 class AShipPlanRender : public AActor
 {
@@ -16,6 +19,9 @@ class AShipPlanRender : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AShipPlanRender();
+
+	bool TryAddPart(UShipPartAsset* part_asset, const FIntVector2& pos);
+	bool CanPlacePart(UShipPartAsset* part_asset, const FIntVector2& pos) const;
 
 	void AddWall(const FIntVector2& pos);
 	void AddFloor(const FIntVector2& pos);
@@ -31,6 +37,9 @@ public:
 
 	UPROPERTY()
 	TMap<FIntVector2, UStaticMeshComponent*> FloorMeshComponents;
+
+	UPROPERTY()
+	TMap<FIntVector2, UShipPartInstance*> ShipPartInstanceMap;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> SceneComponent;

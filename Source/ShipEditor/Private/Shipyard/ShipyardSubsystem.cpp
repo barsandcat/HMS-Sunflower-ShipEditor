@@ -280,43 +280,17 @@ void UShipyardSubsystem::DoBrush()
 
 	UWorld* World = GetWorld();
 	UShipPartAsset* part_asset = PartAssetMap.FindRef(BrushId);
-	if (!World || !Cursor || BrushId == NAME_None || !part_asset)
+	if (!World || !Cursor || BrushId == NAME_None || !part_asset || !ShipPlanRender)
 	{
 	    return;
 	}
 
 	FIntVector2 CellId = WorldToCellId(Cursor->GetActorLocation());
 
-	/*if (ShipPlan.Contains(CellId))
+	if (ShipPlanRender->TryAddPart(part_asset, CellId))
 	{
-	    return;
-	}*/
-
-	for (const auto& wall : part_asset->Walls)
-	{
-		if (wall.Value)
-		{
-			if (ShipPlanRender)
-			{
-				ShipPlanRender->AddWall(CellId + wall.Key);
-			}
-		}
+		SetBrushId(NAME_None);
 	}
-
-	for (const auto& floor : part_asset->Floors)
-	{
-		if (floor.Value)
-		{
-			if (ShipPlanRender)
-			{
-				ShipPlanRender->AddFloor(CellId + floor.Key);
-			}
-		}
-	}
-
-	// ShipPlanCell->PartId = BrushId;
-
-	SetBrushId(NAME_None);
 }
 
 void UShipyardSubsystem::Select()
