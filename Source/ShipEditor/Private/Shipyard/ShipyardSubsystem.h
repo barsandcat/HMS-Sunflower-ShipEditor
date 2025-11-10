@@ -6,6 +6,7 @@
 #include "Misc/Optional.h"
 #include "ShipPlanCell.h"
 #include "Shipyard/Filter/IPartFilter.h"
+#include "Shipyard/ShipPartInstance.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "UI/ViewModels/VMBrush.h"
 #include "UI/ViewModels/VMPartBrowser.h"
@@ -17,6 +18,7 @@
 
 class AShipPlanRender;
 class UShipPartAsset;
+class UShipPartInstance;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBrushEvent);
 
@@ -68,7 +70,7 @@ public:
 	TObjectPtr<UVMShipPlan> VMShipPlan;
 
 	void SetCursorPosition(const TOptional<FVector>& WorldPosition);
-	void SetBrushPosition(const TOptional<FVector>& WorldPosition);
+	// void SetBrushPosition(const TOptional<FVector>& WorldPosition);
 
 	UPROPERTY()
 	TSubclassOf<AActor> CursorClassPtr;
@@ -87,20 +89,17 @@ private:
 	std::set<int32> GetSelectedCategories() const;
 	bool IsAllowedByFiters(const TObjectPtr<UVMShipPart>& part_vm) const;
 	void AddCategory(TUVMShipPartCategoryArray& list, const FText& name, int32 id);
-	TSubclassOf<AShipPlanCell> GetPartClass(int32 part_id) const;
 
 	void LoadAllShipPartAssetsAsync();
 	void OnShipPartAssetsLoaded();
 
 	FName BrushId = NAME_None;
-	TObjectPtr<AShipPlanCell> Brush;
+	// TObjectPtr<AShipPlanCell> Brush;
 	TObjectPtr<AActor> Cursor;
-	TObjectPtr<AShipPlanCell> Selection;
-	TMap<FIntVector2, TObjectPtr<AShipPlanCell>> ShipPlan;
+	TObjectPtr<UShipPartInstance> Selection;
 
 	TObjectPtr<UMaterialInterface> SelectionMaterial;
 	TObjectPtr<UMaterialInterface> PreviewMaterial;
-	TMap<int32, TSubclassOf<AShipPlanCell>> PartClassMap;
 
 	TMap<FName, UShipPartAsset*> PartAssetMap;
 	TArray<FPrimaryAssetId> ShipPartAssetIds;

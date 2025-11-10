@@ -22,6 +22,10 @@ public:
 
 	bool TryAddPart(UShipPartAsset* part_asset, const FIntVector2& pos);
 	bool CanPlacePart(UShipPartAsset* part_asset, const FIntVector2& pos) const;
+	void DeletePartInstance(UShipPartInstance* part);
+
+	void SetOverlayMaterial(UShipPartInstance* part, UMaterialInterface* material);
+	UShipPartInstance* GetPartInstance(const FIntVector2& pos);
 
 	void AddWall(const FIntVector2& pos);
 	void AddFloor(const FIntVector2& pos);

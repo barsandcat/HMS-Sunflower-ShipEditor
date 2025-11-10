@@ -56,6 +56,27 @@ bool AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const FIntVector2& 
 	return true;
 }
 
+void AShipPlanRender::SetOverlayMaterial(UShipPartInstance* part, UMaterialInterface* material)
+{
+	for (const auto& wall : part->PartAsset->Walls)
+	{
+		if (wall.Value)
+		{
+			UStaticMeshComponent* static_mesh = WallMeshComponents.FindRef(part->Position + wall.Key);
+			static_mesh->SetOverlayMaterial(material);
+		}
+	}
+
+	for (const auto& floor : part->PartAsset->Floors)
+	{
+		if (floor.Value)
+		{
+			UStaticMeshComponent* static_mesh = FloorMeshComponents.FindRef(part->Position + floor.Key);
+			static_mesh->SetOverlayMaterial(material);
+		}
+	}
+}
+
 bool AShipPlanRender::CanPlacePart(UShipPartAsset* part_asset, const FIntVector2& pos) const
 {
 	check(part_asset);
@@ -83,6 +104,44 @@ bool AShipPlanRender::CanPlacePart(UShipPartAsset* part_asset, const FIntVector2
 	}
 
 	return true;
+}
+
+UShipPartInstance* AShipPlanRender::GetPartInstance(const FIntVector2& pos)
+{
+	return ShipPartInstanceMap.FindRef(pos);
+}
+
+void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)
+{
+	for (const auto& wall : part->PartAsset->Walls)
+	{
+		if (wall.Value)
+		{
+			UStaticMeshComponent* static_mesh = WallMeshComponents.FindRef(part->Position + wall.Key);
+			if (static_mesh)
+			{
+				static_mesh->UnregisterComponent();
+				static_mesh->DestroyComponent();
+				WallMeshComponents.Remove(part->Position + wall.Key);
+			}
+			ShipPartInstanceMap.Remove(part->Position + wall.Key);
+		}
+	}
+
+	for (const auto& floor : part->PartAsset->Floors)
+	{
+		if (floor.Value)
+		{
+			UStaticMeshComponent* static_mesh = FloorMeshComponents.FindRef(part->Position + floor.Key);
+			if (static_mesh)
+			{
+				static_mesh->UnregisterComponent();
+				static_mesh->DestroyComponent();
+				FloorMeshComponents.Remove(part->Position + floor.Key);
+			}
+			ShipPartInstanceMap.Remove(part->Position + floor.Key);
+		}
+	}
 }
 
 void AShipPlanRender::AddFloor(const FIntVector2& pos)

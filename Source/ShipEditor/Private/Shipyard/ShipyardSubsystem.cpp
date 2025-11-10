@@ -11,6 +11,7 @@
 #include "Shipyard/Filter/ElevationFilter.h"
 #include "Shipyard/Filter/MountFilter.h"
 #include "Shipyard/Filter/StructureFilter.h"
+#include "Shipyard/ShipPartInstance.h"
 
 const double GRID_SIZE = 100.0f;
 
@@ -27,16 +28,6 @@ void AddPart(TUVMShipPartArray& List, const FText& name, FName id, int32 categor
 	Part->SetDynamicMount(dynamic);
 	Part->SetLoadBearing(load_bearing);
 	List.Add(Part);
-}
-
-void SetOverlayMaterial(AShipPlanCell* Cell, UMaterialInterface* Material)
-{
-	TInlineComponentArray<UStaticMeshComponent*> StaticMeshes;
-	Cell->GetComponents(StaticMeshes);
-	for (UStaticMeshComponent* StaticMesh : StaticMeshes)
-	{
-		StaticMesh->SetOverlayMaterial(Material);
-	}
 }
 
 void SetMaterial(AShipPlanCell* Cell, UMaterialInterface* Material)
@@ -128,21 +119,21 @@ void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& WorldPositi
 	}
 }
 
-void UShipyardSubsystem::SetBrushPosition(const TOptional<FVector>& WorldPosition)
+/*void UShipyardSubsystem::SetBrushPosition(const TOptional<FVector>& WorldPosition)
 {
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		return;
-	}
+    UWorld* World = GetWorld();
+    if (!World)
+    {
+        return;
+    }
 
-	if (WorldPosition && Brush)
-	{
-		FVector Pos = CellIdToWorld(WorldToCellId(*WorldPosition));
-		Pos.Y = WorldPosition->Y;
-		Brush->SetActorLocation(Pos);
-	}
-}
+    if (WorldPosition && Brush)
+    {
+        FVector Pos = CellIdToWorld(WorldToCellId(*WorldPosition));
+        Pos.Y = WorldPosition->Y;
+        Brush->SetActorLocation(Pos);
+    }
+}*/
 
 UShipyardSubsystem::UShipyardSubsystem()
     : UWorldSubsystem()
@@ -160,16 +151,6 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	LoadAllShipPartAssetsAsync();
 
 	VMPartBrowser = NewObject<UVMPartBrowser>();
-	/*
-	AddPart(PartList, FText::FromString(TEXT("BL 4-inch Mk IX")), 1, 1, 1, false, true);
-	AddPart(PartList, FText::FromString(TEXT("Vickers .50 cal")), 2, 1, 1, true, false);
-	AddPart(PartList, FText::FromString(TEXT("Lewis .303 cal")), 3, 1, 2, true, false);
-	AddPart(PartList, FText::FromString(TEXT("Whittle W.1")), 4, 2, 0, false, true);
-	AddPart(PartList, FText::FromString(TEXT("Fuel tank 2t")), 5, 3, 1, false, true);
-	AddPart(PartList, FText::FromString(TEXT("Petter 1260W")), 6, 4, 0, false, true);
-	AddPart(PartList, FText::FromString(TEXT("4-inch magazine")), 7, 5, 0, false, true);
-	AddPart(PartList, FText::FromString(TEXT("Quarters 400")), 8, 6, 0, false, true);
-	*/
 	VMPartBrowser->SetPartList(PartList);
 
 	TUVMShipPartCategoryArray categories;
@@ -201,12 +182,6 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 	VMShipPlan->LoadShipPlan.AddDynamic(this, &UShipyardSubsystem::LoadShipPlan);
 
 	CursorClassPtr = CursorClass.LoadSynchronous();
-
-	PartClassMap.Add(1, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_01.BP_ShipPart_01_C"), nullptr, LOAD_None, nullptr));
-	PartClassMap.Add(2, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_02.BP_ShipPart_02_C"), nullptr, LOAD_None, nullptr));
-	PartClassMap.Add(3, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_03.BP_ShipPart_03_C"), nullptr, LOAD_None, nullptr));
-	PartClassMap.Add(4, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_04.BP_ShipPart_04_C"), nullptr, LOAD_None, nullptr));
-	PartClassMap.Add(5, StaticLoadClass(AShipPlanCell::StaticClass(), nullptr, TEXT("/Game/BP_ShipPart_05.BP_ShipPart_05_C"), nullptr, LOAD_None, nullptr));
 
 	if (GetWorld() && GetWorld()->IsGameWorld())
 	{
@@ -262,18 +237,6 @@ void UShipyardSubsystem::OnShipPartAssetsLoaded()
 	}
 }
 
-TSubclassOf<AShipPlanCell> UShipyardSubsystem::GetPartClass(int32 part_id) const
-{
-	if (auto part_class = PartClassMap.Find(part_id))
-	{
-		return *part_class;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
 void UShipyardSubsystem::DoBrush()
 {
 	UE_LOG(LogTemp, Warning, TEXT("DoBrush %s"), *BrushId.ToString());
@@ -296,22 +259,22 @@ void UShipyardSubsystem::DoBrush()
 void UShipyardSubsystem::Select()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Select %s"), *BrushId.ToString());
-	if (!Cursor || BrushId != NAME_None)
+	if (!Cursor || BrushId != NAME_None || !ShipPlanRender)
 	{
 		return;
 	}
 
 	if (Selection)
 	{
-		SetOverlayMaterial(Selection, nullptr);
+		ShipPlanRender->SetOverlayMaterial(Selection, nullptr);
 		Selection = nullptr;
 	}
 
 	FIntVector2 CellId = WorldToCellId(Cursor->GetActorLocation());
-	if (ShipPlan.Contains(CellId))
+	Selection = ShipPlanRender->GetPartInstance(CellId);
+	if (Selection)
 	{
-		Selection = *ShipPlan.Find(CellId);
-		SetOverlayMaterial(Selection, SelectionMaterial);
+		ShipPlanRender->SetOverlayMaterial(Selection, SelectionMaterial);
 	}
 }
 
@@ -322,33 +285,30 @@ void UShipyardSubsystem::Delete()
 	{
 		return;
 	}
-
-	ShipPlan.Remove(WorldToCellId(Selection->GetActorLocation()));
-	Selection->Destroy();
+	ShipPlanRender->DeletePartInstance(Selection);
 	Selection = nullptr;
 }
 
 void UShipyardSubsystem::Grab()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grab"));
-	if (!Cursor)
+	if (!Cursor || !ShipPlanRender)
 	{
 		return;
 	}
 
 	if (Selection)
 	{
-		SetOverlayMaterial(Selection, nullptr);
+		ShipPlanRender->SetOverlayMaterial(Selection, nullptr);
 		Selection = nullptr;
 	}
 
 	FIntVector2 CellId = WorldToCellId(Cursor->GetActorLocation());
-	if (ShipPlan.Contains(CellId))
+	UShipPartInstance* part_instance = ShipPlanRender->GetPartInstance(CellId);
+	if (part_instance)
 	{
-		// TObjectPtr<AShipPlanCell> ShipPlanCell = *ShipPlan.Find(CellId);
-		// ShipPlan.Remove(CellId);
-		// SetBrushId(ShipPlanCell->PartId);
-		// ShipPlanCell->Destroy();
+		SetBrushId(part_instance->PartAsset->PartId);
+		ShipPlanRender->DeletePartInstance(part_instance);
 	}
 }
 
