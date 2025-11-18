@@ -27,7 +27,7 @@ void AMyCommonPlayerController::PlayerTick(float DeltaTime)
 	}
 	const auto MousePosition = GetMouseWorldPosition(0);
 	Shipyard->SetCursorPosition(MousePosition);
-	// Shipyard->SetBrushPosition(MousePosition);
+	Shipyard->SetBrushPosition(MousePosition);
 }
 
 TOptional<FVector> AMyCommonPlayerController::GetMouseWorldPosition(double PlaneY)

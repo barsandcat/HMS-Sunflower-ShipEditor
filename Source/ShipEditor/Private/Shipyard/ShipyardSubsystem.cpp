@@ -119,7 +119,7 @@ void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& WorldPositi
 	}
 }
 
-/*void UShipyardSubsystem::SetBrushPosition(const TOptional<FVector>& WorldPosition)
+void UShipyardSubsystem::SetBrushPosition(const TOptional<FVector>& WorldPosition)
 {
     UWorld* World = GetWorld();
     if (!World)
@@ -127,13 +127,12 @@ void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& WorldPositi
         return;
     }
 
-    if (WorldPosition && Brush)
-    {
-        FVector Pos = CellIdToWorld(WorldToCellId(*WorldPosition));
-        Pos.Y = WorldPosition->Y;
-        Brush->SetActorLocation(Pos);
-    }
-}*/
+	if (WorldPosition)
+	{
+		check(PreviewRender);
+		PreviewRender->SetPosition(WorldToCellId(*WorldPosition));
+	}
+}
 
 UShipyardSubsystem::UShipyardSubsystem()
     : UWorldSubsystem()
@@ -188,6 +187,7 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 		FActorSpawnParameters spawn_params;
 		spawn_params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		ShipPlanRender = GetWorld()->SpawnActor<AShipPlanRender>(FVector(0, 0, 0), FRotator::ZeroRotator, spawn_params);
+		PreviewRender = GetWorld()->SpawnActor<AShipPlanRender>(FVector(0, 0, 100.f), FRotator::ZeroRotator, spawn_params);
 	}
 }
 
@@ -324,12 +324,8 @@ void UShipyardSubsystem::SetBrushId(FName brush_id)
 
 	if (BrushId != NAME_None)
 	{
-		// if (ensure(Brush))
-		//{
-		//	Brush->Destroy();
-		// }
-
-		// Brush = nullptr;
+		check(PreviewRender);
+		PreviewRender->Clear();
 
 		if (brush_id == NAME_None)
 		{
@@ -339,22 +335,11 @@ void UShipyardSubsystem::SetBrushId(FName brush_id)
 
 	if (brush_id != NAME_None)
 	{
-		// check(!Brush);
-
-		// if (UWorld* World = GetWorld())
-		//{
-		//	TSubclassOf<AShipPlanCell> part_class = GetPartClass(brush_id);
-		//	if (part_class)
-		//	{
-		//		Brush = World->SpawnActor<AShipPlanCell>(part_class, Cursor->GetActorLocation(), {}, {});
-		//		SetMaterial(Brush, PreviewMaterial);
-		//	}
-		// }
-
-		// if (Brush)
-		//{
-		//	Brush->PartId = brush_id;
-		// }
+		check(PreviewRender);
+		UShipPartInstance* part = PreviewRender->TryAddPart(PartAssetMap.FindRef(brush_id), FIntVector2(0, 0));
+		check(part);
+		PreviewRender->SetOverlayMaterial(part, PreviewMaterial);
+		PreviewRender->SetPosition(WorldToCellId(Cursor->GetActorLocation()));
 
 		if (BrushId == NAME_None)
 		{

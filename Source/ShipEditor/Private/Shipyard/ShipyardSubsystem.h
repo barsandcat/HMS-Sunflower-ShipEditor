@@ -70,7 +70,7 @@ public:
 	TObjectPtr<UVMShipPlan> VMShipPlan;
 
 	void SetCursorPosition(const TOptional<FVector>& WorldPosition);
-	// void SetBrushPosition(const TOptional<FVector>& WorldPosition);
+	void SetBrushPosition(const TOptional<FVector>& WorldPosition);
 
 	UPROPERTY()
 	TSubclassOf<AActor> CursorClassPtr;
@@ -81,10 +81,13 @@ public:
 	void OnCategorySelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
 	void OnFilterSelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
 
+private:
 	UPROPERTY()
 	TObjectPtr<AShipPlanRender> ShipPlanRender;
 
-private:
+	UPROPERTY()
+	TObjectPtr<AShipPlanRender> PreviewRender;
+
 	TArray<TSharedPtr<IPartFilter>> FilterList;
 	std::set<int32> GetSelectedCategories() const;
 	bool IsAllowedByFiters(const TObjectPtr<UVMShipPart>& part_vm) const;

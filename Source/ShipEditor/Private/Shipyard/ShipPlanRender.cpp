@@ -23,12 +23,12 @@ AShipPlanRender::AShipPlanRender()
 	FloorMesh = floor_mesh_helper.Object;
 }
 
-bool AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const FIntVector2& pos)
+UShipPartInstance* AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const FIntVector2& pos)
 {
 	check(part_asset);
 	if (!CanPlacePart(part_asset, pos))
 	{
-		return false;
+		return nullptr;
 	}
 
 	UShipPartInstance* ship_part_instance = NewObject<UShipPartInstance>(this);
@@ -53,7 +53,12 @@ bool AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const FIntVector2& 
 		}
 	}
 
-	return true;
+	return ship_part_instance;
+}
+
+void AShipPlanRender::SetPosition(const FIntVector2& position)
+{
+	SetActorLocation(FVector(position.X * MeshSpacing, 0.0f, position.Y * MeshSpacing));
 }
 
 void AShipPlanRender::SetOverlayMaterial(UShipPartInstance* part, UMaterialInterface* material)
@@ -192,4 +197,29 @@ void AShipPlanRender::AddWall(const FIntVector2& pos)
 		mesh->UpdateComponentToWorld();
 		WallMeshComponents.Add(pos, mesh);
 	}
+}
+
+void AShipPlanRender::Clear()
+{
+	for (auto& [key, mesh] : WallMeshComponents)
+	{
+		if (mesh)
+		{
+			mesh->UnregisterComponent();
+			mesh->DestroyComponent();
+		}
+	}
+	WallMeshComponents.Empty();
+
+	for (auto& [key, mesh] : FloorMeshComponents)
+	{
+		if (mesh)
+		{
+			mesh->UnregisterComponent();
+			mesh->DestroyComponent();
+		}
+	}
+	FloorMeshComponents.Empty();
+
+	ShipPartInstanceMap.Empty();
 }

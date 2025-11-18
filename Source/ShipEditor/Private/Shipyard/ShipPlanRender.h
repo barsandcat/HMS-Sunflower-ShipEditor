@@ -20,9 +20,12 @@ public:
 	// Sets default values for this actor's properties
 	AShipPlanRender();
 
-	bool TryAddPart(UShipPartAsset* part_asset, const FIntVector2& pos);
+	void SetPosition(const FIntVector2& position);
+
+	UShipPartInstance* TryAddPart(UShipPartAsset* part_asset, const FIntVector2& pos);
 	bool CanPlacePart(UShipPartAsset* part_asset, const FIntVector2& pos) const;
 	void DeletePartInstance(UShipPartInstance* part);
+	void Clear();
 
 	void SetOverlayMaterial(UShipPartInstance* part, UMaterialInterface* material);
 	UShipPartInstance* GetPartInstance(const FIntVector2& pos);
@@ -36,6 +39,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	UStaticMesh* FloorMesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	float MeshSpacing = 100.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USceneComponent> SceneComponent;
+
 	UPROPERTY()
 	TMap<FIntVector2, UStaticMeshComponent*> WallMeshComponents;
 
@@ -44,10 +53,4 @@ public:
 
 	UPROPERTY()
 	TMap<FIntVector2, UShipPartInstance*> ShipPartInstanceMap;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Components")
-	TObjectPtr<USceneComponent> SceneComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	float MeshSpacing = 100.0f;
 };
