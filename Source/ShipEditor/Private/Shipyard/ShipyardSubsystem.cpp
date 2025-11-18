@@ -312,6 +312,34 @@ void UShipyardSubsystem::Grab()
 	}
 }
 
+void UShipyardSubsystem::RotateBrushClockwise()
+{
+	UE_LOG(LogTemp, Warning, TEXT("RotateBrushClockwise"));
+	if (PreviewRender)
+	{
+		PreviewRender->SetActorRotation(PreviewRender->GetActorRotation() + FRotator(90.0f, 00.0f, 0.0f));
+	}
+}
+
+void UShipyardSubsystem::RotateBrushCounterClockwise()
+{
+	UE_LOG(LogTemp, Warning, TEXT("RotateBrushCounterClockwise"));
+	if (PreviewRender)
+	{
+		PreviewRender->SetActorRotation(PreviewRender->GetActorRotation() + FRotator(-90.0f, 0.0f, 0.0f));
+	}
+}
+
+void UShipyardSubsystem::FlipBrush()
+{
+	UE_LOG(LogTemp, Warning, TEXT("FlipBrush"));
+	if (PreviewRender)
+	{
+		FRotator currentRotation = PreviewRender->GetActorRotation();
+		PreviewRender->SetActorRotation(FRotator(currentRotation.Pitch, currentRotation.Yaw, -currentRotation.Roll));
+	}
+}
+
 void UShipyardSubsystem::SetBrushId(FName brush_id)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SetBrushId %s"), *brush_id.ToString());

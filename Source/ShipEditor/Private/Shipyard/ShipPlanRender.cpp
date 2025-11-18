@@ -19,7 +19,7 @@ AShipPlanRender::AShipPlanRender()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> wall_mesh_helper(TEXT("/Game/Wall_02.Wall_02"));
 	WallMesh = wall_mesh_helper.Object;
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> floor_mesh_helper(TEXT("/Game/Floor_01.Floor_01"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> floor_mesh_helper(TEXT("/Game/Floor_02.Floor_02"));
 	FloorMesh = floor_mesh_helper.Object;
 }
 

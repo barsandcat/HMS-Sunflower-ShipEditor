@@ -43,6 +43,15 @@ public:
 	void Grab();
 
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	void RotateBrushClockwise();
+
+	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	void RotateBrushCounterClockwise();
+
+	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	void FlipBrush();
+
+	UFUNCTION(BlueprintCallable, Category = "Shipyard")
 	void SetBrushId(FName brush_id);
 
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
