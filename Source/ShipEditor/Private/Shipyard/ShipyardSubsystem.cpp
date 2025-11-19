@@ -336,7 +336,7 @@ void UShipyardSubsystem::FlipBrush()
 	if (PreviewRender)
 	{
 		FRotator currentRotation = PreviewRender->GetActorRotation();
-		PreviewRender->SetActorRotation(FRotator(currentRotation.Pitch, currentRotation.Yaw, -currentRotation.Roll));
+		PreviewRender->SetActorRotation(PreviewRender->GetActorRotation() + FRotator(0.0f, 0.0f, 180.0f));
 	}
 }
 
