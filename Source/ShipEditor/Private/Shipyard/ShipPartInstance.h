@@ -4,9 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "ShipData/ShipPartAsset.h"
+#include "ShipPartInstanceTransform.h"
 #include "UObject/NoExportTypes.h"
-#include "ShipPartInstance.generated.h"
 
+#include "ShipPartInstance.generated.h"
 
 UCLASS()
 class UShipPartInstance : public UObject
@@ -17,5 +18,5 @@ public:
 	TObjectPtr<UShipPartAsset> PartAsset;
 
 	UPROPERTY()
-	FIntVector2 Position;
+	FShipPartInstanceTransform Transform;
 };

@@ -33,7 +33,7 @@ UShipPartInstance* AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const
 
 	UShipPartInstance* ship_part_instance = NewObject<UShipPartInstance>(this);
 	ship_part_instance->PartAsset = part_asset;
-	ship_part_instance->Position = pos;
+	ship_part_instance->Transform.Position = pos;
 
 	for (const auto& wall : part_asset->Walls)
 	{
@@ -67,7 +67,7 @@ void AShipPlanRender::SetOverlayMaterial(UShipPartInstance* part, UMaterialInter
 	{
 		if (wall.Value)
 		{
-			UStaticMeshComponent* static_mesh = WallMeshComponents.FindRef(part->Position + wall.Key);
+			UStaticMeshComponent* static_mesh = WallMeshComponents.FindRef(part->Transform.Position + wall.Key);
 			static_mesh->SetOverlayMaterial(material);
 		}
 	}
@@ -76,7 +76,7 @@ void AShipPlanRender::SetOverlayMaterial(UShipPartInstance* part, UMaterialInter
 	{
 		if (floor.Value)
 		{
-			UStaticMeshComponent* static_mesh = FloorMeshComponents.FindRef(part->Position + floor.Key);
+			UStaticMeshComponent* static_mesh = FloorMeshComponents.FindRef(part->Transform.Position + floor.Key);
 			static_mesh->SetOverlayMaterial(material);
 		}
 	}
@@ -122,14 +122,14 @@ void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)
 	{
 		if (wall.Value)
 		{
-			UStaticMeshComponent* static_mesh = WallMeshComponents.FindRef(part->Position + wall.Key);
+			UStaticMeshComponent* static_mesh = WallMeshComponents.FindRef(part->Transform.Position + wall.Key);
 			if (static_mesh)
 			{
 				static_mesh->UnregisterComponent();
 				static_mesh->DestroyComponent();
-				WallMeshComponents.Remove(part->Position + wall.Key);
+				WallMeshComponents.Remove(part->Transform.Position + wall.Key);
 			}
-			ShipPartInstanceMap.Remove(part->Position + wall.Key);
+			ShipPartInstanceMap.Remove(part->Transform.Position + wall.Key);
 		}
 	}
 
@@ -137,14 +137,14 @@ void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)
 	{
 		if (floor.Value)
 		{
-			UStaticMeshComponent* static_mesh = FloorMeshComponents.FindRef(part->Position + floor.Key);
+			UStaticMeshComponent* static_mesh = FloorMeshComponents.FindRef(part->Transform.Position + floor.Key);
 			if (static_mesh)
 			{
 				static_mesh->UnregisterComponent();
 				static_mesh->DestroyComponent();
-				FloorMeshComponents.Remove(part->Position + floor.Key);
+				FloorMeshComponents.Remove(part->Transform.Position + floor.Key);
 			}
-			ShipPartInstanceMap.Remove(part->Position + floor.Key);
+			ShipPartInstanceMap.Remove(part->Transform.Position + floor.Key);
 		}
 	}
 }

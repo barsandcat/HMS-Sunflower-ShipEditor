@@ -53,4 +53,23 @@ public:
 
 	UPROPERTY()
 	TMap<FIntVector2, UShipPartInstance*> ShipPartInstanceMap;
+
+	void RotateClockwise()
+	{
+		XRotation = (XRotation + 1) % 4;
+	}
+
+	void RotateCounterClockwise()
+	{
+		XRotation = (XRotation - 1) % 4;
+	}
+
+	void Flip()
+	{
+		ZRotation = !ZRotation;
+	}
+
+private:
+	int32 XRotation = 0;
+	bool ZRotation = false;
 };
