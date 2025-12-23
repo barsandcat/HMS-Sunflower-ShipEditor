@@ -7,18 +7,19 @@
 
 #include "ShipPartInstanceTransform.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FShipPartInstanceTransform
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FIntVector2 Position;
 
-	UPROPERTY()
+	/* 0: up, 1 or -3: right, 2 or -2:down, 3 or -1:left*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 XRotation = 0;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool ZRotation = false;
 
 	void RotateClockwise();
@@ -27,5 +28,7 @@ struct FShipPartInstanceTransform
 
 	void Flip();
 
-	FIntVector2 Transofrm(const FIntVector2& point) const;
+	FIntVector2 operator()(const FIntVector2& point) const;
+
+	FShipPartInstanceTransform operator()(const FShipPartInstanceTransform& point) const;
 };

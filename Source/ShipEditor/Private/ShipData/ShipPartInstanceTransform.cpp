@@ -1,6 +1,6 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
-#include "Shipyard/ShipPartInstanceTransform.h"
+#include "ShipData/ShipPartInstanceTransform.h"
 
 inline void FShipPartInstanceTransform::RotateClockwise()
 {
@@ -17,9 +17,10 @@ inline void FShipPartInstanceTransform::Flip()
 	ZRotation = !ZRotation;
 }
 
-FIntVector2 FShipPartInstanceTransform::Transofrm(const FIntVector2& point) const
+FIntVector2 FShipPartInstanceTransform::operator()(const FIntVector2& point) const
 {
 	FIntVector2 result = point;
+
 	switch (XRotation)
 	{
 		case -3:
@@ -46,4 +47,13 @@ FIntVector2 FShipPartInstanceTransform::Transofrm(const FIntVector2& point) cons
 	}
 
 	return result + Position;
+}
+
+FShipPartInstanceTransform FShipPartInstanceTransform::operator()(const FShipPartInstanceTransform& t) const
+{
+	FShipPartInstanceTransform result;
+	result.Position = (*this)(t.Position);
+	result.ZRotation = ZRotation != t.ZRotation;
+	result.XRotation = (t.XRotation + XRotation) % 4;
+	return result;
 }

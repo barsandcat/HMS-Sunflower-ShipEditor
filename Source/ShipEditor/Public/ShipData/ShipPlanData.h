@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ShipPartData.h"
 #include "UObject/NoExportTypes.h"
 
 #include "ShipPlanData.generated.h"
@@ -15,7 +14,4 @@ struct SHIPEDITOR_API FShipPlanData
 
 	UPROPERTY()
 	FString Name;
-
-	UPROPERTY()
-	TMap<FIntVector2, FShipPartData> ShipParts;
 };

@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "ShipPartAsset.generated.h"
+#include "ShipDeckData.h"
 
+#include "ShipPartAsset.generated.h"
 
 UCLASS()
 class SHIPEDITOR_API UShipPartAsset : public UPrimaryDataAsset
@@ -31,8 +32,5 @@ public:
 	bool LoadBearing = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TMap<FIntVector2, bool> Walls;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TMap<FIntVector2, bool> Floors;
+	TArray<FShipDeckData> Decks;
 };

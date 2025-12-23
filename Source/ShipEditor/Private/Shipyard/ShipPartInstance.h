@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ShipData/ShipPartAsset.h"
-#include "ShipPartInstanceTransform.h"
+#include "ShipData/ShipPartInstanceTransform.h"
 #include "UObject/NoExportTypes.h"
 
 #include "ShipPartInstance.generated.h"

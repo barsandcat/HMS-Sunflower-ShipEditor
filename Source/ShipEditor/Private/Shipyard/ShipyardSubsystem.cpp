@@ -13,7 +13,7 @@
 #include "Shipyard/Filter/StructureFilter.h"
 #include "Shipyard/ShipPartInstance.h"
 
-const double GRID_SIZE = 100.0f;
+const double GRID_SIZE = 50.0f;
 
 namespace
 {
@@ -51,6 +51,11 @@ FIntVector2 WorldToCellId(const FVector& WorldPos)
 	return {int32(round(WorldPos.X / GRID_SIZE)), int32(round(WorldPos.Z / GRID_SIZE))};
 }
 
+FIntVector2 WorldToPartGrid(const FVector& WorldPos)
+{
+	return {int32(round(WorldPos.X / (GRID_SIZE * 2))) * 2 - 1, int32(round(WorldPos.Z / (GRID_SIZE * 2))) * 2 - 1};
+}
+
 FVector CellIdToWorld(const FIntVector2& CellId)
 {
 	return {CellId.X * GRID_SIZE, 0.0f, CellId.Y * GRID_SIZE};
@@ -82,31 +87,31 @@ void UShipyardSubsystem::OnFilterSelected(UObject* ViewModel, UE::FieldNotificat
 	UpdatePartList();
 }
 
-void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& WorldPosition)
+void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& world_position)
 {
 	if (!CursorClassPtr)
 	{
 		return;
 	}
 
-	UWorld* World = GetWorld();
-	if (!World)
+	UWorld* world = GetWorld();
+	if (!world)
 	{
 		return;
 	}
 
-	if (WorldPosition)
+	if (world_position)
 	{
-		FVector CursorPos = CellIdToWorld(WorldToCellId(*WorldPosition));
-		CursorPos.Y = WorldPosition->Y;
+		FVector cursor_pos = CellIdToWorld(WorldToPartGrid(*world_position));
+		cursor_pos.Y = world_position->Y;
 
 		if (!Cursor)
 		{
-			Cursor = World->SpawnActor<AActor>(CursorClassPtr, CursorPos, FRotator::ZeroRotator, {});
+			Cursor = world->SpawnActor<AActor>(CursorClassPtr, cursor_pos, FRotator::ZeroRotator, {});
 		}
 		else
 		{
-			Cursor->SetActorLocation(CursorPos);
+			Cursor->SetActorLocation(cursor_pos);
 		}
 	}
 	else
@@ -121,16 +126,16 @@ void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& WorldPositi
 
 void UShipyardSubsystem::SetBrushPosition(const TOptional<FVector>& WorldPosition)
 {
-    UWorld* World = GetWorld();
-    if (!World)
-    {
-        return;
-    }
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
 
 	if (WorldPosition)
 	{
 		check(PreviewRender);
-		PreviewRender->SetPosition(WorldToCellId(*WorldPosition));
+		PreviewRender->SetPosition(WorldToPartGrid(*WorldPosition) - FIntVector2(1, 1));
 	}
 }
 
@@ -245,12 +250,12 @@ void UShipyardSubsystem::DoBrush()
 	UShipPartAsset* part_asset = PartAssetMap.FindRef(BrushId);
 	if (!World || !Cursor || BrushId == NAME_None || !part_asset || !ShipPlanRender)
 	{
-	    return;
+		return;
 	}
 
-	FIntVector2 CellId = WorldToCellId(Cursor->GetActorLocation());
+	FIntVector2 cell_id = WorldToCellId(Cursor->GetActorLocation()) - FIntVector2(1, 1);
 
-	if (ShipPlanRender->TryAddPart(part_asset, CellId))
+	if (ShipPlanRender->TryAddPart(part_asset, cell_id))
 	{
 		SetBrushId(NAME_None);
 	}
@@ -367,7 +372,7 @@ void UShipyardSubsystem::SetBrushId(FName brush_id)
 		UShipPartInstance* part = PreviewRender->TryAddPart(PartAssetMap.FindRef(brush_id), FIntVector2(0, 0));
 		check(part);
 		PreviewRender->SetOverlayMaterial(part, PreviewMaterial);
-		PreviewRender->SetPosition(WorldToCellId(Cursor->GetActorLocation()));
+		PreviewRender->SetPosition(WorldToCellId(Cursor->GetActorLocation()) - FIntVector2(1, 1));
 
 		if (BrushId == NAME_None)
 		{

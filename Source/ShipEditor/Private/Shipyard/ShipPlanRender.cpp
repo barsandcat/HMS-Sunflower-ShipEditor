@@ -10,7 +10,7 @@
 // Sets default values
 AShipPlanRender::AShipPlanRender()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
@@ -26,31 +26,22 @@ AShipPlanRender::AShipPlanRender()
 UShipPartInstance* AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const FIntVector2& pos)
 {
 	check(part_asset);
-	if (!CanPlacePart(part_asset, pos))
+
+	FShipPartInstanceTransform part_transform;
+	part_transform.Position = pos;
+
+	if (!CanPlacePart(part_asset, part_transform))
 	{
 		return nullptr;
 	}
 
 	UShipPartInstance* ship_part_instance = NewObject<UShipPartInstance>(this);
 	ship_part_instance->PartAsset = part_asset;
-	ship_part_instance->Transform.Position = pos;
+	ship_part_instance->Transform = part_transform;
 
-	for (const auto& wall : part_asset->Walls)
+	for (const FShipDeckData& deck : part_asset->Decks)
 	{
-		if (wall.Value)
-		{
-			AddWall(pos + wall.Key);
-			ShipPartInstanceMap.Add(pos + wall.Key, ship_part_instance);
-		}
-	}
-
-	for (const auto& floor : part_asset->Floors)
-	{
-		if (floor.Value)
-		{
-			AddFloor(pos + floor.Key);
-			ShipPartInstanceMap.Add(pos + floor.Key, ship_part_instance);
-		}
+		AddDeck(part_transform(deck.Position), ship_part_instance);
 	}
 
 	return ship_part_instance;
@@ -63,48 +54,22 @@ void AShipPlanRender::SetPosition(const FIntVector2& position)
 
 void AShipPlanRender::SetOverlayMaterial(UShipPartInstance* part, UMaterialInterface* material)
 {
-	for (const auto& wall : part->PartAsset->Walls)
+	for (const auto& deck : part->PartAsset->Decks)
 	{
-		if (wall.Value)
-		{
-			UStaticMeshComponent* static_mesh = WallMeshComponents.FindRef(part->Transform.Position + wall.Key);
-			static_mesh->SetOverlayMaterial(material);
-		}
-	}
-
-	for (const auto& floor : part->PartAsset->Floors)
-	{
-		if (floor.Value)
-		{
-			UStaticMeshComponent* static_mesh = FloorMeshComponents.FindRef(part->Transform.Position + floor.Key);
-			static_mesh->SetOverlayMaterial(material);
-		}
+		UStaticMeshComponent* static_mesh = DeckMeshComponents.FindRef(part->Transform(deck.Position));
+		static_mesh->SetOverlayMaterial(material);
 	}
 }
 
-bool AShipPlanRender::CanPlacePart(UShipPartAsset* part_asset, const FIntVector2& pos) const
+bool AShipPlanRender::CanPlacePart(UShipPartAsset* part_asset, const FShipPartInstanceTransform& part_transform) const
 {
 	check(part_asset);
 
-	for (const auto& wall : part_asset->Walls)
+	for (const FShipDeckData& deck : part_asset->Decks)
 	{
-		if (wall.Value)
+		if (ShipPartInstanceMap.Contains(part_transform(deck.Position)))
 		{
-			if (ShipPartInstanceMap.Contains(pos + wall.Key))
-			{
-				return false;
-			}
-		}
-	}
-
-	for (const auto& floor : part_asset->Floors)
-	{
-		if (floor.Value)
-		{
-			if (ShipPartInstanceMap.Contains(pos + floor.Key))
-			{
-				return false;
-			}
+			return false;
 		}
 	}
 
@@ -118,90 +83,57 @@ UShipPartInstance* AShipPlanRender::GetPartInstance(const FIntVector2& pos)
 
 void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)
 {
-	for (const auto& wall : part->PartAsset->Walls)
+	for (const auto& deck : part->PartAsset->Decks)
 	{
-		if (wall.Value)
+		FIntVector2 pos = part->Transform(deck.Position);
+		UStaticMeshComponent* static_mesh = DeckMeshComponents.FindRef(pos);
+		if (static_mesh)
 		{
-			UStaticMeshComponent* static_mesh = WallMeshComponents.FindRef(part->Transform.Position + wall.Key);
-			if (static_mesh)
-			{
-				static_mesh->UnregisterComponent();
-				static_mesh->DestroyComponent();
-				WallMeshComponents.Remove(part->Transform.Position + wall.Key);
-			}
-			ShipPartInstanceMap.Remove(part->Transform.Position + wall.Key);
+			static_mesh->UnregisterComponent();
+			static_mesh->DestroyComponent();
+			DeckMeshComponents.Remove(pos);
 		}
-	}
-
-	for (const auto& floor : part->PartAsset->Floors)
-	{
-		if (floor.Value)
-		{
-			UStaticMeshComponent* static_mesh = FloorMeshComponents.FindRef(part->Transform.Position + floor.Key);
-			if (static_mesh)
-			{
-				static_mesh->UnregisterComponent();
-				static_mesh->DestroyComponent();
-				FloorMeshComponents.Remove(part->Transform.Position + floor.Key);
-			}
-			ShipPartInstanceMap.Remove(part->Transform.Position + floor.Key);
-		}
+		ShipPartInstanceMap.Remove(pos);
 	}
 }
 
-void AShipPlanRender::AddFloor(const FIntVector2& pos)
+bool AShipPlanRender::IsWall(const FIntVector2& pos) const
 {
-	if (FloorMeshComponents.Contains(pos))
+	return pos.Y % 2 != 0 && pos.X % 2 == 0;
+}
+
+void AShipPlanRender::AddDeck(const FIntVector2& pos, UShipPartInstance* ship_part_instance)
+{
+	if (pos.X % 2 == 0 && pos.Y % 2 == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Wrong coord for the deck %s %d,%d"), *(ship_part_instance->PartAsset.GetName()), pos.X, pos.Y);
+	}
+	AddDeckMesh(pos, IsWall(pos) ? WallMesh : FloorMesh);
+	ShipPartInstanceMap.Add(pos, ship_part_instance);
+}
+
+void AShipPlanRender::AddDeckMesh(const FIntVector2& pos, UStaticMesh* static_mesh)
+{
+	if (!static_mesh || DeckMeshComponents.Contains(pos))
 	{
 		return;
 	}
 
 	// Create mesh components at runtime and attach to the scene root
-
-	const FString name = FString::Printf(TEXT("MeshComponent_Floor_%d_%d"), pos.X, pos.Y);
-	UStaticMeshComponent* mesh = NewObject<UStaticMeshComponent>(this, *name);
-	if (mesh)
-	{
-		mesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-		if (FloorMesh)
-		{
-			mesh->SetStaticMesh(FloorMesh);
-		}
-		mesh->SetRelativeLocation(FVector(pos.X * MeshSpacing, 0.0f, pos.Y * MeshSpacing));
-		mesh->RegisterComponent();
-		mesh->UpdateComponentToWorld();
-		FloorMeshComponents.Add(pos, mesh);
-	}
-}
-
-void AShipPlanRender::AddWall(const FIntVector2& pos)
-{
-	if (WallMeshComponents.Contains(pos))
-	{
-		return;
-	}
-
-	// Create mesh components at runtime and attach to the scene root
-
 	const FString name = FString::Printf(TEXT("MeshComponent_%d_%d"), pos.X, pos.Y);
 	UStaticMeshComponent* mesh = NewObject<UStaticMeshComponent>(this, *name);
-	if (mesh)
-	{
-		mesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-		if (WallMesh)
-		{
-			mesh->SetStaticMesh(WallMesh);
-		}
-		mesh->SetRelativeLocation(FVector(pos.X * MeshSpacing, 0.0f, pos.Y * MeshSpacing));
-		mesh->RegisterComponent();
-		mesh->UpdateComponentToWorld();
-		WallMeshComponents.Add(pos, mesh);
-	}
+	check(mesh);
+	mesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	mesh->SetStaticMesh(static_mesh);
+	mesh->SetRelativeLocation(FVector(pos.X * MeshSpacing, 0.0f, pos.Y * MeshSpacing));
+	mesh->RegisterComponent();
+	mesh->UpdateComponentToWorld();
+	DeckMeshComponents.Add(pos, mesh);
 }
 
 void AShipPlanRender::Clear()
 {
-	for (auto& [key, mesh] : WallMeshComponents)
+	for (auto& [key, mesh] : DeckMeshComponents)
 	{
 		if (mesh)
 		{
@@ -209,17 +141,7 @@ void AShipPlanRender::Clear()
 			mesh->DestroyComponent();
 		}
 	}
-	WallMeshComponents.Empty();
-
-	for (auto& [key, mesh] : FloorMeshComponents)
-	{
-		if (mesh)
-		{
-			mesh->UnregisterComponent();
-			mesh->DestroyComponent();
-		}
-	}
-	FloorMeshComponents.Empty();
+	DeckMeshComponents.Empty();
 
 	ShipPartInstanceMap.Empty();
 }
