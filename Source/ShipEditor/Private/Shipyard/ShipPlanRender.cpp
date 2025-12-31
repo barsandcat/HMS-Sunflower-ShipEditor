@@ -39,9 +39,14 @@ UShipPartInstance* AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const
 	ship_part_instance->PartAsset = part_asset;
 	ship_part_instance->Transform = part_transform;
 
-	for (const FShipDeckData& deck : part_asset->Decks)
+	for (const FShipCellData& cell : part_asset->Cells)
 	{
-		AddDeck(part_transform(deck.Position), ship_part_instance);
+		FIntVector2 cell_pos = part_transform(cell.Position);
+		if (cell.CellType == ECellType::DECK)
+		{
+			AddDeck(cell_pos, ship_part_instance);
+		}
+		ShipPartInstanceMap.Add(cell_pos, ship_part_instance);
 	}
 
 	return ship_part_instance;
@@ -54,10 +59,12 @@ void AShipPlanRender::SetPosition(const FIntVector2& position)
 
 void AShipPlanRender::SetOverlayMaterial(UShipPartInstance* part, UMaterialInterface* material)
 {
-	for (const auto& deck : part->PartAsset->Decks)
+	for (const auto& cell : part->PartAsset->Cells)
 	{
-		UStaticMeshComponent* static_mesh = DeckMeshComponents.FindRef(part->Transform(deck.Position));
-		static_mesh->SetOverlayMaterial(material);
+		if (TObjectPtr<UStaticMeshComponent> static_mesh = CellMeshComponents.FindRef(part->Transform(cell.Position)))
+		{
+			static_mesh->SetOverlayMaterial(material);
+		}
 	}
 }
 
@@ -65,9 +72,9 @@ bool AShipPlanRender::CanPlacePart(UShipPartAsset* part_asset, const FShipPartIn
 {
 	check(part_asset);
 
-	for (const FShipDeckData& deck : part_asset->Decks)
+	for (const FShipCellData& cell : part_asset->Cells)
 	{
-		if (ShipPartInstanceMap.Contains(part_transform(deck.Position)))
+		if (ShipPartInstanceMap.Contains(part_transform(cell.Position)))
 		{
 			return false;
 		}
@@ -83,15 +90,14 @@ UShipPartInstance* AShipPlanRender::GetPartInstance(const FIntVector2& pos)
 
 void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)
 {
-	for (const auto& deck : part->PartAsset->Decks)
+	for (const auto& cell : part->PartAsset->Cells)
 	{
-		FIntVector2 pos = part->Transform(deck.Position);
-		UStaticMeshComponent* static_mesh = DeckMeshComponents.FindRef(pos);
-		if (static_mesh)
+		FIntVector2 pos = part->Transform(cell.Position);
+		if (TObjectPtr<UStaticMeshComponent> static_mesh = CellMeshComponents.FindRef(pos))
 		{
 			static_mesh->UnregisterComponent();
 			static_mesh->DestroyComponent();
-			DeckMeshComponents.Remove(pos);
+			CellMeshComponents.Remove(pos);
 		}
 		ShipPartInstanceMap.Remove(pos);
 	}
@@ -99,7 +105,7 @@ void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)
 
 bool AShipPlanRender::IsWall(const FIntVector2& pos) const
 {
-	return pos.Y % 2 != 0 && pos.X % 2 == 0;
+	return pos.Y % 2 == 0 && pos.X % 2 != 0;
 }
 
 void AShipPlanRender::AddDeck(const FIntVector2& pos, UShipPartInstance* ship_part_instance)
@@ -109,12 +115,11 @@ void AShipPlanRender::AddDeck(const FIntVector2& pos, UShipPartInstance* ship_pa
 		UE_LOG(LogTemp, Error, TEXT("Wrong coord for the deck %s %d,%d"), *(ship_part_instance->PartAsset.GetName()), pos.X, pos.Y);
 	}
 	AddDeckMesh(pos, IsWall(pos) ? WallMesh : FloorMesh);
-	ShipPartInstanceMap.Add(pos, ship_part_instance);
 }
 
 void AShipPlanRender::AddDeckMesh(const FIntVector2& pos, UStaticMesh* static_mesh)
 {
-	if (!static_mesh || DeckMeshComponents.Contains(pos))
+	if (!static_mesh || CellMeshComponents.Contains(pos))
 	{
 		return;
 	}
@@ -128,12 +133,12 @@ void AShipPlanRender::AddDeckMesh(const FIntVector2& pos, UStaticMesh* static_me
 	mesh->SetRelativeLocation(FVector(pos.X * MeshSpacing, 0.0f, pos.Y * MeshSpacing));
 	mesh->RegisterComponent();
 	mesh->UpdateComponentToWorld();
-	DeckMeshComponents.Add(pos, mesh);
+	CellMeshComponents.Add(pos, mesh);
 }
 
 void AShipPlanRender::Clear()
 {
-	for (auto& [key, mesh] : DeckMeshComponents)
+	for (auto& [key, mesh] : CellMeshComponents)
 	{
 		if (mesh)
 		{
@@ -141,7 +146,7 @@ void AShipPlanRender::Clear()
 			mesh->DestroyComponent();
 		}
 	}
-	DeckMeshComponents.Empty();
+	CellMeshComponents.Empty();
 
 	ShipPartInstanceMap.Empty();
 }

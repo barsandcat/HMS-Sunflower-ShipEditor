@@ -48,10 +48,10 @@ public:
 	TObjectPtr<USceneComponent> SceneComponent;
 
 	UPROPERTY()
-	TMap<FIntVector2, UStaticMeshComponent*> DeckMeshComponents;
+	TMap<FIntVector2, TObjectPtr<UStaticMeshComponent>> CellMeshComponents;
 
 	UPROPERTY()
-	TMap<FIntVector2, UShipPartInstance*> ShipPartInstanceMap;
+	TMap<FIntVector2, TObjectPtr<UShipPartInstance>> ShipPartInstanceMap;
 
 	void RotateClockwise()
 	{

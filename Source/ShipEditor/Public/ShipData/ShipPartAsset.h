@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "ShipDeckData.h"
+#include "ShipCellData.h"
 
 #include "ShipPartAsset.generated.h"
 
@@ -32,5 +32,5 @@ public:
 	bool LoadBearing = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FShipDeckData> Decks;
+	TArray<FShipCellData> Cells;
 };
