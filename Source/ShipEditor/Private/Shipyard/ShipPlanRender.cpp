@@ -54,7 +54,7 @@ UShipPartInstance* AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const
 
 UShipPartInstance* AShipPlanRender::AddPart(UShipPartAsset* part_asset, const FShipPartInstanceTransform& part_transform)
 {
-	UShipPartInstance* ship_part_instance = NewObject<UShipPartInstance>(this);
+	UShipPartInstance* ship_part_instance = NewObject<UShipPartInstance>(this, *(part_asset->GetName() + part_transform.Position.ToString()));
 	ship_part_instance->PartAsset = part_asset;
 	ship_part_instance->Transform = part_transform;
 
@@ -105,8 +105,11 @@ bool AShipPlanRender::CanPlacePart(UShipPartAsset* part_asset, const FShipPartIn
 
 	for (const FShipCellData& cell : part_asset->Cells)
 	{
-		if (GetPartInstance(Transform(part_transform(cell.Position))))
+		FIntVector2 pos = Transform(part_transform(cell.Position));
+		if (UShipPartInstance* part_instance = GetPartInstance(pos))
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Cannot place part %s at %d,%d, collides with part %s"),
+			    *(part_asset->PartName.ToString()), pos.X, pos.Y, *(part_instance->GetName()));
 			return false;
 		}
 	}
@@ -163,7 +166,7 @@ void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)
 {
 	for (const auto& cell : part->PartAsset->Cells)
 	{
-		FIntVector2 pos = part->Transform(cell.Position);
+		FIntVector2 pos = Transform(part->Transform(cell.Position));
 		if (TObjectPtr<UStaticMeshComponent> static_mesh = CellMeshComponents.FindRef(pos))
 		{
 			static_mesh->UnregisterComponent();
@@ -171,6 +174,7 @@ void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)
 			CellMeshComponents.Remove(pos);
 		}
 	}
+	ShipPartInstances.Remove(part);
 }
 
 bool AShipPlanRender::IsWall(const FIntVector2& pos) const
