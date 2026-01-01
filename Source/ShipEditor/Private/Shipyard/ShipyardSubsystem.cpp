@@ -182,6 +182,7 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection
 		spawn_params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		ShipPlanRender = GetWorld()->SpawnActor<AShipPlanRender>(FVector(0, 0, 0), FRotator::ZeroRotator, spawn_params);
 		PreviewRender = GetWorld()->SpawnActor<AShipPlanRender>(FVector(0, 0, 100.f), FRotator::ZeroRotator, spawn_params);
+		PreviewRender->SetDefaultOverlayMaterial(PreviewMaterial);
 	}
 }
 
@@ -235,16 +236,12 @@ void UShipyardSubsystem::DoBrush()
 {
 	UE_LOG(LogTemp, Warning, TEXT("DoBrush %s"), *BrushId.ToString());
 
-	UWorld* World = GetWorld();
-	UShipPartAsset* part_asset = PartAssetMap.FindRef(BrushId);
-	if (!World || !Cursor || BrushId == NAME_None || !part_asset || !ShipPlanRender)
+	if (BrushId == NAME_None || !ShipPlanRender)
 	{
 		return;
 	}
 
-	FIntVector2 cell_id = CursorPosToCellId(Cursor->GetActorLocation());
-
-	if (ShipPlanRender->TryAddPart(part_asset, cell_id))
+	if (ShipPlanRender->TryAddParts(PreviewRender))
 	{
 		SetBrushId(NAME_None);
 	}
@@ -311,7 +308,7 @@ void UShipyardSubsystem::RotateBrushClockwise()
 	UE_LOG(LogTemp, Warning, TEXT("RotateBrushClockwise"));
 	if (PreviewRender)
 	{
-		PreviewRender->SetActorRotation(PreviewRender->GetActorRotation() + FRotator(90.0f, 00.0f, 0.0f));
+		PreviewRender->RotateClockwise();
 	}
 }
 
@@ -320,7 +317,7 @@ void UShipyardSubsystem::RotateBrushCounterClockwise()
 	UE_LOG(LogTemp, Warning, TEXT("RotateBrushCounterClockwise"));
 	if (PreviewRender)
 	{
-		PreviewRender->SetActorRotation(PreviewRender->GetActorRotation() + FRotator(-90.0f, 0.0f, 0.0f));
+		PreviewRender->RotateCounterClockwise();
 	}
 }
 
@@ -329,8 +326,7 @@ void UShipyardSubsystem::FlipBrush()
 	UE_LOG(LogTemp, Warning, TEXT("FlipBrush"));
 	if (PreviewRender)
 	{
-		FRotator currentRotation = PreviewRender->GetActorRotation();
-		PreviewRender->SetActorRotation(PreviewRender->GetActorRotation() + FRotator(0.0f, 0.0f, 180.0f));
+		PreviewRender->Flip();
 	}
 }
 
@@ -358,9 +354,7 @@ void UShipyardSubsystem::SetBrushId(FName brush_id)
 	if (brush_id != NAME_None)
 	{
 		check(PreviewRender);
-		UShipPartInstance* part = PreviewRender->TryAddPart(PartAssetMap.FindRef(brush_id), FIntVector2(0, 0));
-		check(part);
-		PreviewRender->SetOverlayMaterial(part, PreviewMaterial);
+		PreviewRender->TryAddPart(PartAssetMap.FindRef(brush_id), FShipPartInstanceTransform());
 		PreviewRender->SetPosition(CursorPosToCellId(Cursor->GetActorLocation()));
 
 		if (BrushId == NAME_None)

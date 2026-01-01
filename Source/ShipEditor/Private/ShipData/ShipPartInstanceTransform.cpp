@@ -2,17 +2,17 @@
 
 #include "ShipData/ShipPartInstanceTransform.h"
 
-inline void FShipPartInstanceTransform::RotateClockwise()
+void FShipPartInstanceTransform::RotateClockwise()
 {
 	XRotation = (XRotation + 1) % 4;
 }
 
-inline void FShipPartInstanceTransform::RotateCounterClockwise()
+void FShipPartInstanceTransform::RotateCounterClockwise()
 {
 	XRotation = (XRotation - 1) % 4;
 }
 
-inline void FShipPartInstanceTransform::Flip()
+void FShipPartInstanceTransform::Flip()
 {
 	ZRotation = !ZRotation;
 }

@@ -13,7 +13,7 @@ struct FShipPartInstanceTransform
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FIntVector2 Position;
+	FIntVector2 Position = FIntVector2::ZeroValue;
 
 	/* 0: up, 1 or -3: right, 2 or -2:down, 3 or -1:left*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
