@@ -5,11 +5,11 @@
 #include "CommonInputSubsystem.h"
 #include "Shipyard/ShipyardSubsystem.h"
 
-void AMyCommonPlayerController::PlayerTick(float DeltaTime)
+void AMyCommonPlayerController::PlayerTick(float delta_time)
 {
-	Super::PlayerTick(DeltaTime);
-	UCommonInputSubsystem* CommonInputSubsystem = UCommonInputSubsystem::Get(Cast<ULocalPlayer>(Player));
-	if (!CommonInputSubsystem || !CommonInputSubsystem->IsUsingPointerInput())
+	Super::PlayerTick(delta_time);
+	UCommonInputSubsystem* common_input_subsystem = UCommonInputSubsystem::Get(Cast<ULocalPlayer>(Player));
+	if (!common_input_subsystem || !common_input_subsystem->IsUsingPointerInput())
 	{
 		return;
 	}
@@ -20,52 +20,52 @@ void AMyCommonPlayerController::PlayerTick(float DeltaTime)
 		return;
 	}
 
-	UShipyardSubsystem* Shipyard = world->GetSubsystem<UShipyardSubsystem>();
-	if (!Shipyard)
+	UShipyardSubsystem* shipyard = world->GetSubsystem<UShipyardSubsystem>();
+	if (!shipyard)
 	{
 		return;
 	}
-	const auto MousePosition = GetMouseWorldPosition(0);
-	Shipyard->SetCursorPosition(MousePosition);
-	Shipyard->SetBrushPosition(MousePosition);
+	const auto mouse_position = GetMouseWorldPosition(0);
+	shipyard->SetCursorPosition(mouse_position);
+	shipyard->SetBrushPosition(mouse_position);
 }
 
-TOptional<FVector> AMyCommonPlayerController::GetMouseWorldPosition(double PlaneY)
+TOptional<FVector> AMyCommonPlayerController::GetMouseWorldPosition(double plane_y)
 {
-	ULocalPlayer* LocalPlayer = GetLocalPlayer();
-	if (!LocalPlayer || !LocalPlayer->ViewportClient)
+	ULocalPlayer* local_player = GetLocalPlayer();
+	if (!local_player || !local_player->ViewportClient)
 	{
 		return {};
 	}
 
-	FVector2D MouseScreenPosition = FVector2D::Zero();
-	if (!LocalPlayer->ViewportClient->GetMousePosition(MouseScreenPosition))
+	FVector2D mouse_screen_position = FVector2D::Zero();
+	if (!local_player->ViewportClient->GetMousePosition(mouse_screen_position))
 	{
 		return {};
 	}
 
-	FVector DeprojectLocation = FVector::Zero();
-	FVector DeprojectDirection = FVector::Zero();
-	if (!DeprojectScreenPositionToWorld(MouseScreenPosition.X, MouseScreenPosition.Y, DeprojectLocation, DeprojectDirection))
+	FVector deproject_location = FVector::Zero();
+	FVector deproject_direction = FVector::Zero();
+	if (!DeprojectScreenPositionToWorld(mouse_screen_position.X, mouse_screen_position.Y, deproject_location, deproject_direction))
 	{
 		return {};
 	}
 
-	FVector WorldMousePosition = FVector::Zero();
-	WorldMousePosition.Y = PlaneY;
-	double DistanceToPlaneY = PlaneY - DeprojectLocation.Y;
+	FVector world_mouse_position = FVector::Zero();
+	world_mouse_position.Y = plane_y;
+	double distance_to_plane_y = plane_y - deproject_location.Y;
 
-	WorldMousePosition.X = DeprojectLocation.X;
-	if (!FMath::IsNearlyZero(DeprojectDirection.X))
+	world_mouse_position.X = deproject_location.X;
+	if (!FMath::IsNearlyZero(deproject_direction.X))
 	{
-		WorldMousePosition.X = DeprojectLocation.X + (DistanceToPlaneY * DeprojectDirection.X) / DeprojectDirection.Y;
+		world_mouse_position.X = deproject_location.X + (distance_to_plane_y * deproject_direction.X) / deproject_direction.Y;
 	}
 
-	WorldMousePosition.Z = DeprojectLocation.Z;
-	if (!FMath::IsNearlyZero(DeprojectDirection.Z))
+	world_mouse_position.Z = deproject_location.Z;
+	if (!FMath::IsNearlyZero(deproject_direction.Z))
 	{
-		WorldMousePosition.Z = DeprojectLocation.Z + (DistanceToPlaneY * DeprojectDirection.Z) / DeprojectDirection.Y;
+		world_mouse_position.Z = deproject_location.Z + (distance_to_plane_y * deproject_direction.Z) / deproject_direction.Y;
 	}
 
-	return WorldMousePosition;
+	return world_mouse_position;
 }

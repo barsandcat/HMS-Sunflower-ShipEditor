@@ -50,7 +50,6 @@ public:
 	TObjectPtr<USceneComponent> SceneComponent;
 
 private:
-	void AddDeck(const FIntVector2& pos, UShipPartInstance* ship_part_instance);
 	void AddDeckMesh(const FIntVector2& pos, UStaticMesh* static_mesh);
 	bool IsWall(const FIntVector2& pos) const;
 	void ClearMeshes();

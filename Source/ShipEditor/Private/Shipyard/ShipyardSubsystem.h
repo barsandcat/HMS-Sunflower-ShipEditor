@@ -28,7 +28,7 @@ class SHIPEDITOR_API UShipyardSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 public:
 	UShipyardSubsystem();
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Initialize(FSubsystemCollectionBase& collection) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Shipyard")
 	void DoBrush();
@@ -78,8 +78,8 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UVMShipPlan> VMShipPlan;
 
-	void SetCursorPosition(const TOptional<FVector>& WorldPosition);
-	void SetBrushPosition(const TOptional<FVector>& WorldPosition);
+	void SetCursorPosition(const TOptional<FVector>& world_position);
+	void SetBrushPosition(const TOptional<FVector>& world_position);
 
 	UPROPERTY()
 	TSubclassOf<AActor> CursorClassPtr;
@@ -87,8 +87,8 @@ public:
 	UPROPERTY(config)
 	TSoftClassPtr<AActor> CursorClass;
 
-	void OnCategorySelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
-	void OnFilterSelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId);
+	void OnCategorySelected(UObject* view_model, UE::FieldNotification::FFieldId field_id);
+	void OnFilterSelected(UObject* view_model, UE::FieldNotification::FFieldId field_id);
 
 private:
 	UPROPERTY()

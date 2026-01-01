@@ -13,6 +13,6 @@ class SHIPEDITOR_API AMyCommonPlayerController : public ACommonPlayerController
 {
 	GENERATED_BODY()
 public:
-	virtual void PlayerTick(float DeltaTime) override;
-	TOptional<FVector> GetMouseWorldPosition(double planeY);
+	virtual void PlayerTick(float delta_time) override;
+	TOptional<FVector> GetMouseWorldPosition(double plane_y);
 };

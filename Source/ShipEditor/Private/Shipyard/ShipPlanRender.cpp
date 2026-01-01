@@ -182,15 +182,6 @@ bool AShipPlanRender::IsWall(const FIntVector2& pos) const
 	return pos.Y % 2 == 0 && pos.X % 2 != 0;
 }
 
-void AShipPlanRender::AddDeck(const FIntVector2& pos, UShipPartInstance* ship_part_instance)
-{
-	if (pos.X % 2 == 0 && pos.Y % 2 == 0)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Wrong coord for the deck %s %d,%d"), *(ship_part_instance->PartAsset.GetName()), pos.X, pos.Y);
-	}
-	AddDeckMesh(pos, IsWall(pos) ? WallMesh : FloorMesh);
-}
-
 void AShipPlanRender::AddDeckMesh(const FIntVector2& pos, UStaticMesh* static_mesh)
 {
 	if (!static_mesh || CellMeshComponents.Contains(pos))

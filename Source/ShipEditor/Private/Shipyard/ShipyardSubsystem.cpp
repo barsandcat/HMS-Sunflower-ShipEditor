@@ -18,29 +18,29 @@ const double GRID_SIZE = 50.0f;
 namespace
 {
 
-void AddPart(TUVMShipPartArray& List, const FText& name, FName id, int32 category_id, int32 elevation, bool dynamic, bool load_bearing)
+void AddPart(TUVMShipPartArray& list, const FText& name, FName id, int32 category_id, int32 elevation, bool dynamic, bool load_bearing)
 {
-	TObjectPtr<UVMShipPart> Part = NewObject<UVMShipPart>();
-	Part->SetName(name);
-	Part->SetPartId(id);
-	Part->SetCategoryId(category_id);
-	Part->SetElevation(elevation);
-	Part->SetDynamicMount(dynamic);
-	Part->SetLoadBearing(load_bearing);
-	List.Add(Part);
+	TObjectPtr<UVMShipPart> part = NewObject<UVMShipPart>();
+	part->SetName(name);
+	part->SetPartId(id);
+	part->SetCategoryId(category_id);
+	part->SetElevation(elevation);
+	part->SetDynamicMount(dynamic);
+	part->SetLoadBearing(load_bearing);
+	list.Add(part);
 }
 
-void SetMaterial(AShipPlanCell* Cell, UMaterialInterface* Material)
+void SetMaterial(AShipPlanCell* cell, UMaterialInterface* material)
 {
-	TInlineComponentArray<UStaticMeshComponent*> StaticMeshes;
-	Cell->GetComponents(StaticMeshes);
-	for (UStaticMeshComponent* StaticMesh : StaticMeshes)
+	TInlineComponentArray<UStaticMeshComponent*> static_meshes;
+	cell->GetComponents(static_meshes);
+	for (UStaticMeshComponent* static_mesh : static_meshes)
 	{
-		for (int Index = 0; Index < StaticMesh->GetNumMaterials(); Index++)
+		for (int index = 0; index < static_mesh->GetNumMaterials(); index++)
 		{
-			if (StaticMesh->GetMaterial(Index))
+			if (static_mesh->GetMaterial(index))
 			{
-				StaticMesh->SetMaterial(Index, Material);
+				static_mesh->SetMaterial(index, material);
 			}
 		}
 	}
@@ -70,15 +70,15 @@ void UShipyardSubsystem::AddCategory(TUVMShipPartCategoryArray& list, const FTex
 	list.Add(category);
 }
 
-void UShipyardSubsystem::OnCategorySelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
+void UShipyardSubsystem::OnCategorySelected(UObject* view_model, UE::FieldNotification::FFieldId field_id)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnCategorySelected %s %s"), *ViewModel->GetName(), *FieldId.GetName().ToString());
+	UE_LOG(LogTemp, Warning, TEXT("OnCategorySelected %s %s"), *view_model->GetName(), *field_id.GetName().ToString());
 	UpdatePartList();
 }
 
-void UShipyardSubsystem::OnFilterSelected(UObject* ViewModel, UE::FieldNotification::FFieldId FieldId)
+void UShipyardSubsystem::OnFilterSelected(UObject* view_model, UE::FieldNotification::FFieldId field_id)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnFilterSelected %s %s"), *ViewModel->GetName(), *FieldId.GetName().ToString());
+	UE_LOG(LogTemp, Warning, TEXT("OnFilterSelected %s %s"), *view_model->GetName(), *field_id.GetName().ToString());
 	UpdatePartList();
 }
 
@@ -131,15 +131,15 @@ void UShipyardSubsystem::SetBrushPosition(const TOptional<FVector>& world_positi
 UShipyardSubsystem::UShipyardSubsystem()
     : UWorldSubsystem()
 {
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> SelectionYellow(TEXT("/Game/Materials/M_Selection_Yellow.M_Selection_Yellow"));
-	SelectionMaterial = SelectionYellow.Object;
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> PreviewBlue(TEXT("/Game/Materials/M_Preview_Blue.M_Preview_Blue"));
-	PreviewMaterial = PreviewBlue.Object;
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> selection_yellow(TEXT("/Game/Materials/M_Selection_Yellow.M_Selection_Yellow"));
+	SelectionMaterial = selection_yellow.Object;
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> preview_blue(TEXT("/Game/Materials/M_Preview_Blue.M_Preview_Blue"));
+	PreviewMaterial = preview_blue.Object;
 }
 
-void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& SubsytemCollection)
+void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& collection)
 {
-	Super::Initialize(SubsytemCollection);
+	Super::Initialize(collection);
 
 	LoadAllShipPartAssetsAsync();
 
@@ -215,15 +215,15 @@ void UShipyardSubsystem::OnShipPartAssetsLoaded()
 		{
 			UE_LOG(LogTemp, Log, TEXT("Loaded ShipPart asset: %s"), *ship_part_asset->PartName.ToString());
 			PartAssetMap.Add(ship_part_asset->PartId, ship_part_asset);
-			TObjectPtr<UVMShipPart> Part = NewObject<UVMShipPart>();
-			Part->Initialize(
+			TObjectPtr<UVMShipPart> part = NewObject<UVMShipPart>();
+			part->Initialize(
 			    ship_part_asset->PartName,
 			    ship_part_asset->PartId,
 			    ship_part_asset->CategoryId,
 			    ship_part_asset->Elevation,
 			    ship_part_asset->DynamicMount,
 			    ship_part_asset->LoadBearing);
-			PartList.Add(Part);
+			PartList.Add(part);
 		}
 		else
 		{
