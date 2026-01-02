@@ -30,43 +30,43 @@ public:
 	UShipyardSubsystem();
 	virtual void Initialize(FSubsystemCollectionBase& collection) override;
 
-	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
 	void DoBrush();
 
-	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
 	void Select();
 
-	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
 	void Delete();
 
-	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
 	void Grab();
 
-	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
 	void RotateBrushClockwise();
 
-	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
 	void RotateBrushCounterClockwise();
 
-	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
 	void FlipBrush();
 
-	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
 	void SetBrushId(FName brush_id);
 
-	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
 	void SaveShipPlan(const FString& name);
 
-	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
 	void LoadShipPlan(const FString& name);
 
-	UPROPERTY(BlueprintAssignable, Category = "Shipyard")
+	UPROPERTY(BlueprintAssignable, Category = "MyCategory")
 	FBrushEvent OnBrushReady;
 
-	UPROPERTY(BlueprintAssignable, Category = "Shipyard")
+	UPROPERTY(BlueprintAssignable, Category = "MyCategory")
 	FBrushEvent OnBrushCleared;
 
-	UFUNCTION(BlueprintCallable, Category = "Shipyard")
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
 	void UpdatePartList();
 
 	UPROPERTY(BlueprintReadOnly)
@@ -82,10 +82,19 @@ public:
 	void SetBrushPosition(const TOptional<FVector>& world_position);
 
 	UPROPERTY()
-	TSubclassOf<AActor> CursorClassPtr;
+	TSubclassOf<AActor> CursorClass;
 
 	UPROPERTY(config)
-	TSoftClassPtr<AActor> CursorClass;
+	TSoftClassPtr<AActor> SoftCursorClass;
+
+	UPROPERTY()
+	TSubclassOf<AActor> ShipPlanRendererClass;
+
+	UPROPERTY(config)
+	TSoftClassPtr<AActor> SoftShipPlanRendererClass;
+
+	UPROPERTY(config)
+	int32 GridSize = 50;
 
 	void OnCategorySelected(UObject* view_model, UE::FieldNotification::FFieldId field_id);
 	void OnFilterSelected(UObject* view_model, UE::FieldNotification::FFieldId field_id);
@@ -100,13 +109,14 @@ private:
 	TArray<TSharedPtr<IPartFilter>> FilterList;
 	std::set<int32> GetSelectedCategories() const;
 	bool IsAllowedByFiters(const TObjectPtr<UVMShipPart>& part_vm) const;
+	FIntVector2 CursorPosToCellId(const FVector& world_pos);
+	FVector CellIdToCursorPos(const FIntVector2& cell_id);
 	void AddCategory(TUVMShipPartCategoryArray& list, const FText& name, int32 id);
 
 	void LoadAllShipPartAssetsAsync();
 	void OnShipPartAssetsLoaded();
 
 	FName BrushId = NAME_None;
-	// TObjectPtr<AShipPlanCell> Brush;
 	TObjectPtr<AActor> Cursor;
 	TObjectPtr<UShipPartInstance> Selection;
 

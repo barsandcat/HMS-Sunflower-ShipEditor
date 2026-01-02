@@ -15,11 +15,17 @@ AShipPlanRender::AShipPlanRender()
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = SceneComponent;
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> wall_mesh_helper(TEXT("/Game/Wall_02.Wall_02"));
-	WallMesh = wall_mesh_helper.Object;
+	if (!IsValid(WallMesh))
+	{
+		ConstructorHelpers::FObjectFinder<UStaticMesh> wall_mesh_helper(TEXT("/Game/Wall_02.Wall_02"));
+		WallMesh = wall_mesh_helper.Object;
+	}
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> floor_mesh_helper(TEXT("/Game/Floor_02.Floor_02"));
-	FloorMesh = floor_mesh_helper.Object;
+	if (!IsValid(FloorMesh))
+	{
+		ConstructorHelpers::FObjectFinder<UStaticMesh> floor_mesh_helper(TEXT("/Game/Floor_02.Floor_02"));
+		FloorMesh = floor_mesh_helper.Object;
+	}
 }
 
 bool AShipPlanRender::TryAddParts(AShipPlanRender* other)
@@ -70,9 +76,16 @@ void AShipPlanRender::AddPartMeshes(UShipPartInstance* ship_part_instance)
 	for (const FShipCellData& cell : ship_part_instance->PartAsset->Cells)
 	{
 		FIntVector2 cell_pos = Transform(ship_part_instance->Transform(cell.Position));
-		if (cell.CellType == ECellType::DECK)
+		switch (cell.CellType)
 		{
-			AddDeckMesh(cell_pos, IsWall(cell_pos) ? WallMesh : FloorMesh);
+			case ECellType::DECK:
+				AddCellMesh(cell_pos, IsWall(cell_pos) ? WallMesh : FloorMesh);
+				break;
+			case ECellType::EMPTY_CELL:
+				AddCellMesh(cell_pos, CellMesh);
+				break;
+			default:
+				break;
 		}
 	}
 }
@@ -94,9 +107,10 @@ void AShipPlanRender::SetOverlayMaterial(UShipPartInstance* part, UMaterialInter
 	}
 }
 
-void AShipPlanRender::SetDefaultOverlayMaterial(UMaterialInterface* material)
+void AShipPlanRender::Initialize(float mesh_spacing, UMaterialInterface* material)
 {
 	DefaultOverlayMaterial = material;
+	MeshSpacing = mesh_spacing;
 }
 
 bool AShipPlanRender::CanPlacePart(UShipPartAsset* part_asset, const FShipPartInstanceTransform& part_transform) const
@@ -182,7 +196,7 @@ bool AShipPlanRender::IsWall(const FIntVector2& pos) const
 	return pos.Y % 2 == 0 && pos.X % 2 != 0;
 }
 
-void AShipPlanRender::AddDeckMesh(const FIntVector2& pos, UStaticMesh* static_mesh)
+void AShipPlanRender::AddCellMesh(const FIntVector2& pos, UStaticMesh* static_mesh)
 {
 	if (!static_mesh || CellMeshComponents.Contains(pos))
 	{

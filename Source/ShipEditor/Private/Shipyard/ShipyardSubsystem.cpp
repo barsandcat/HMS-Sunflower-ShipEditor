@@ -13,8 +13,6 @@
 #include "Shipyard/Filter/StructureFilter.h"
 #include "Shipyard/ShipPartInstance.h"
 
-const double GRID_SIZE = 50.0f;
-
 namespace
 {
 
@@ -45,18 +43,17 @@ void SetMaterial(AShipPlanCell* cell, UMaterialInterface* material)
 		}
 	}
 }
-
-FIntVector2 CursorPosToCellId(const FVector& world_pos)
-{
-	return {int32(round(world_pos.X / (GRID_SIZE * 2))) * 2, int32(round(world_pos.Z / (GRID_SIZE * 2))) * 2};
-}
-
-FVector CellIdToCursorPos(const FIntVector2& cell_id)
-{
-	return {cell_id.X * GRID_SIZE, 0.0f, cell_id.Y * GRID_SIZE};
-}
-
 }    // namespace
+
+FIntVector2 UShipyardSubsystem::CursorPosToCellId(const FVector& world_pos)
+{
+	return {int32(round(world_pos.X / (GridSize * 2))) * 2, int32(round(world_pos.Z / (GridSize * 2))) * 2};
+}
+
+FVector UShipyardSubsystem::CellIdToCursorPos(const FIntVector2& cell_id)
+{
+	return {(float) (cell_id.X * GridSize), 0.0f, (float) (cell_id.Y * GridSize)};
+}
 
 void UShipyardSubsystem::AddCategory(TUVMShipPartCategoryArray& list, const FText& name, int32 id)
 {
@@ -84,7 +81,7 @@ void UShipyardSubsystem::OnFilterSelected(UObject* view_model, UE::FieldNotifica
 
 void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& world_position)
 {
-	if (!CursorClassPtr)
+	if (!CursorClass)
 	{
 		return;
 	}
@@ -102,7 +99,7 @@ void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& world_posit
 
 		if (!Cursor)
 		{
-			Cursor = world->SpawnActor<AActor>(CursorClassPtr, cursor_pos, FRotator::ZeroRotator, {});
+			Cursor = world->SpawnActor<AActor>(CursorClass, cursor_pos, FRotator::ZeroRotator, {});
 		}
 		else
 		{
@@ -174,15 +171,18 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& collection)
 	VMShipPlan->SaveShipPlan.AddDynamic(this, &UShipyardSubsystem::SaveShipPlan);
 	VMShipPlan->LoadShipPlan.AddDynamic(this, &UShipyardSubsystem::LoadShipPlan);
 
-	CursorClassPtr = CursorClass.LoadSynchronous();
+	CursorClass = SoftCursorClass.LoadSynchronous();
+	ShipPlanRendererClass = SoftShipPlanRendererClass.LoadSynchronous();
+	check(ShipPlanRendererClass);
 
 	if (GetWorld() && GetWorld()->IsGameWorld())
 	{
 		FActorSpawnParameters spawn_params;
 		spawn_params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		ShipPlanRender = GetWorld()->SpawnActor<AShipPlanRender>(FVector(0, 0, 0), FRotator::ZeroRotator, spawn_params);
-		PreviewRender = GetWorld()->SpawnActor<AShipPlanRender>(FVector(0, 0, 100.f), FRotator::ZeroRotator, spawn_params);
-		PreviewRender->SetDefaultOverlayMaterial(PreviewMaterial);
+		ShipPlanRender = GetWorld()->SpawnActor<AShipPlanRender>(ShipPlanRendererClass, FVector(0, 0, 0), FRotator::ZeroRotator, spawn_params);
+		ShipPlanRender->Initialize(GridSize, nullptr);
+		PreviewRender = GetWorld()->SpawnActor<AShipPlanRender>(ShipPlanRendererClass, FVector(0, 0, 100.f), FRotator::ZeroRotator, spawn_params);
+		PreviewRender->Initialize(GridSize, PreviewMaterial);
 	}
 }
 

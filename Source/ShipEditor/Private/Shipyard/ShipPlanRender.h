@@ -34,23 +34,23 @@ public:
 	void Clear();
 
 	void SetOverlayMaterial(UShipPartInstance* part, UMaterialInterface* material);
-	void SetDefaultOverlayMaterial(UMaterialInterface* material);
+	void Initialize(float mesh_spacing, UMaterialInterface* material);
 	UShipPartInstance* GetPartInstance(const FIntVector2& pos) const;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	UStaticMesh* WallMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
+	TObjectPtr<UStaticMesh> WallMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	UStaticMesh* FloorMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
+	TObjectPtr<UStaticMesh> FloorMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	float MeshSpacing = 50.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
+	TObjectPtr<UStaticMesh> CellMesh;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> SceneComponent;
 
 private:
-	void AddDeckMesh(const FIntVector2& pos, UStaticMesh* static_mesh);
+	void AddCellMesh(const FIntVector2& pos, UStaticMesh* static_mesh);
 	bool IsWall(const FIntVector2& pos) const;
 	void ClearMeshes();
 	UShipPartInstance* AddPart(UShipPartAsset* part_asset, const FShipPartInstanceTransform& part_transform);
@@ -65,6 +65,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UMaterialInterface> DefaultOverlayMaterial;
+
+	UPROPERTY()
+	float MeshSpacing = 50.0f;
 
 	FShipPartInstanceTransform Transform;
 };
