@@ -15,7 +15,13 @@ struct FShipPartInstanceTransform
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FIntVector2 Position = FIntVector2::ZeroValue;
 
-	/* 0: up, 1 or -3: right, 2 or -2:down, 3 or -1:left*/
+	/* 0: no,
+	1 90 to the right,
+	2 180 to the right,
+	3 270 to the right,
+	-1 90 to the left,
+	-2, 180 to the left,
+	-3 270 to the left */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 XRotation = 0;
 
@@ -31,4 +37,5 @@ struct FShipPartInstanceTransform
 	FIntVector2 operator()(const FIntVector2& point) const;
 
 	FShipPartInstanceTransform operator()(const FShipPartInstanceTransform& point) const;
+	FShipPartInstanceTransform Inverse() const;
 };

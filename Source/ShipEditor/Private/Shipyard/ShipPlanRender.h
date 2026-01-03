@@ -49,6 +49,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> SceneComponent;
 
+	const FShipPartInstanceTransform& GetPartTransform() const { return Transform; }
+	void SetPartTransform(const FShipPartInstanceTransform& transform) { Transform = transform; }
+
 private:
 	void AddCellMesh(const FIntVector2& pos, UStaticMesh* static_mesh);
 	bool IsWall(const FIntVector2& pos) const;

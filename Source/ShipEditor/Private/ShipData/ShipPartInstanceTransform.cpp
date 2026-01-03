@@ -25,17 +25,17 @@ FIntVector2 FShipPartInstanceTransform::operator()(const FIntVector2& point) con
 	{
 		case -3:
 		case 1:
-			// rotate 90 degree
+			// rotate 90 degree clockwise or 270 degree counter clockwise
 			result = FIntVector2(-point.Y, point.X);
 			break;
 		case -2:
 		case 2:
-			// rotate 180 degree
+			// rotate 180 degree clockwise or counter clockwise
 			result = FIntVector2(-point.X, -point.Y);
 			break;
 		case -1:
 		case 3:
-			// rotate 270 degree
+			// rotate 270 degree clockwise or 90 degree counter clockwise
 			result = FIntVector2(point.Y, -point.X);
 			break;
 		default:;
@@ -55,5 +55,14 @@ FShipPartInstanceTransform FShipPartInstanceTransform::operator()(const FShipPar
 	result.Position = (*this)(t.Position);
 	result.ZRotation = ZRotation != t.ZRotation;
 	result.XRotation = (t.XRotation + XRotation) % 4;
+	return result;
+}
+
+FShipPartInstanceTransform FShipPartInstanceTransform::Inverse() const
+{
+	FShipPartInstanceTransform result;
+	result.Position = FIntVector2::ZeroValue - Position;
+	result.XRotation = -XRotation;
+	result.ZRotation = ZRotation;
 	return result;
 }
