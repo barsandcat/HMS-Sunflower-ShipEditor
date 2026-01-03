@@ -4,29 +4,35 @@
 
 void FShipPartInstanceTransform::RotateClockwise()
 {
-	XRotation = (XRotation + 1) % 4;
+	ZRotation = (ZRotation + 1) % 4;
 }
 
 void FShipPartInstanceTransform::RotateCounterClockwise()
 {
-	XRotation = (XRotation - 1) % 4;
+	ZRotation = (ZRotation - 1) % 4;
 }
 
 void FShipPartInstanceTransform::Flip()
 {
-	ZRotation = !ZRotation;
+	YRotation = !YRotation;
 }
 
 FIntVector2 FShipPartInstanceTransform::operator()(const FIntVector2& point) const
 {
 	FIntVector2 result = point;
 
-	switch (XRotation)
+	if (YRotation)
+	{
+		result.X = -result.X;
+	}
+
+	switch (ZRotation)
 	{
 		case -3:
 		case 1:
 			// rotate 90 degree clockwise or 270 degree counter clockwise
-			result = FIntVector2(-point.Y, point.X);
+			// 2,1  ->  1,-2
+			result = FIntVector2(point.Y, -point.X);
 			break;
 		case -2:
 		case 2:
@@ -36,14 +42,9 @@ FIntVector2 FShipPartInstanceTransform::operator()(const FIntVector2& point) con
 		case -1:
 		case 3:
 			// rotate 270 degree clockwise or 90 degree counter clockwise
-			result = FIntVector2(point.Y, -point.X);
+			result = FIntVector2(-point.Y, point.X);
 			break;
 		default:;
-	}
-
-	if (ZRotation)
-	{
-		result.Y = -result.Y;
 	}
 
 	return result + Position;
@@ -53,8 +54,8 @@ FShipPartInstanceTransform FShipPartInstanceTransform::operator()(const FShipPar
 {
 	FShipPartInstanceTransform result;
 	result.Position = (*this)(t.Position);
-	result.ZRotation = ZRotation != t.ZRotation;
-	result.XRotation = (t.XRotation + XRotation) % 4;
+	result.YRotation = YRotation != t.YRotation;
+	result.ZRotation = (t.ZRotation + ZRotation) % 4;
 	return result;
 }
 
@@ -62,7 +63,7 @@ FShipPartInstanceTransform FShipPartInstanceTransform::Inverse() const
 {
 	FShipPartInstanceTransform result;
 	result.Position = FIntVector2::ZeroValue - Position;
-	result.XRotation = -XRotation;
-	result.ZRotation = ZRotation;
+	result.ZRotation = -ZRotation;
+	result.YRotation = YRotation;
 	return result;
 }
