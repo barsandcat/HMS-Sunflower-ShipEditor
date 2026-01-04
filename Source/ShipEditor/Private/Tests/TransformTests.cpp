@@ -13,8 +13,7 @@ TEST_CASE_NAMED(FPartTransformTest, "Editor::PartTransform", "[Editor][PartTrans
 
 	SECTION("Position offset")
 	{
-		FShipPartTransform transform;
-		transform.Position = FIntVector2(5, -2);
+		FShipPartTransform transform({5, -2}, 0, false);
 
 		CHECK(transform(FIntVector2(1, 4)) == FIntVector2(6, 2));
 	}
@@ -52,30 +51,54 @@ TEST_CASE_NAMED(FPartTransformTest, "Editor::PartTransform", "[Editor][PartTrans
 		CHECK(transform(FIntVector2(2, 1)) == FIntVector2(-1, -2));
 	}
 
-	SECTION("Composition operator")
+	SECTION("Composition operator 1")
 	{
-		FShipPartTransform a;
-		a.Position = FIntVector2(2, 4);
-		a.ZRotation = 1;
-		a.YRotation = true;
+		FShipPartTransform p({0, 0}, 1, false);
+		FShipPartTransform r({0, 0}, 1, false);
+		FShipPartTransform composed = r(p);
 
-		FShipPartTransform b;
-		b.Position = FIntVector2(1, 2);
-		b.ZRotation = 2;
-		b.YRotation = false;
+		CHECK(composed(FIntVector2(2, 1)) == FIntVector2(-2, -1));
+	}
 
-		FShipPartTransform composed = a(b);
+	SECTION("Composition operator 2")
+	{
+		FShipPartTransform p({0, 0}, 1, false);
+		FShipPartTransform r({0, 0}, 0, true);
+		FShipPartTransform composed = r(p);
 
-		CHECK(composed(FIntVector2(2, 1)) == FIntVector2(1, 5));
+		CHECK(composed(FIntVector2(2, 1)) == FIntVector2(-1, -2));
+	}
+
+	SECTION("Composition operator 3")
+	{
+		FShipPartTransform p({0, 0}, 0, true);
+		FShipPartTransform r({0, 0}, 1, false);
+		FShipPartTransform composed = r(p);
+
+		CHECK(composed(FIntVector2(2, 1)) == FIntVector2(1, 2));
+	}
+
+	SECTION("Composition operator 4")
+	{
+		FShipPartTransform p({0, 0}, 0, true);
+		FShipPartTransform r({0, 0}, 1, true);
+		FShipPartTransform composed = r(p);
+
+		CHECK(composed(FIntVector2(2, 1)) == FIntVector2(-1, 2));
+	}
+
+	SECTION("Composition operator 5")
+	{
+		FShipPartTransform p({0, 0}, 1, true);
+		FShipPartTransform r({0, 0}, 1, true);
+		FShipPartTransform composed = r(p);
+
+		CHECK(composed(FIntVector2(2, 1)) == FIntVector2(2, 1));
 	}
 
 	SECTION("Inverse 1")
 	{
-		FShipPartTransform transform;
-		transform.Position = FIntVector2(4, 5);
-		transform.ZRotation = 1;
-		transform.YRotation = false;
-
+		FShipPartTransform transform({4, 5}, 1, false);
 		FShipPartTransform inv = transform.Inverse();
 
 		CHECK(inv(transform(FIntVector2(2, 1))) == FIntVector2(2, 1));
@@ -83,11 +106,7 @@ TEST_CASE_NAMED(FPartTransformTest, "Editor::PartTransform", "[Editor][PartTrans
 
 	SECTION("Inverse 2")
 	{
-		FShipPartTransform transform;
-		transform.Position = FIntVector2(4, 5);
-		transform.ZRotation = 2;
-		transform.YRotation = true;
-
+		FShipPartTransform transform({4, 5}, 2, true);
 		FShipPartTransform inv = transform.Inverse();
 
 		CHECK(inv(transform(FIntVector2(2, 1))) == FIntVector2(2, 1));

@@ -4,37 +4,59 @@
 
 namespace
 {
-FIntVector2 RotatePointAroundZ(const FIntVector2& point, int32 ZRotation)
+FIntVector2 RotatePoint(const FIntVector2& point, int32 z_rotation, bool y_rotation)
 {
-	switch (ZRotation)
+	FIntVector2 result = point;
+	switch (z_rotation)
 	{
 		case -3:
 		case 1:
 			// rotate 90 degree clockwise or 270 degree counter clockwise
 			// 2,1  ->  1,-2
-			return FIntVector2(point.Y, -point.X);
+			result = FIntVector2(point.Y, -point.X);
+			break;
 		case -2:
 		case 2:
 			// rotate 180 degree clockwise or counter clockwise
-			return FIntVector2(-point.X, -point.Y);
+			result = FIntVector2(-point.X, -point.Y);
+			break;
 		case -1:
 		case 3:
 			// rotate 270 degree clockwise or 90 degree counter clockwise
-			return FIntVector2(-point.Y, point.X);
+			result = FIntVector2(-point.Y, point.X);
+			break;
 		default:;
-			return point;
 	}
+
+	if (y_rotation)
+	{
+		result.X = -result.X;
+	}
+
+	return result;
 }
+int32 AddZRotation(int32 z_rotation_a, int32 z_rotation_b, bool y_rotation)
+{
+	return (z_rotation_a + (y_rotation ? -z_rotation_b : z_rotation_b)) % 4;
+}
+
 }    // namespace
+
+FShipPartTransform::FShipPartTransform(const FIntVector2& position, int32 z_rotation, bool y_rotation)
+    : Position(position)
+    , ZRotation(z_rotation)
+    , YRotation(y_rotation)
+{
+}
 
 void FShipPartTransform::RotateClockwise()
 {
-	ZRotation = (ZRotation + (YRotation ? -1 : 1)) % 4;
+	ZRotation = AddZRotation(ZRotation, 1, YRotation);
 }
 
 void FShipPartTransform::RotateCounterClockwise()
 {
-	ZRotation = (ZRotation - (YRotation ? -1 : 1)) % 4;
+	ZRotation = AddZRotation(ZRotation, -1, YRotation);
 }
 
 void FShipPartTransform::Flip()
@@ -44,34 +66,15 @@ void FShipPartTransform::Flip()
 
 FIntVector2 FShipPartTransform::operator()(const FIntVector2& point) const
 {
-	FIntVector2 result = RotatePointAroundZ(point, ZRotation);
-
-	if (YRotation)
-	{
-		result.X = -result.X;
-	}
-
-	return result + Position;
+	return RotatePoint(point, ZRotation, YRotation) + Position;
 }
 
 FShipPartTransform FShipPartTransform::operator()(const FShipPartTransform& t) const
 {
-	FShipPartTransform result;
-	result.Position = (*this)(t.Position);
-	result.YRotation = YRotation != t.YRotation;
-	result.ZRotation = (t.ZRotation + ZRotation) % 4;
-	return result;
+	return {(*this)(t.Position), AddZRotation(t.ZRotation, ZRotation, t.YRotation), YRotation != t.YRotation};
 }
 
 FShipPartTransform FShipPartTransform::Inverse() const
 {
-	FShipPartTransform result;
-	result.Position = RotatePointAroundZ(FIntVector2::ZeroValue - Position, -ZRotation);
-	if (YRotation)
-	{
-		result.Position.X = -result.Position.X;
-	}
-	result.ZRotation = -ZRotation;
-	result.YRotation = YRotation;
-	return result;
+	return {RotatePoint(FIntVector2::ZeroValue - Position, -ZRotation, YRotation), -ZRotation, YRotation};
 }

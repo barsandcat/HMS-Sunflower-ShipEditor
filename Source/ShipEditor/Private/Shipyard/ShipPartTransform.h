@@ -31,6 +31,10 @@ struct FShipPartTransform
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool YRotation = false;
 
+	FShipPartTransform() = default;
+	~FShipPartTransform() = default;
+	FShipPartTransform(const FIntVector2& position, int32 z_rotation, bool y_rotation);
+
 	void RotateClockwise();
 
 	void RotateCounterClockwise();

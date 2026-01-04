@@ -287,8 +287,7 @@ void UShipyardSubsystem::Grab()
 	{
 		SetBrushId(GrabBrushId);
 		ShipPlanRender->DeletePartInstance(part_instance);
-		FShipPartTransform preview_transform;
-		preview_transform.Position = cursor_cell_id;
+		FShipPartTransform preview_transform(cursor_cell_id, 0, false);
 		FShipPartTransform part_transform = ShipPlanRender->GetPartTransform()(part_instance->Transform);
 
 		PreviewRender->SetPartTransform(preview_transform);
@@ -350,7 +349,7 @@ void UShipyardSubsystem::SetBrushId(FName brush_id)
 		{
 			check(PreviewRender);
 			PreviewRender->TryAddPart(PartAssetMap.FindRef(brush_id), FShipPartTransform());
-			PreviewRender->SetPosition(CursorPosToCellId(Cursor->GetActorLocation()));
+			PreviewRender->SetPartTransform({CursorPosToCellId(Cursor->GetActorLocation()), 0, false});
 		}
 
 		if (BrushId == NAME_None)
