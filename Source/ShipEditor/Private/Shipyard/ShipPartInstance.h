@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ShipData/ShipPartAsset.h"
-#include "ShipData/ShipPartInstanceTransform.h"
+#include "Shipyard/ShipPartTransform.h"
 #include "UObject/NoExportTypes.h"
 
 #include "ShipPartInstance.generated.h"
@@ -18,5 +18,5 @@ public:
 	TObjectPtr<UShipPartAsset> PartAsset;
 
 	UPROPERTY()
-	FShipPartInstanceTransform Transform;
+	FShipPartTransform Transform;
 };

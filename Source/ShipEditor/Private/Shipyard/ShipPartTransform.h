@@ -5,10 +5,10 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 
-#include "ShipPartInstanceTransform.generated.h"
+#include "ShipPartTransform.generated.h"
 
 USTRUCT(BlueprintType)
-struct FShipPartInstanceTransform
+struct FShipPartTransform
 {
 	GENERATED_BODY()
 
@@ -39,6 +39,6 @@ struct FShipPartInstanceTransform
 
 	FIntVector2 operator()(const FIntVector2& point) const;
 
-	FShipPartInstanceTransform operator()(const FShipPartInstanceTransform& point) const;
-	FShipPartInstanceTransform Inverse() const;
+	FShipPartTransform operator()(const FShipPartTransform& point) const;
+	FShipPartTransform Inverse() const;
 };

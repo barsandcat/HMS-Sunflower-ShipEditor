@@ -1,0 +1,7 @@
+{
+	"id": "MyTests",
+	"name": "MyTests",
+	"enabledTests": [
+		"Editor.PartTransform"
+	]
+}

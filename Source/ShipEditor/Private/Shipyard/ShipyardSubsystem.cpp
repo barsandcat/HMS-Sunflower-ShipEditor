@@ -30,21 +30,6 @@ void AddPart(TUVMShipPartArray& list, const FText& name, FName id, int32 categor
 	list.Add(part);
 }
 
-void SetMaterial(AShipPlanCell* cell, UMaterialInterface* material)
-{
-	TInlineComponentArray<UStaticMeshComponent*> static_meshes;
-	cell->GetComponents(static_meshes);
-	for (UStaticMeshComponent* static_mesh : static_meshes)
-	{
-		for (int index = 0; index < static_mesh->GetNumMaterials(); index++)
-		{
-			if (static_mesh->GetMaterial(index))
-			{
-				static_mesh->SetMaterial(index, material);
-			}
-		}
-	}
-}
 }    // namespace
 
 FIntVector2 UShipyardSubsystem::CursorPosToCellId(const FVector& world_pos)
@@ -302,9 +287,9 @@ void UShipyardSubsystem::Grab()
 	{
 		SetBrushId(GrabBrushId);
 		ShipPlanRender->DeletePartInstance(part_instance);
-		FShipPartInstanceTransform preview_transform;
+		FShipPartTransform preview_transform;
 		preview_transform.Position = cursor_cell_id;
-		FShipPartInstanceTransform part_transform = ShipPlanRender->GetPartTransform()(part_instance->Transform);
+		FShipPartTransform part_transform = ShipPlanRender->GetPartTransform()(part_instance->Transform);
 
 		PreviewRender->SetPartTransform(preview_transform);
 		PreviewRender->TryAddPart(part_instance->PartAsset, preview_transform.Inverse()(part_transform));
@@ -364,7 +349,7 @@ void UShipyardSubsystem::SetBrushId(FName brush_id)
 		if (brush_id != GrabBrushId)
 		{
 			check(PreviewRender);
-			PreviewRender->TryAddPart(PartAssetMap.FindRef(brush_id), FShipPartInstanceTransform());
+			PreviewRender->TryAddPart(PartAssetMap.FindRef(brush_id), FShipPartTransform());
 			PreviewRender->SetPosition(CursorPosToCellId(Cursor->GetActorLocation()));
 		}
 

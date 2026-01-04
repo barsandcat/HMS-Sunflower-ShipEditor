@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Misc/Optional.h"
-#include "ShipPlanCell.h"
 #include "Shipyard/Filter/IPartFilter.h"
 #include "Shipyard/ShipPartInstance.h"
 #include "Subsystems/WorldSubsystem.h"

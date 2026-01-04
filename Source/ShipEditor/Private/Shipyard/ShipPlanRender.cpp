@@ -46,7 +46,7 @@ bool AShipPlanRender::TryAddParts(AShipPlanRender* other)
 	return true;
 }
 
-UShipPartInstance* AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const FShipPartInstanceTransform& part_transform)
+UShipPartInstance* AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform)
 {
 	check(part_asset);
 
@@ -58,7 +58,7 @@ UShipPartInstance* AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const
 	return AddPart(part_asset, part_transform);
 }
 
-UShipPartInstance* AShipPlanRender::AddPart(UShipPartAsset* part_asset, const FShipPartInstanceTransform& part_transform)
+UShipPartInstance* AShipPlanRender::AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform)
 {
 	UShipPartInstance* ship_part_instance = NewObject<UShipPartInstance>(this, *(part_asset->GetName() + part_transform.Position.ToString()));
 	ship_part_instance->PartAsset = part_asset;
@@ -113,7 +113,7 @@ void AShipPlanRender::Initialize(float mesh_spacing, UMaterialInterface* materia
 	MeshSpacing = mesh_spacing;
 }
 
-bool AShipPlanRender::CanPlacePart(UShipPartAsset* part_asset, const FShipPartInstanceTransform& part_transform) const
+bool AShipPlanRender::CanPlacePart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform) const
 {
 	check(part_asset);
 

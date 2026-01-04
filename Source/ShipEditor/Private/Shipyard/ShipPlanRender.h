@@ -5,13 +5,13 @@
 #include "Components/StaticMeshComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "ShipData/ShipPartInstanceTransform.h"
+#include "Shipyard/ShipPartTransform.h"
 
 #include "ShipPlanRender.generated.h"
 
 class UShipPartInstance;
 class UShipPartAsset;
-struct FShipPartInstanceTransform;
+struct FShipPartTransform;
 
 UCLASS()
 class AShipPlanRender : public AActor
@@ -28,7 +28,7 @@ public:
 	void Flip();
 
 	bool TryAddParts(AShipPlanRender* other);
-	UShipPartInstance* TryAddPart(UShipPartAsset* part_asset, const FShipPartInstanceTransform& part_transform);
+	UShipPartInstance* TryAddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
 
 	void DeletePartInstance(UShipPartInstance* part);
 	void Clear();
@@ -49,16 +49,16 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> SceneComponent;
 
-	const FShipPartInstanceTransform& GetPartTransform() const { return Transform; }
-	void SetPartTransform(const FShipPartInstanceTransform& transform) { Transform = transform; }
+	const FShipPartTransform& GetPartTransform() const { return Transform; }
+	void SetPartTransform(const FShipPartTransform& transform) { Transform = transform; }
 
 private:
 	void AddCellMesh(const FIntVector2& pos, UStaticMesh* static_mesh);
 	bool IsWall(const FIntVector2& pos) const;
 	void ClearMeshes();
-	UShipPartInstance* AddPart(UShipPartAsset* part_asset, const FShipPartInstanceTransform& part_transform);
+	UShipPartInstance* AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
 	void AddPartMeshes(UShipPartInstance* ship_part_instance);
-	bool CanPlacePart(UShipPartAsset* part_asset, const FShipPartInstanceTransform& part_transform) const;
+	bool CanPlacePart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform) const;
 
 	UPROPERTY()
 	TMap<FIntVector2, TObjectPtr<UStaticMeshComponent>> CellMeshComponents;
@@ -72,5 +72,5 @@ private:
 	UPROPERTY()
 	float MeshSpacing = 50.0f;
 
-	FShipPartInstanceTransform Transform;
+	FShipPartTransform Transform;
 };
