@@ -168,7 +168,7 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& collection)
 		spawn_params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		ShipPlanRender = GetWorld()->SpawnActor<AShipPlanRender>(ShipPlanRendererClass, FVector(0, 0, 0), FRotator::ZeroRotator, spawn_params);
 		ShipPlanRender->Initialize(GridSize, nullptr);
-		PreviewRender = GetWorld()->SpawnActor<AShipPlanRender>(ShipPlanRendererClass, FVector(0, 0, 100.f), FRotator::ZeroRotator, spawn_params);
+		PreviewRender = GetWorld()->SpawnActor<AShipPlanRender>(ShipPlanRendererClass, FVector(0, 500.f, 0), FRotator::ZeroRotator, spawn_params);
 		PreviewRender->Initialize(GridSize, PreviewMaterial);
 	}
 }
@@ -291,7 +291,8 @@ void UShipyardSubsystem::Grab()
 		FShipPartTransform part_transform = ShipPlanRender->GetPartTransform()(part_instance->Transform);
 
 		PreviewRender->SetPartTransform(preview_transform);
-		PreviewRender->TryAddPart(part_instance->PartAsset, preview_transform.Inverse()(part_transform));
+		auto* instance = PreviewRender->AddPart(part_instance->PartAsset, preview_transform.Inverse()(part_transform));
+		PreviewRender->AddPartMeshes(instance);
 	}
 }
 
@@ -347,9 +348,9 @@ void UShipyardSubsystem::SetBrushId(FName brush_id)
 	{
 		if (brush_id != GrabBrushId)
 		{
-			check(PreviewRender);
-			PreviewRender->TryAddPart(PartAssetMap.FindRef(brush_id), FShipPartTransform());
 			PreviewRender->SetPartTransform({CursorPosToCellId(Cursor->GetActorLocation()), 0, false});
+			auto* instance = PreviewRender->AddPart(PartAssetMap.FindRef(brush_id), FShipPartTransform());
+			PreviewRender->AddPartMeshes(instance);
 		}
 
 		if (BrushId == NAME_None)

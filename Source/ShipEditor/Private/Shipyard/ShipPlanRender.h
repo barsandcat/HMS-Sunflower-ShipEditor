@@ -5,6 +5,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Shipyard/ShipCellInstance.h"
 #include "Shipyard/ShipPartTransform.h"
 
 #include "ShipPlanRender.generated.h"
@@ -26,9 +27,10 @@ public:
 	void RotateClockwise();
 	void RotateCounterClockwise();
 	void Flip();
+	TMap<FIntVector2, FShipCellInstance> GetStructure();
 
 	bool TryAddParts(AShipPlanRender* other);
-	UShipPartInstance* TryAddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
+	UShipPartInstance* AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
 
 	void DeletePartInstance(UShipPartInstance* part);
 	void Clear();
@@ -51,13 +53,13 @@ public:
 
 	const FShipPartTransform& GetPartTransform() const { return Transform; }
 	void SetPartTransform(const FShipPartTransform& transform) { Transform = transform; }
+	void AddCellMesh(const FIntVector2& cell_pos, ECellType cell_type);
+	void AddPartMeshes(UShipPartInstance* ship_part_instance);
 
 private:
-	void AddCellMesh(const FIntVector2& pos, UStaticMesh* static_mesh);
+	void AddCellMeshComponent(const FIntVector2& pos, UStaticMesh* static_mesh);
 	bool IsWall(const FIntVector2& pos) const;
 	void ClearMeshes();
-	UShipPartInstance* AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
-	void AddPartMeshes(UShipPartInstance* ship_part_instance);
 	bool CanPlacePart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform) const;
 
 	UPROPERTY()
@@ -74,3 +76,5 @@ private:
 
 	FShipPartTransform Transform;
 };
+
+void AddMeshes(TMap<FIntVector2, FShipCellInstance>& new_structure);

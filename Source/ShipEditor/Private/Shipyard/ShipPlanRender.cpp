@@ -4,7 +4,8 @@
 
 #include "Components/SceneComponent.h"
 #include "ShipData/ShipPartAsset.h"
-#include "ShipPartInstance.h"
+#include "Shipyard/ShipCellInstance.h"
+#include "Shipyard/ShipPartInstance.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Sets default values
@@ -28,16 +29,46 @@ AShipPlanRender::AShipPlanRender()
 	}
 }
 
+TMap<FIntVector2, FShipCellInstance> AShipPlanRender::GetStructure()
+{
+	TMap<FIntVector2, FShipCellInstance> structure;
+	for (TObjectPtr<UShipPartInstance>& part_instance : ShipPartInstances)
+	{
+		for (FShipCellData& cell : part_instance->PartAsset->Cells)
+		{
+			FIntVector2 cell_pos = Transform(part_instance->Transform(cell.Position));
+			structure.Add(cell_pos, FShipCellInstance(cell.CellType, ELoadBearing::NONE, this));
+		}
+	}
+	return structure;
+}
+
 bool AShipPlanRender::TryAddParts(AShipPlanRender* other)
 {
-	for (const TObjectPtr<UShipPartInstance>& part_instance : other->ShipPartInstances)
+	// Try to merge structure
+	TMap<FIntVector2, FShipCellInstance> new_structure = GetStructure();
+	for (auto& i : other->GetStructure())
 	{
-		if (!CanPlacePart(part_instance->PartAsset, other->Transform(part_instance->Transform)))
+		if (new_structure.Contains(i.Key))
 		{
 			return false;
 		}
+		else
+		{
+			new_structure.Add(i.Key, i.Value);
+		}
 	}
 
+	// Set to my render
+	for (auto& i : new_structure)
+	{
+		i.Value.TargetRender = this;
+	}
+
+	// Add meshes
+	AddMeshes(new_structure);
+
+	// Copy part instances
 	for (const TObjectPtr<UShipPartInstance>& part_instance : other->ShipPartInstances)
 	{
 		AddPart(part_instance->PartAsset, other->Transform(part_instance->Transform));
@@ -46,16 +77,14 @@ bool AShipPlanRender::TryAddParts(AShipPlanRender* other)
 	return true;
 }
 
-UShipPartInstance* AShipPlanRender::TryAddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform)
+void AddMeshes(TMap<FIntVector2, FShipCellInstance>& new_structure)
 {
-	check(part_asset);
-
-	if (!CanPlacePart(part_asset, part_transform))
+	for (auto& i : new_structure)
 	{
-		return nullptr;
+		FIntVector2 cell_pos = i.Key;
+		FShipCellInstance& cell = i.Value;
+		cell.TargetRender->AddCellMesh(cell_pos, cell.CellType);
 	}
-
-	return AddPart(part_asset, part_transform);
 }
 
 UShipPartInstance* AShipPlanRender::AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform)
@@ -63,9 +92,6 @@ UShipPartInstance* AShipPlanRender::AddPart(UShipPartAsset* part_asset, const FS
 	UShipPartInstance* ship_part_instance = NewObject<UShipPartInstance>(this, *(part_asset->GetName() + part_transform.Position.ToString()));
 	ship_part_instance->PartAsset = part_asset;
 	ship_part_instance->Transform = part_transform;
-
-	AddPartMeshes(ship_part_instance);
-
 	ShipPartInstances.Add(ship_part_instance);
 
 	return ship_part_instance;
@@ -76,23 +102,29 @@ void AShipPlanRender::AddPartMeshes(UShipPartInstance* ship_part_instance)
 	for (const FShipCellData& cell : ship_part_instance->PartAsset->Cells)
 	{
 		FIntVector2 cell_pos = Transform(ship_part_instance->Transform(cell.Position));
-		switch (cell.CellType)
-		{
-			case ECellType::DECK:
-				AddCellMesh(cell_pos, IsWall(cell_pos) ? WallMesh : FloorMesh);
-				break;
-			case ECellType::EMPTY_CELL:
-				AddCellMesh(cell_pos, CellMesh);
-				break;
-			default:
-				break;
-		}
+		ECellType cell_type = cell.CellType;
+		AddCellMesh(cell_pos, cell_type);
+	}
+}
+
+void AShipPlanRender::AddCellMesh(const FIntVector2& cell_pos, ECellType cell_type)
+{
+	switch (cell_type)
+	{
+		case ECellType::DECK:
+			AddCellMeshComponent(cell_pos, IsWall(cell_pos) ? WallMesh : FloorMesh);
+			break;
+		case ECellType::EMPTY_CELL:
+			AddCellMeshComponent(cell_pos, CellMesh);
+			break;
+		default:
+			break;
 	}
 }
 
 void AShipPlanRender::SetPosition(const FIntVector2& position)
 {
-	SetActorLocation(FVector(position.X * MeshSpacing, 0.0f, position.Y * MeshSpacing));
+	SetActorLocation(FVector(position.X * MeshSpacing, GetActorLocation().Y, position.Y * MeshSpacing));
 	Transform.Position = position;
 }
 
@@ -196,7 +228,7 @@ bool AShipPlanRender::IsWall(const FIntVector2& pos) const
 	return pos.Y % 2 == 0 && pos.X % 2 != 0;
 }
 
-void AShipPlanRender::AddCellMesh(const FIntVector2& pos, UStaticMesh* static_mesh)
+void AShipPlanRender::AddCellMeshComponent(const FIntVector2& pos, UStaticMesh* static_mesh)
 {
 	if (!static_mesh || CellMeshComponents.Contains(pos))
 	{
@@ -209,7 +241,7 @@ void AShipPlanRender::AddCellMesh(const FIntVector2& pos, UStaticMesh* static_me
 	check(mesh);
 	mesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	mesh->SetStaticMesh(static_mesh);
-	mesh->SetWorldLocation(FVector(pos.X * MeshSpacing, 0.0f, pos.Y * MeshSpacing));
+	mesh->SetWorldLocation(FVector(pos.X * MeshSpacing, GetActorLocation().Y, pos.Y * MeshSpacing));
 	mesh->RegisterComponent();
 	mesh->UpdateComponentToWorld();
 	if (DefaultOverlayMaterial)
