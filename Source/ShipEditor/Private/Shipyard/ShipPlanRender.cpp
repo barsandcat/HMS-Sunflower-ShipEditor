@@ -77,34 +77,30 @@ bool AShipPlanRender::TryAddParts(AShipPlanRender* other)
 	return true;
 }
 
-void AddMeshes(TMap<FIntVector2, FShipCellInstance>& new_structure)
+void AddMeshes(const TMap<FIntVector2, FShipCellInstance>& new_structure)
 {
-	for (auto& i : new_structure)
+	for (const auto& i : new_structure)
 	{
-		FIntVector2 cell_pos = i.Key;
-		FShipCellInstance& cell = i.Value;
+		const FIntVector2& cell_pos = i.Key;
+		const FShipCellInstance& cell = i.Value;
 		cell.TargetRender->AddCellMesh(cell_pos, cell.CellType);
 	}
 }
 
-UShipPartInstance* AShipPlanRender::AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform)
+void AShipPlanRender::SetPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform)
+{
+	check(ShipPartInstances.IsEmpty());
+	check(CellMeshComponents.IsEmpty());
+	AddPart(part_asset, part_transform);
+	AddMeshes(GetStructure());
+}
+
+void AShipPlanRender::AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform)
 {
 	UShipPartInstance* ship_part_instance = NewObject<UShipPartInstance>(this, *(part_asset->GetName() + part_transform.Position.ToString()));
 	ship_part_instance->PartAsset = part_asset;
 	ship_part_instance->Transform = part_transform;
 	ShipPartInstances.Add(ship_part_instance);
-
-	return ship_part_instance;
-}
-
-void AShipPlanRender::AddPartMeshes(UShipPartInstance* ship_part_instance)
-{
-	for (const FShipCellData& cell : ship_part_instance->PartAsset->Cells)
-	{
-		FIntVector2 cell_pos = Transform(ship_part_instance->Transform(cell.Position));
-		ECellType cell_type = cell.CellType;
-		AddCellMesh(cell_pos, cell_type);
-	}
 }
 
 void AShipPlanRender::AddCellMesh(const FIntVector2& cell_pos, ECellType cell_type)
@@ -180,32 +176,23 @@ UShipPartInstance* AShipPlanRender::GetPartInstance(const FIntVector2& pos) cons
 
 void AShipPlanRender::RotateClockwise()
 {
-	ClearMeshes();
 	Transform.RotateClockwise();
-	for (const TObjectPtr<UShipPartInstance>& part_instance : ShipPartInstances)
-	{
-		AddPartMeshes(part_instance);
-	}
+	ClearMeshes();
+	AddMeshes(GetStructure());
 }
 
 void AShipPlanRender::RotateCounterClockwise()
 {
-	ClearMeshes();
 	Transform.RotateCounterClockwise();
-	for (const TObjectPtr<UShipPartInstance>& part_instance : ShipPartInstances)
-	{
-		AddPartMeshes(part_instance);
-	}
+	ClearMeshes();
+	AddMeshes(GetStructure());
 }
 
 void AShipPlanRender::Flip()
 {
-	ClearMeshes();
 	Transform.Flip();
-	for (const TObjectPtr<UShipPartInstance>& part_instance : ShipPartInstances)
-	{
-		AddPartMeshes(part_instance);
-	}
+	ClearMeshes();
+	AddMeshes(GetStructure());
 }
 
 void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)

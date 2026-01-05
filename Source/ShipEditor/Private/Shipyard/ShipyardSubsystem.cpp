@@ -291,8 +291,7 @@ void UShipyardSubsystem::Grab()
 		FShipPartTransform part_transform = ShipPlanRender->GetPartTransform()(part_instance->Transform);
 
 		PreviewRender->SetPartTransform(preview_transform);
-		auto* instance = PreviewRender->AddPart(part_instance->PartAsset, preview_transform.Inverse()(part_transform));
-		PreviewRender->AddPartMeshes(instance);
+		PreviewRender->SetPart(part_instance->PartAsset, preview_transform.Inverse()(part_transform));
 	}
 }
 
@@ -349,8 +348,7 @@ void UShipyardSubsystem::SetBrushId(FName brush_id)
 		if (brush_id != GrabBrushId)
 		{
 			PreviewRender->SetPartTransform({CursorPosToCellId(Cursor->GetActorLocation()), 0, false});
-			auto* instance = PreviewRender->AddPart(PartAssetMap.FindRef(brush_id), FShipPartTransform());
-			PreviewRender->AddPartMeshes(instance);
+			PreviewRender->SetPart(PartAssetMap.FindRef(brush_id), FShipPartTransform());
 		}
 
 		if (BrushId == NAME_None)

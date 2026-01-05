@@ -30,7 +30,7 @@ public:
 	TMap<FIntVector2, FShipCellInstance> GetStructure();
 
 	bool TryAddParts(AShipPlanRender* other);
-	UShipPartInstance* AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
+	void SetPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
 
 	void DeletePartInstance(UShipPartInstance* part);
 	void Clear();
@@ -54,9 +54,9 @@ public:
 	const FShipPartTransform& GetPartTransform() const { return Transform; }
 	void SetPartTransform(const FShipPartTransform& transform) { Transform = transform; }
 	void AddCellMesh(const FIntVector2& cell_pos, ECellType cell_type);
-	void AddPartMeshes(UShipPartInstance* ship_part_instance);
 
 private:
+	void AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
 	void AddCellMeshComponent(const FIntVector2& pos, UStaticMesh* static_mesh);
 	bool IsWall(const FIntVector2& pos) const;
 	void ClearMeshes();
@@ -77,4 +77,4 @@ private:
 	FShipPartTransform Transform;
 };
 
-void AddMeshes(TMap<FIntVector2, FShipCellInstance>& new_structure);
+void AddMeshes(const TMap<FIntVector2, FShipCellInstance>& new_structure);
