@@ -105,6 +105,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<AShipPlanRender> PreviewRender;
 
+	void UpdateShipPlanAndPreviewMeshes();
 	TArray<TSharedPtr<IPartFilter>> FilterList;
 	std::set<int32> GetSelectedCategories() const;
 	bool IsAllowedByFiters(const TObjectPtr<UVMShipPart>& part_vm) const;
@@ -121,6 +122,7 @@ private:
 
 	TObjectPtr<UMaterialInterface> SelectionMaterial;
 	TObjectPtr<UMaterialInterface> PreviewMaterial;
+	TObjectPtr<UMaterialInterface> PreviewErrorMaterial;
 
 	TMap<FName, UShipPartAsset*> PartAssetMap;
 	TArray<FPrimaryAssetId> ShipPartAssetIds;

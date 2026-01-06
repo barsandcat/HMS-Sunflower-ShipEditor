@@ -103,13 +103,43 @@ void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& world_posit
 	}
 }
 
+void UShipyardSubsystem::UpdateShipPlanAndPreviewMeshes()
+{
+	FShipRenderUpdate preview_update = PreviewRender->CreateRenderUpdate();
+	FShipRenderUpdate ship_update = ShipPlanRender->CreateRenderUpdate();
+
+	// Try to merge structure
+	TMap<FIntVector2, FShipCellInstance> new_structure;
+	TMap<FIntVector2, FShipCellInstance> ship_structure = ship_update.GetStructure();
+	TMap<FIntVector2, FShipCellInstance> preview_structure = preview_update.GetStructure();
+	if (MergeStructures(ship_structure, preview_structure, new_structure))
+	{
+		PreviewRender->SetOk(true);
+		// ProcessStructure(new_structure);
+		SetMeshes(new_structure);
+	}
+	else
+	{
+		PreviewRender->SetOk(false);
+		SetMeshes(preview_structure);
+		// ProcessStructure(ship_structure);
+		SetMeshes(ship_structure);
+	}
+}
+
 void UShipyardSubsystem::SetBrushPosition(const TOptional<FVector>& world_position)
 {
-	if (world_position)
+	if (!world_position)
 	{
-		check(PreviewRender);
-		PreviewRender->SetPosition(CursorPosToCellId(*world_position));
+		return;
 	}
+	if (!PreviewRender->SetPosition(CursorPosToCellId(*world_position)))
+	{
+		return;
+	}
+
+	// Update preview and ship meshses
+	UpdateShipPlanAndPreviewMeshes();
 }
 
 UShipyardSubsystem::UShipyardSubsystem()
@@ -119,6 +149,8 @@ UShipyardSubsystem::UShipyardSubsystem()
 	SelectionMaterial = selection_yellow.Object;
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> preview_blue(TEXT("/Game/Materials/M_Preview_Blue.M_Preview_Blue"));
 	PreviewMaterial = preview_blue.Object;
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> preview_red(TEXT("/Game/Materials/M_Preview_Red.M_Preview_Red"));
+	PreviewErrorMaterial = preview_red.Object;
 }
 
 void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& collection)
@@ -167,9 +199,9 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& collection)
 		FActorSpawnParameters spawn_params;
 		spawn_params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		ShipPlanRender = GetWorld()->SpawnActor<AShipPlanRender>(ShipPlanRendererClass, FVector(0, 0, 0), FRotator::ZeroRotator, spawn_params);
-		ShipPlanRender->Initialize(GridSize, nullptr);
+		ShipPlanRender->Initialize(GridSize, nullptr, nullptr);
 		PreviewRender = GetWorld()->SpawnActor<AShipPlanRender>(ShipPlanRendererClass, FVector(0, 500.f, 0), FRotator::ZeroRotator, spawn_params);
-		PreviewRender->Initialize(GridSize, PreviewMaterial);
+		PreviewRender->Initialize(GridSize, PreviewMaterial, PreviewErrorMaterial);
 	}
 }
 
@@ -223,15 +255,23 @@ void UShipyardSubsystem::DoBrush()
 {
 	UE_LOG(LogTemp, Warning, TEXT("DoBrush %s"), *BrushId.ToString());
 
-	if (BrushId == NAME_None || !ShipPlanRender)
+	if (BrushId == NAME_None || !PreviewRender || !PreviewRender->IsOk())
 	{
 		return;
 	}
 
-	if (ShipPlanRender->TryAddParts(PreviewRender))
+	// Copy part instances
+	ShipPlanRender->CopyParts(PreviewRender);
+
+	// Update ship meshes
 	{
-		SetBrushId(NAME_None);
+		FShipRenderUpdate ship_update = ShipPlanRender->CreateRenderUpdate();
+		TMap<FIntVector2, FShipCellInstance> new_structure = ship_update.GetStructure();
+		// ProcessStructure(new_structure);
+		SetMeshes(new_structure);
 	}
+
+	SetBrushId(NAME_None);
 }
 
 void UShipyardSubsystem::Select()
@@ -292,6 +332,7 @@ void UShipyardSubsystem::Grab()
 
 		PreviewRender->SetPartTransform(preview_transform);
 		PreviewRender->SetPart(part_instance->PartAsset, preview_transform.Inverse()(part_transform));
+		UpdateShipPlanAndPreviewMeshes();
 	}
 }
 
@@ -301,6 +342,7 @@ void UShipyardSubsystem::RotateBrushClockwise()
 	if (PreviewRender)
 	{
 		PreviewRender->RotateClockwise();
+		UpdateShipPlanAndPreviewMeshes();
 	}
 }
 
@@ -310,6 +352,7 @@ void UShipyardSubsystem::RotateBrushCounterClockwise()
 	if (PreviewRender)
 	{
 		PreviewRender->RotateCounterClockwise();
+		UpdateShipPlanAndPreviewMeshes();
 	}
 }
 
@@ -319,6 +362,7 @@ void UShipyardSubsystem::FlipBrush()
 	if (PreviewRender)
 	{
 		PreviewRender->Flip();
+		UpdateShipPlanAndPreviewMeshes();
 	}
 }
 
@@ -349,6 +393,7 @@ void UShipyardSubsystem::SetBrushId(FName brush_id)
 		{
 			PreviewRender->SetPartTransform({CursorPosToCellId(Cursor->GetActorLocation()), 0, false});
 			PreviewRender->SetPart(PartAssetMap.FindRef(brush_id), FShipPartTransform());
+			UpdateShipPlanAndPreviewMeshes();
 		}
 
 		if (BrushId == NAME_None)

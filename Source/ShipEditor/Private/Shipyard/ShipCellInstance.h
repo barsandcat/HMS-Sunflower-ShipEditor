@@ -6,11 +6,8 @@
 #include "ShipData/ShipCellData.h"
 #include "UObject/NoExportTypes.h"
 
-#include "ShipCellInstance.generated.h"
+class FShipRenderUpdate;
 
-class AShipPlanRender;
-
-UENUM()
 enum class ELoadBearing : uint8
 {
 	NONE = 0,
@@ -18,24 +15,18 @@ enum class ELoadBearing : uint8
 	CONNECTED = 2,
 };
 
-USTRUCT()
 struct FShipCellInstance
 {
-	GENERATED_BODY()
-
 	FShipCellInstance() = default;
 	~FShipCellInstance() = default;
-	FShipCellInstance(ECellType cell_type, ELoadBearing load_bearing, AShipPlanRender* target_render)
-	    : CellType(cell_type), LoadBearing(load_bearing), TargetRender(target_render)
+	FShipCellInstance(ECellType cell_type, ELoadBearing load_bearing, FShipRenderUpdate& update)
+	    : CellType(cell_type), LoadBearing(load_bearing), Update(update)
 	{
 	}
 
-	UPROPERTY()
 	ECellType CellType = ECellType::NONE;
 
-	UPROPERTY()
 	ELoadBearing LoadBearing = ELoadBearing::NONE;
 
-	UPROPERTY()
-	TObjectPtr<AShipPlanRender> TargetRender;
+	FShipRenderUpdate& Update;
 };
