@@ -10,8 +10,18 @@ UENUM(BlueprintType)
 enum class ECellType : uint8
 {
 	NONE = 0,
-	EMPTY_CELL = 1,
+	CABIN = 1,
 	DECK = 2,
+	ROOT = 3,
+};
+
+UENUM(BlueprintType)
+enum class EDeckType : uint8
+{
+	NONE = 0,
+	REGULAR = 1,
+	STRUCTURAL = 2,
+	ARMOR = 3,
 };
 
 USTRUCT(BlueprintType)

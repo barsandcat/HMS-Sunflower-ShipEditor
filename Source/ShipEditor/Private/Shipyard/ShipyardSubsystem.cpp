@@ -108,22 +108,21 @@ void UShipyardSubsystem::UpdateShipPlanAndPreviewMeshes()
 	FShipRenderUpdate preview_update = PreviewRender->CreateRenderUpdate();
 	FShipRenderUpdate ship_update = ShipPlanRender->CreateRenderUpdate();
 
-	// Try to merge structure
 	TMap<FIntVector2, FShipCellInstance> new_structure;
 	TMap<FIntVector2, FShipCellInstance> ship_structure = ship_update.GetStructure();
 	TMap<FIntVector2, FShipCellInstance> preview_structure = preview_update.GetStructure();
 	if (MergeStructures(ship_structure, preview_structure, new_structure))
 	{
 		PreviewRender->SetOk(true);
-		// ProcessStructure(new_structure);
-		SetMeshes(new_structure);
+		ProcessStructure(new_structure);
+		ApplyStructure(new_structure);
 	}
 	else
 	{
 		PreviewRender->SetOk(false);
-		SetMeshes(preview_structure);
-		// ProcessStructure(ship_structure);
-		SetMeshes(ship_structure);
+		ApplyStructure(preview_structure);
+		ProcessStructure(ship_structure);
+		ApplyStructure(ship_structure);
 	}
 }
 
@@ -169,6 +168,7 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& collection)
 	AddCategory(categories, FText::FromString(TEXT("Power")), 4);
 	AddCategory(categories, FText::FromString(TEXT("Magazines")), 5);
 	AddCategory(categories, FText::FromString(TEXT("Quarters")), 6);
+	AddCategory(categories, FText::FromString(TEXT("Bridges")), 7);
 	VMPartBrowser->SetCategoryList(categories);
 
 	FilterList.Add(MakeShared<MountFilter>(INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateUObject(this, &UShipyardSubsystem::OnFilterSelected)));
@@ -267,8 +267,8 @@ void UShipyardSubsystem::DoBrush()
 	{
 		FShipRenderUpdate ship_update = ShipPlanRender->CreateRenderUpdate();
 		TMap<FIntVector2, FShipCellInstance> new_structure = ship_update.GetStructure();
-		// ProcessStructure(new_structure);
-		SetMeshes(new_structure);
+		ProcessStructure(new_structure);
+		ApplyStructure(new_structure);
 	}
 
 	SetBrushId(NAME_None);

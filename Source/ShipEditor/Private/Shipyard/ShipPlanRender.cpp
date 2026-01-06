@@ -44,6 +44,7 @@ bool MergeStructures(const TMap<FIntVector2, FShipCellInstance>& structure_a,
     const TMap<FIntVector2, FShipCellInstance>& structure_b,
     TMap<FIntVector2, FShipCellInstance>& out_merged_structure)
 {
+	bool has_root = false;
 	out_merged_structure = structure_a;
 	for (const auto& i : structure_b)
 	{
@@ -53,19 +54,193 @@ bool MergeStructures(const TMap<FIntVector2, FShipCellInstance>& structure_a,
 		}
 		else
 		{
+			if (i.Value.CellType == ECellType::ROOT)
+			{
+				if (has_root)
+				{
+					return false;
+				}
+				has_root = true;
+			}
 			out_merged_structure.Add(i.Key, i.Value);
 		}
 	}
 	return true;
 }
 
-void SetMeshes(const TMap<FIntVector2, FShipCellInstance>& new_structure)
+void ApplyStructure(const TMap<FIntVector2, FShipCellInstance>& new_structure)
 {
 	for (const auto& i : new_structure)
 	{
 		const FIntVector2& cell_pos = i.Key;
 		const FShipCellInstance& cell = i.Value;
-		cell.Update.SetCellMesh(cell_pos, cell.CellType);
+		cell.Update->SetCellMesh(cell_pos, cell.CellType, cell.DeckType);
+	}
+}
+
+void ProcessStructure(TMap<FIntVector2, FShipCellInstance>& structure)
+{
+	// Example structure:
+	// Y
+	// 3
+	// 2  C | C | C
+	// 1  -   - * -
+	// 0  C | C | C
+	//-1
+	//-2
+	//   -2-1 0 1 2 X
+	//
+	// Find root (*), should be only one
+	// Iterate BFS from root along decks (|, -) setting deck type to structural
+	// Iterate BFS from root along empty cells (C). If cell has no adjecent cell - add armor in that spot
+
+	// Directions: 4-neighborhood
+	const FIntVector2 horizontal_dirs[4] = {FIntVector2(1, 0), FIntVector2(-1, 0), FIntVector2(0, 1), FIntVector2(0, -1)};
+	const FIntVector2 diagonal_dirs[4] = {FIntVector2(1, 1), FIntVector2(1, -1), FIntVector2(-1, 1), FIntVector2(-1, -1)};
+
+	// Find root
+	bool has_root = false;
+	FIntVector2 root_pos = FIntVector2::ZeroValue;
+	for (const auto& pair : structure)
+	{
+		if (pair.Value.CellType == ECellType::ROOT)
+		{
+			root_pos = pair.Key;
+			has_root = true;
+			break;
+		}
+	}
+
+	if (!has_root)
+	{
+		// No root found, nothing to process
+		return;
+	}
+
+	// BFS along decks to mark structural decks
+	TArray<FIntVector2> deck_queue;
+	deck_queue.Reserve(structure.Num());
+	int32 deck_queue_head = 0;
+
+	// Enqueue deck neighbors of root
+	for (const FIntVector2& d : horizontal_dirs)
+	{
+		FIntVector2 deck_pos = root_pos + d;
+		if (FShipCellInstance* neighbor_cell = structure.Find(deck_pos))
+		{
+			if (neighbor_cell->CellType == ECellType::DECK)
+			{
+				neighbor_cell->Counter = 1;
+				deck_queue.Add(deck_pos);
+			}
+		}
+	}
+
+	// Process deck BFS
+	while (deck_queue_head < deck_queue.Num())
+	{
+		FIntVector2 deck_pos = deck_queue[deck_queue_head++];
+		FShipCellInstance* cell = structure.Find(deck_pos);
+		if (!cell)
+		{
+			continue;
+		}
+
+		cell->DeckType = EDeckType::STRUCTURAL;
+
+		for (const FIntVector2& d : diagonal_dirs)
+		{
+			FIntVector2 neighbor_deck_pos = deck_pos + d;
+			FShipCellInstance* neighbor_cell = structure.Find(neighbor_deck_pos);
+			if (neighbor_cell && neighbor_cell->Counter != 1 && neighbor_cell->CellType == ECellType::DECK)
+			{
+				neighbor_cell->Counter = 1;
+				deck_queue.Add(neighbor_deck_pos);
+			}
+		}
+
+		for (const FIntVector2& d : horizontal_dirs)
+		{
+			if (d.X == 0 and deck_pos.Y % 2 == 0 or d.Y == 0 and deck_pos.X % 2 == 0)
+			{
+				FIntVector2 neighbor_deck_pos = deck_pos + d * 2;
+				FShipCellInstance* neighbor_cell = structure.Find(neighbor_deck_pos);
+				if (neighbor_cell && neighbor_cell->Counter != 1 && neighbor_cell->CellType == ECellType::DECK)
+				{
+					neighbor_cell->Counter = 1;
+					deck_queue.Add(neighbor_deck_pos);
+				}
+			}
+		}
+	}
+
+	// Any deck not visited is regular
+	for (auto& pair : structure)
+	{
+		if (pair.Value.CellType == ECellType::DECK && pair.Value.DeckType == EDeckType::NONE)
+		{
+			pair.Value.DeckType = EDeckType::REGULAR;
+		}
+	}
+
+	// BFS along empty cells from root; collect missing neighbors to place armor
+	TArray<FIntVector2> empty_queue;
+	empty_queue.Reserve(structure.Num());
+	int32 empty_queue_head = 0;
+
+	// Enqueue empty neighbors of root
+	for (const FIntVector2& d : diagonal_dirs)
+	{
+		FIntVector2 neighbor_cabin_pos = root_pos + d;
+		if (FShipCellInstance* neighbor_cell = structure.Find(neighbor_cabin_pos))
+		{
+			if (neighbor_cell->CellType == ECellType::CABIN)
+			{
+				neighbor_cell->Counter = 2;
+				empty_queue.Add(neighbor_cabin_pos);
+			}
+		}
+	}
+
+	while (empty_queue_head < empty_queue.Num())
+	{
+		FIntVector2 cabin_pos = empty_queue[empty_queue_head++];
+		FShipCellInstance* cell = structure.Find(cabin_pos);
+		if (!cell)
+		{
+			continue;
+		}
+
+		// For each neighbor of this empty cell, if there is no cell present in structure => add armor there
+		for (const FIntVector2& d : horizontal_dirs)
+		{
+			FIntVector2 neighbor_cabin_pos = cabin_pos + d * 2;
+			FIntVector2 neighbor_deck_pos = cabin_pos + d;
+
+			// If neighbor exists and is empty, continue BFS
+			bool no_cell = true;
+			if (FShipCellInstance* neighbor_cell = structure.Find(neighbor_cabin_pos))
+			{
+				if (neighbor_cell->CellType == ECellType::CABIN)
+				{
+					no_cell = false;
+					if (neighbor_cell->Counter != 2)
+					{
+						neighbor_cell->Counter = 2;
+						empty_queue.Add(neighbor_cabin_pos);
+					}
+				}
+			}
+
+			if (no_cell)
+			{
+				FShipCellInstance armor_cell;
+				armor_cell.Update = cell->Update;
+				armor_cell.CellType = ECellType::DECK;
+				armor_cell.DeckType = EDeckType::ARMOR;
+				structure.Add(neighbor_deck_pos, armor_cell);
+			}
+		}
 	}
 }
 
@@ -86,17 +261,33 @@ void AShipPlanRender::AddPart(UShipPartAsset* part_asset, const FShipPartTransfo
 
 FShipRenderUpdate AShipPlanRender::CreateRenderUpdate()
 {
-	return FShipRenderUpdate(*this, ShipPartInstances);
+	TSet<FIntVector2> current_cells;
+	for (const auto& pair : CellMeshComponents)
+	{
+		current_cells.Add(pair.Key);
+	}
+	return FShipRenderUpdate(*this, ShipPartInstances, current_cells);
 }
 
-void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type)
+void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type, EDeckType deck_type)
 {
 	switch (cell_type)
 	{
 		case ECellType::DECK:
-			SetCellMeshComponent(cell_pos_local, IsWall(Transform(cell_pos_local)) ? WallMesh : FloorMesh);
+			switch (deck_type)
+			{
+				case EDeckType::STRUCTURAL:
+					SetCellMeshComponent(cell_pos_local, IsWall(Transform(cell_pos_local)) ? StructuralWallMesh : StructuralFloorMesh);
+					break;
+				case EDeckType::ARMOR:
+					SetCellMeshComponent(cell_pos_local, IsWall(Transform(cell_pos_local)) ? ArmorWallMesh : ArmorFloorMesh);
+					break;
+				default:
+					SetCellMeshComponent(cell_pos_local, IsWall(Transform(cell_pos_local)) ? WallMesh : FloorMesh);
+					break;
+			}
 			break;
-		case ECellType::EMPTY_CELL:
+		case ECellType::CABIN:
 			SetCellMeshComponent(cell_pos_local, CellMesh);
 			break;
 		case ECellType::NONE:
@@ -243,7 +434,10 @@ void AShipPlanRender::SetCellMeshComponent(const FIntVector2& cell_pos_local, US
 	FIntVector2 cell_pos = Transform(cell_pos_local);
 	mesh->SetWorldLocation(FVector(cell_pos.X * MeshSpacing, GetActorLocation().Y, cell_pos.Y * MeshSpacing));
 	mesh->UpdateComponentToWorld();
-	mesh->SetOverlayMaterial(GetRenderOverlayMaterial());
+	if (auto* overlay_material = GetRenderOverlayMaterial())
+	{
+		mesh->SetOverlayMaterial(overlay_material);
+	}
 }
 
 void AShipPlanRender::RemoveCellMeshComponent(const FIntVector2& cell_pos_local)
@@ -276,8 +470,8 @@ void AShipPlanRender::ClearMeshes()
 	CellMeshComponents.Empty();
 }
 
-FShipRenderUpdate::FShipRenderUpdate(AShipPlanRender& owner, const TArray<TObjectPtr<UShipPartInstance>>& parts)
-    : Owner(owner), ShipPartInstances(parts)
+FShipRenderUpdate::FShipRenderUpdate(AShipPlanRender& owner, const TArray<TObjectPtr<UShipPartInstance>>& parts, TSet<FIntVector2> current_cells)
+    : Owner(owner), ShipPartInstances(parts), CurrentCells(current_cells)
 {
 }
 
@@ -289,26 +483,23 @@ TMap<FIntVector2, FShipCellInstance> FShipRenderUpdate::GetStructure()
 	{
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
 		{
-			FIntVector2 cell_pos_local = part_instance->Transform(cell.Position);
-			CurrentCells.Add(cell_pos_local);
-			FIntVector2 cell_pos = render_transform(cell_pos_local);
-			structure.Add(cell_pos, FShipCellInstance(cell.CellType, ELoadBearing::NONE, *this));
+			structure.Add(render_transform(part_instance->Transform(cell.Position)), FShipCellInstance(cell.CellType, this));
 		}
 	}
 	return structure;
 }
 
-void FShipRenderUpdate::SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type)
+void FShipRenderUpdate::SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type, EDeckType deck_type)
 {
 	FIntVector2 cell_pos_local = Owner.GetPartTransform().Inverse()(cell_pos);
 	CurrentCells.Remove(cell_pos_local);
-	Owner.SetCellMesh(cell_pos_local, cell_type);
+	Owner.SetCellMesh(cell_pos_local, cell_type, deck_type);
 }
 
 FShipRenderUpdate::~FShipRenderUpdate()
 {
 	for (const FIntVector2& cell_pos_local : CurrentCells)
 	{
-		Owner.SetCellMesh(cell_pos_local, ECellType::NONE);
+		Owner.SetCellMesh(cell_pos_local, ECellType::NONE, EDeckType::NONE);
 	}
 }

@@ -19,9 +19,9 @@ class FShipRenderUpdate
 {
 public:
 	FShipRenderUpdate() = delete;
-	FShipRenderUpdate(AShipPlanRender& owner, const TArray<TObjectPtr<UShipPartInstance>>& parts);
+	FShipRenderUpdate(AShipPlanRender& owner, const TArray<TObjectPtr<UShipPartInstance>>& parts, TSet<FIntVector2> current_cells);
 	TMap<FIntVector2, FShipCellInstance> GetStructure();
-	void SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type);
+	void SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type, EDeckType deck_type);
 	~FShipRenderUpdate();
 
 private:
@@ -65,6 +65,18 @@ public:
 	TObjectPtr<UStaticMesh> FloorMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
+	TObjectPtr<UStaticMesh> StructuralWallMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
+	TObjectPtr<UStaticMesh> StructuralFloorMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
+	TObjectPtr<UStaticMesh> ArmorWallMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
+	TObjectPtr<UStaticMesh> ArmorFloorMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
 	TObjectPtr<UStaticMesh> CellMesh;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Components")
@@ -74,7 +86,7 @@ public:
 	void SetPartTransform(const FShipPartTransform& transform) { Transform = transform; }
 
 	FShipRenderUpdate CreateRenderUpdate();
-	void SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type);
+	void SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type, EDeckType deck_type);
 
 private:
 	void AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
@@ -107,4 +119,5 @@ private:
 
 bool MergeStructures(const TMap<FIntVector2, FShipCellInstance>& structure_a, const TMap<FIntVector2, FShipCellInstance>& structure_b, TMap<FIntVector2, FShipCellInstance>& out_merged_structure);
 
-void SetMeshes(const TMap<FIntVector2, FShipCellInstance>& new_structure);
+void ApplyStructure(const TMap<FIntVector2, FShipCellInstance>& new_structure);
+void ProcessStructure(TMap<FIntVector2, FShipCellInstance>& structure);

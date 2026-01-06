@@ -8,7 +8,7 @@
 
 class FShipRenderUpdate;
 
-enum class ELoadBearing : uint8
+enum class EStructuralDeckStatus : uint8
 {
 	NONE = 0,
 	ROOT = 1,
@@ -19,14 +19,14 @@ struct FShipCellInstance
 {
 	FShipCellInstance() = default;
 	~FShipCellInstance() = default;
-	FShipCellInstance(ECellType cell_type, ELoadBearing load_bearing, FShipRenderUpdate& update)
-	    : CellType(cell_type), LoadBearing(load_bearing), Update(update)
+	FShipCellInstance(ECellType cell_type, FShipRenderUpdate* update)
+	    : CellType(cell_type), Update(update)
 	{
 	}
 
 	ECellType CellType = ECellType::NONE;
+	EDeckType DeckType = EDeckType::NONE;
 
-	ELoadBearing LoadBearing = ELoadBearing::NONE;
-
-	FShipRenderUpdate& Update;
+	FShipRenderUpdate* Update = nullptr;
+	int32 Counter = 0;
 };
