@@ -45,6 +45,15 @@ bool MergeStructures(const TMap<FIntVector2, FShipCellInstance>& structure_a,
     TMap<FIntVector2, FShipCellInstance>& out_merged_structure)
 {
 	bool has_root = false;
+	for (const auto& i : structure_a)
+	{
+		if (i.Value.CellType == ECellType::ROOT)
+		{
+			has_root = true;
+			break;
+		}
+	}
+
 	out_merged_structure = structure_a;
 	for (const auto& i : structure_b)
 	{
