@@ -15,18 +15,6 @@ AShipPlanRender::AShipPlanRender()
 
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = SceneComponent;
-
-	if (!IsValid(WallMesh))
-	{
-		ConstructorHelpers::FObjectFinder<UStaticMesh> wall_mesh_helper(TEXT("/Game/Wall_02.Wall_02"));
-		WallMesh = wall_mesh_helper.Object;
-	}
-
-	if (!IsValid(FloorMesh))
-	{
-		ConstructorHelpers::FObjectFinder<UStaticMesh> floor_mesh_helper(TEXT("/Game/Floor_02.Floor_02"));
-		FloorMesh = floor_mesh_helper.Object;
-	}
 }
 
 bool AShipPlanRender::CopyParts(AShipPlanRender* other)
