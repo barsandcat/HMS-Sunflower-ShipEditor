@@ -105,24 +105,27 @@ void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& world_posit
 
 void UShipyardSubsystem::UpdateShipPlanAndPreviewMeshes()
 {
-	FShipRenderUpdate preview_update = PreviewRender->CreateRenderUpdate();
 	FShipRenderUpdate ship_update = ShipPlanRender->CreateRenderUpdate();
+	FShipStructure ship_structure = ShipPlanRender->CreateStructure();
+	ship_structure.SetUpdate(&ship_update);
 
-	TMap<FIntVector2, FShipCellInstance> new_structure;
-	TMap<FIntVector2, FShipCellInstance> ship_structure = ship_update.GetStructure();
-	TMap<FIntVector2, FShipCellInstance> preview_structure = preview_update.GetStructure();
-	if (MergeStructures(ship_structure, preview_structure, new_structure))
+	FShipRenderUpdate preview_update = PreviewRender->CreateRenderUpdate();
+	FShipStructure preview_structure = PreviewRender->CreateStructure();
+	preview_structure.SetUpdate(&preview_update);
+
+	FShipStructure new_structure;
+	if (FShipStructure::MergeStructures(ship_structure, preview_structure, new_structure))
 	{
 		PreviewRender->SetOk(true);
-		ProcessStructure(new_structure);
-		ApplyStructure(new_structure);
+		new_structure.Process();
+		new_structure.CallUpdate();
 	}
 	else
 	{
 		PreviewRender->SetOk(false);
-		ApplyStructure(preview_structure);
-		ProcessStructure(ship_structure);
-		ApplyStructure(ship_structure);
+		preview_structure.CallUpdate();
+		ship_structure.Process();
+		ship_structure.CallUpdate();
 	}
 }
 
@@ -266,9 +269,10 @@ void UShipyardSubsystem::DoBrush()
 	// Update ship meshes
 	{
 		FShipRenderUpdate ship_update = ShipPlanRender->CreateRenderUpdate();
-		TMap<FIntVector2, FShipCellInstance> new_structure = ship_update.GetStructure();
-		ProcessStructure(new_structure);
-		ApplyStructure(new_structure);
+		FShipStructure ship_structure = ShipPlanRender->CreateStructure();
+		ship_structure.SetUpdate(&ship_update);
+		ship_structure.Process();
+		ship_structure.CallUpdate();
 	}
 
 	SetBrushId(NAME_None);

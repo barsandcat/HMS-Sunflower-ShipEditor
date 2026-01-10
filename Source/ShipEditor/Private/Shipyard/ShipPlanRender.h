@@ -19,15 +19,13 @@ class FShipRenderUpdate
 {
 public:
 	FShipRenderUpdate() = delete;
-	FShipRenderUpdate(AShipPlanRender& owner, const TArray<TObjectPtr<UShipPartInstance>>& parts, TSet<FIntVector2> current_cells);
-	TMap<FIntVector2, FShipCellInstance> GetStructure();
+	FShipRenderUpdate(AShipPlanRender& owner, TSet<FIntVector2> current_cells);
 	void SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type, EDeckType deck_type);
 	~FShipRenderUpdate();
 
 private:
 	AShipPlanRender& Owner;
 	TSet<FIntVector2> CurrentCells;
-	const TArray<TObjectPtr<UShipPartInstance>>& ShipPartInstances;
 };
 
 UCLASS()
@@ -86,6 +84,7 @@ public:
 	void SetPartTransform(const FShipPartTransform& transform) { Transform = transform; }
 
 	FShipRenderUpdate CreateRenderUpdate();
+	FShipStructure CreateStructure();
 	void SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type, EDeckType deck_type);
 
 private:
@@ -116,8 +115,3 @@ private:
 
 	FShipPartTransform Transform;
 };
-
-bool MergeStructures(const TMap<FIntVector2, FShipCellInstance>& structure_a, const TMap<FIntVector2, FShipCellInstance>& structure_b, TMap<FIntVector2, FShipCellInstance>& out_merged_structure);
-
-void ApplyStructure(const TMap<FIntVector2, FShipCellInstance>& new_structure);
-void ProcessStructure(TMap<FIntVector2, FShipCellInstance>& structure);
