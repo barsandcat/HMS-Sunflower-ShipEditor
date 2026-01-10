@@ -16,6 +16,10 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 		part->LoadBearing = part_instance->PartAsset->LoadBearing;
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
 		{
+			if (cell.CellType == ECellType::ROOT)
+			{
+				Root = render_transform(part_instance->Transform(cell.Position));
+			}
 			Cells.Add(render_transform(part_instance->Transform(cell.Position)), MakeShared<FShipStructureCell>(cell.CellType, part));
 		}
 	}
@@ -23,19 +27,15 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 
 bool FShipStructure::MergeStructures(const FShipStructure& structure_a, const FShipStructure& structure_b, FShipStructure& out_merged_structure)
 {
-	bool has_root = false;
-	for (const auto& i : structure_a.Cells)
+	if (structure_a.Root.IsSet() && structure_b.Root.IsSet())
 	{
-		if (i.Value->CellType == ECellType::ROOT)
-		{
-			has_root = true;
-			break;
-		}
+		return false;
 	}
 
 	out_merged_structure = structure_a;
 	out_merged_structure.Cells.Reserve(structure_a.Cells.Num() + structure_b.Cells.Num());
 	out_merged_structure.Parts.Reserve(structure_a.Parts.Num() + structure_b.Parts.Num());
+	out_merged_structure.Root = structure_a.Root.IsSet() ? structure_a.Root : structure_b.Root;
 
 	for (const auto& i : structure_b.Parts)
 	{
@@ -50,14 +50,6 @@ bool FShipStructure::MergeStructures(const FShipStructure& structure_a, const FS
 		}
 		else
 		{
-			if (i.Value->CellType == ECellType::ROOT)
-			{
-				if (has_root)
-				{
-					return false;
-				}
-				has_root = true;
-			}
 			out_merged_structure.Cells.Add(i.Key, i.Value);
 		}
 	}
@@ -66,6 +58,11 @@ bool FShipStructure::MergeStructures(const FShipStructure& structure_a, const FS
 
 void FShipStructure::Process()
 {
+	if (!Root)
+	{
+		// No root, nothing to process
+		return;
+	}
 	// Example structure:
 	// Y
 	// 3
@@ -84,25 +81,6 @@ void FShipStructure::Process()
 	const FIntVector2 horizontal_dirs[4] = {FIntVector2(1, 0), FIntVector2(-1, 0), FIntVector2(0, 1), FIntVector2(0, -1)};
 	const FIntVector2 diagonal_dirs[4] = {FIntVector2(1, 1), FIntVector2(1, -1), FIntVector2(-1, 1), FIntVector2(-1, -1)};
 
-	// Find root
-	bool has_root = false;
-	FIntVector2 root_pos = FIntVector2::ZeroValue;
-	for (const auto& pair : Cells)
-	{
-		if (pair.Value->CellType == ECellType::ROOT)
-		{
-			root_pos = pair.Key;
-			has_root = true;
-			break;
-		}
-	}
-
-	if (!has_root)
-	{
-		// No root found, nothing to process
-		return;
-	}
-
 	// BFS along decks to mark structural decks
 	TArray<FIntVector2> deck_queue;
 	deck_queue.Reserve(Cells.Num());
@@ -111,7 +89,7 @@ void FShipStructure::Process()
 	// Enqueue deck neighbors of root
 	for (const FIntVector2& d : horizontal_dirs)
 	{
-		FIntVector2 deck_pos = root_pos + d;
+		FIntVector2 deck_pos = *Root + d;
 		if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(deck_pos))
 		{
 			if (neighbor_cell->CellType == ECellType::DECK)
@@ -180,7 +158,7 @@ void FShipStructure::Process()
 	// Enqueue empty neighbors of root
 	for (const FIntVector2& d : diagonal_dirs)
 	{
-		FIntVector2 neighbor_cabin_pos = root_pos + d;
+		FIntVector2 neighbor_cabin_pos = *Root + d;
 		if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
 		{
 			if (neighbor_cell->CellType == ECellType::CABIN)

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Misc/Optional.h"
 #include "ShipData/ShipCellData.h"
 #include "ShipPartTransform.h"
 #include "Shipyard/ShipPartInstance.h"
@@ -55,6 +56,7 @@ struct FShipStructure
 	void SetUpdate(FShipRenderUpdate* update);
 	void CallUpdate() const;
 
+	TOptional<FIntVector2> Root;
 	TMap<FIntVector2, TSharedPtr<FShipStructureCell>> Cells;
 	TArray<TSharedPtr<FShipStructurePart>> Parts;
 };
