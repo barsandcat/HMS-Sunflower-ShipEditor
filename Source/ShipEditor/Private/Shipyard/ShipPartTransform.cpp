@@ -4,7 +4,7 @@
 
 namespace
 {
-FIntVector2 RotatePoint(const FIntVector2& point, int32 z_rotation, bool y_rotation)
+FIntVector2 RotatePointAroundZ(const FIntVector2& point, int32 z_rotation)
 {
 	FIntVector2 result = point;
 	switch (z_rotation)
@@ -27,14 +27,19 @@ FIntVector2 RotatePoint(const FIntVector2& point, int32 z_rotation, bool y_rotat
 			break;
 		default:;
 	}
+	return result;
+}
 
+FIntVector2 RotatePointAroundY(const FIntVector2& point, bool y_rotation)
+{
+	FIntVector2 result = point;
 	if (y_rotation)
 	{
 		result.X = -result.X;
 	}
-
 	return result;
 }
+
 int32 AddZRotation(int32 z_rotation_a, int32 z_rotation_b, bool y_rotation)
 {
 	return (z_rotation_a + (y_rotation ? -z_rotation_b : z_rotation_b)) % 4;
@@ -66,7 +71,7 @@ void FShipPartTransform::Flip()
 
 FIntVector2 FShipPartTransform::operator()(const FIntVector2& point) const
 {
-	return RotatePoint(point, ZRotation, YRotation) + Position;
+	return RotatePointAroundY(RotatePointAroundZ(point, ZRotation), YRotation) + Position;
 }
 
 FShipPartTransform FShipPartTransform::operator()(const FShipPartTransform& t) const
@@ -76,5 +81,5 @@ FShipPartTransform FShipPartTransform::operator()(const FShipPartTransform& t) c
 
 FShipPartTransform FShipPartTransform::Inverse() const
 {
-	return {RotatePoint(FIntVector2::ZeroValue - Position, -ZRotation, YRotation), -ZRotation, YRotation};
+	return {RotatePointAroundZ(RotatePointAroundY(FIntVector2::ZeroValue - Position, YRotation), -ZRotation), YRotation ? ZRotation : -ZRotation, YRotation};
 }

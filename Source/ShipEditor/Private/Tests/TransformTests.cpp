@@ -111,4 +111,12 @@ TEST_CASE_NAMED(FPartTransformTest, "Editor::PartTransform", "[Editor][PartTrans
 
 		CHECK(inv(transform(FIntVector2(2, 1))) == FIntVector2(2, 1));
 	}
+
+	SECTION("Inverse 3")
+	{
+		FShipPartTransform transform({4, 5}, 1, true);
+		FShipPartTransform inv = transform.Inverse();
+
+		CHECK(inv(transform(FIntVector2(2, 1))) == FIntVector2(2, 1));
+	}
 }
