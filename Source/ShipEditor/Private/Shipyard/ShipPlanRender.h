@@ -5,8 +5,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Shipyard/ShipCellInstance.h"
 #include "Shipyard/ShipPartTransform.h"
+#include "Shipyard/ShipStructure.h"
 
 #include "ShipPlanRender.generated.h"
 

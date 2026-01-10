@@ -4,8 +4,8 @@
 
 #include "Components/SceneComponent.h"
 #include "ShipData/ShipPartAsset.h"
-#include "Shipyard/ShipCellInstance.h"
 #include "Shipyard/ShipPartInstance.h"
+#include "Shipyard/ShipStructure.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Sets default values
