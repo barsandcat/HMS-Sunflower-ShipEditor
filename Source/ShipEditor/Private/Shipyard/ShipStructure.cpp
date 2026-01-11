@@ -161,7 +161,7 @@ void FShipStructure::Process()
 		FIntVector2 neighbor_cabin_pos = *Root + d;
 		if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
 		{
-			if (neighbor_cell->CellType == ECellType::CABIN)
+			if (neighbor_cell->CellType != ECellType::NONE)
 			{
 				neighbor_cell->Counter = 2;
 				empty_queue.Add(neighbor_cabin_pos);
@@ -188,7 +188,7 @@ void FShipStructure::Process()
 			bool no_cell = true;
 			if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
 			{
-				if (neighbor_cell->CellType == ECellType::CABIN && (neighbor_cell->Part->Counter == 1 or neighbor_cell->Part->LoadBearing == false))
+				if (neighbor_cell->CellType != ECellType::NONE && (neighbor_cell->Part->Counter == 1 or neighbor_cell->Part->LoadBearing == false))
 				{
 					no_cell = false;
 					if (neighbor_cell->Counter != 2)

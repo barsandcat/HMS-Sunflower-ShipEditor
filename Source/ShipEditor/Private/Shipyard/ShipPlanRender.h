@@ -77,6 +77,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
 	TObjectPtr<UStaticMesh> CellMesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
+	TObjectPtr<UStaticMesh> TechnicalCorridorMesh;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> SceneComponent;
 

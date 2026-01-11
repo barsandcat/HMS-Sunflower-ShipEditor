@@ -79,6 +79,9 @@ void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType c
 		case ECellType::CABIN:
 			SetCellMeshComponent(cell_pos_local, CellMesh);
 			break;
+		case ECellType::TECHNICAL_CORRIDOR:
+			SetCellMeshComponent(cell_pos_local, TechnicalCorridorMesh);
+			break;
 		case ECellType::NONE:
 			RemoveCellMeshComponent(cell_pos_local);
 			break;

@@ -13,6 +13,7 @@ enum class ECellType : uint8
 	CABIN = 1,
 	DECK = 2,
 	ROOT = 3,
+	TECHNICAL_CORRIDOR = 4,
 };
 
 UENUM(BlueprintType)
