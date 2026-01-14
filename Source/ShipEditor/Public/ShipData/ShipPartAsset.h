@@ -8,6 +8,8 @@
 
 #include "ShipPartAsset.generated.h"
 
+class UShipDeviceAsset;
+
 UCLASS()
 class SHIPEDITOR_API UShipPartAsset : public UPrimaryDataAsset
 {
@@ -20,16 +22,10 @@ public:
 	FName PartId;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 CategoryId = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Elevation = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool DynamicMount = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool LoadBearing = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UShipDeviceAsset> Device;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FShipCellData> Cells;

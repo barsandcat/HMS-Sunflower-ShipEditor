@@ -5,6 +5,7 @@
 #include "Engine/AssetManager.h"
 #include "JsonObjectConverter.h"
 #include "MVVMGameSubsystem.h"
+#include "ShipData/ShipDeviceAsset.h"
 #include "ShipData/ShipPartAsset.h"
 #include "ShipData/ShipPlanData.h"
 #include "ShipPlanRender.h"
@@ -241,9 +242,9 @@ void UShipyardSubsystem::OnShipPartAssetsLoaded()
 			part->Initialize(
 			    ship_part_asset->PartName,
 			    ship_part_asset->PartId,
-			    ship_part_asset->CategoryId,
-			    ship_part_asset->Elevation,
-			    ship_part_asset->DynamicMount,
+			    (int32) (ship_part_asset->Device->DeviceType),
+			    ship_part_asset->Device->Elevation,
+			    ship_part_asset->Device->DynamicMount,
 			    ship_part_asset->LoadBearing);
 			PartList.Add(part);
 		}
