@@ -27,6 +27,9 @@ class SHIPEDITOR_API UShipDeviceAsset : public UPrimaryDataAsset
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText DeviceName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EDeviceType DeviceType = EDeviceType::NONE;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
