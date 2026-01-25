@@ -5,32 +5,40 @@
 #include "CoreMinimal.h"
 #include "Misc/Optional.h"
 #include "ShipData/ShipCellData.h"
+#include "ShipData/ShipDeviceAsset.h"
 #include "ShipPartTransform.h"
 #include "Shipyard/ShipPartInstance.h"
 #include "UObject/NoExportTypes.h"
 
 class FShipRenderUpdate;
-
-enum class EStructuralDeckStatus : uint8
-{
-	NONE = 0,
-	ROOT = 1,
-	CONNECTED = 2,
-};
+struct FShipStructureDevice;
 
 struct FShipStructurePart
 {
-	bool LoadBearing = false;
-	int32 Counter = 0;
 	FShipRenderUpdate* Update = nullptr;
+	TSharedPtr<FShipStructureDevice> Device = nullptr;
+};
+
+struct FShipStructureDevice
+{
+	FShipStructureDevice() = default;
+	~FShipStructureDevice() = default;
+	FShipStructureDevice(EDeviceType device_type, bool load_bearing, TSharedPtr<FShipStructurePart> part)
+	    : DeviceType(device_type), RequiresWallConnection(load_bearing), Part(part)
+	{
+	}
+	EDeviceType DeviceType = EDeviceType::NONE;
+	bool RequiresWallConnection = false;
+	TSharedPtr<FShipStructurePart> Part = nullptr;
+	bool WallConnected = false;
 };
 
 struct FShipStructureCell
 {
 	FShipStructureCell() = default;
 	~FShipStructureCell() = default;
-	FShipStructureCell(ECellType cell_type, TSharedPtr<FShipStructurePart> part)
-	    : CellType(cell_type), Part(part)
+	FShipStructureCell(ECellType cell_type, TSharedPtr<FShipStructurePart> part, TSharedPtr<FShipStructureDevice> device)
+	    : CellType(cell_type), Part(part), Device(device)
 	{
 	}
 
@@ -38,7 +46,8 @@ struct FShipStructureCell
 	EDeckType DeckType = EDeckType::NONE;
 
 	TSharedPtr<FShipStructurePart> Part;
-	int32 Counter = 0;
+	TSharedPtr<FShipStructureDevice> Device;
+	int32 Visited = 0;
 };
 
 struct FShipStructure
@@ -59,4 +68,5 @@ struct FShipStructure
 	TOptional<FIntVector2> Root;
 	TMap<FIntVector2, TSharedPtr<FShipStructureCell>> Cells;
 	TArray<TSharedPtr<FShipStructurePart>> Parts;
+	TArray<TSharedPtr<FShipStructureDevice>> Devices;
 };

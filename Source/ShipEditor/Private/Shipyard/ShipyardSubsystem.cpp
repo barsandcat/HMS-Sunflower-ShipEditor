@@ -136,6 +136,10 @@ void UShipyardSubsystem::SetBrushPosition(const TOptional<FVector>& world_positi
 	{
 		return;
 	}
+	if (BrushId == NAME_None)
+	{
+		return;
+	}
 	if (!PreviewRender->SetPosition(CursorPosToCellId(*world_position)))
 	{
 		return;

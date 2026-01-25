@@ -5,22 +5,50 @@
 #include "Shipyard/ShipPartInstance.h"
 #include "Shipyard/ShipPlanRender.h"
 
+namespace
+{
+
+bool IsDeckIntersection(const FIntVector2& pos)
+{
+	return pos.X % 2 != 0 && pos.Y % 2 != 0;
+}
+
+bool IsDeckVertical(const FIntVector2& pos)
+{
+	return pos.X % 2 != 0 && pos.Y % 2 == 0;
+}
+
+bool IsDeckHorizontal(const FIntVector2& pos)
+{
+	return pos.X % 2 == 0 && pos.Y % 2 != 0;
+}
+
+bool IsCabin(const FIntVector2& pos)
+{
+	return pos.X % 2 == 0 && pos.Y % 2 == 0;
+}
+
+}    // namespace
+
 FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const TArray<TObjectPtr<UShipPartInstance>>& part_instances)
 {
 	Parts.SetNum(part_instances.Num());
+	Devices.SetNum(part_instances.Num());
 	for (int32 i = 0; i < Parts.Num(); i++)
 	{
 		UShipPartInstance* part_instance = part_instances[i];
 		TSharedPtr<FShipStructurePart> part = MakeShared<FShipStructurePart>();
 		Parts[i] = part;
-		part->LoadBearing = part_instance->PartAsset->LoadBearing;
+		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device->DeviceType, part_instance->PartAsset->LoadBearing, part);
+		Devices[i] = device;
+		part->Device = device;
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
 		{
-			if (cell.CellType == ECellType::ROOT)
+			if (cell.CellType == ECellType::ROOT && device->DeviceType == EDeviceType::BRIDGE)
 			{
 				Root = render_transform(part_instance->Transform(cell.Position));
 			}
-			Cells.Add(render_transform(part_instance->Transform(cell.Position)), MakeShared<FShipStructureCell>(cell.CellType, part));
+			Cells.Add(render_transform(part_instance->Transform(cell.Position)), MakeShared<FShipStructureCell>(cell.CellType, part, device));
 		}
 	}
 }
@@ -35,11 +63,16 @@ bool FShipStructure::MergeStructures(const FShipStructure& structure_a, const FS
 	out_merged_structure = structure_a;
 	out_merged_structure.Cells.Reserve(structure_a.Cells.Num() + structure_b.Cells.Num());
 	out_merged_structure.Parts.Reserve(structure_a.Parts.Num() + structure_b.Parts.Num());
+	out_merged_structure.Devices.Reserve(structure_a.Devices.Num() + structure_b.Devices.Num());
 	out_merged_structure.Root = structure_a.Root.IsSet() ? structure_a.Root : structure_b.Root;
 
 	for (const auto& i : structure_b.Parts)
 	{
 		out_merged_structure.Parts.Add(i);
+	}
+	for (const auto& i : structure_b.Devices)
+	{
+		out_merged_structure.Devices.Add(i);
 	}
 
 	for (const auto& i : structure_b.Cells)
@@ -78,64 +111,70 @@ void FShipStructure::Process()
 	// Iterate BFS from root along empty cells (C). If cell has no adjecent cell - add armor in that spot
 
 	// Directions: 4-neighborhood
-	const FIntVector2 horizontal_dirs[4] = {FIntVector2(1, 0), FIntVector2(-1, 0), FIntVector2(0, 1), FIntVector2(0, -1)};
+	const FIntVector2 dirs[4] = {FIntVector2(1, 0), FIntVector2(-1, 0), FIntVector2(0, 1), FIntVector2(0, -1)};
 	const FIntVector2 diagonal_dirs[4] = {FIntVector2(1, 1), FIntVector2(1, -1), FIntVector2(-1, 1), FIntVector2(-1, -1)};
+	const FIntVector2 vertical_dirs[2] = {FIntVector2(0, 1), FIntVector2(0, -1)};
+	const FIntVector2 horizontal_dirs[2] = {FIntVector2(1, 0), FIntVector2(-1, 0)};
 
 	// BFS along decks to mark structural decks
 	TArray<FIntVector2> deck_queue;
 	deck_queue.Reserve(Cells.Num());
 	int32 deck_queue_head = 0;
 
-	// Enqueue deck neighbors of root
-	for (const FIntVector2& d : horizontal_dirs)
-	{
-		FIntVector2 deck_pos = *Root + d;
-		if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(deck_pos))
-		{
-			if (neighbor_cell->CellType == ECellType::DECK)
-			{
-				neighbor_cell->Counter = 1;
-				neighbor_cell->Part->Counter = 1;
-				deck_queue.Add(deck_pos);
-			}
-		}
-	}
+	TSet<FIntVector2> visited_intersections;
+
+	// Enqueue root
+	deck_queue.Add(*Root);
+	visited_intersections.Add(*Root);
 
 	// Process deck BFS
 	while (deck_queue_head < deck_queue.Num())
 	{
 		FIntVector2 deck_pos = deck_queue[deck_queue_head++];
 		TSharedPtr<FShipStructureCell> cell = Cells.FindRef(deck_pos);
-		if (!cell)
-		{
-			continue;
-		}
 
-		cell->DeckType = EDeckType::STRUCTURAL;
-
-		for (const FIntVector2& d : diagonal_dirs)
+		if (IsDeckIntersection(deck_pos))
 		{
-			FIntVector2 neighbor_deck_pos = deck_pos + d;
-			TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_deck_pos);
-			if (neighbor_cell && neighbor_cell->Counter != 1 && neighbor_cell->CellType == ECellType::DECK)
+			if (cell && cell->CellType == ECellType::ROOT)
 			{
-				neighbor_cell->Counter = 1;
-				neighbor_cell->Part->Counter = 1;
-				deck_queue.Add(neighbor_deck_pos);
+				cell->Device->WallConnected = true;
+			}
+
+			for (const FIntVector2& d : dirs)
+			{
+				FIntVector2 neighbor_deck_pos = deck_pos + d;
+				TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_deck_pos);
+				if (neighbor_cell && neighbor_cell->Visited != 1 && neighbor_cell->CellType == ECellType::DECK)
+				{
+					neighbor_cell->Visited = 1;
+					deck_queue.Add(neighbor_deck_pos);
+				}
 			}
 		}
 
-		for (const FIntVector2& d : horizontal_dirs)
+		if (cell)
 		{
-			if (d.X == 0 and deck_pos.Y % 2 == 0 or d.Y == 0 and deck_pos.X % 2 == 0)
+			cell->DeckType = EDeckType::STRUCTURAL;
+			if (IsDeckVertical(deck_pos))
 			{
-				FIntVector2 neighbor_deck_pos = deck_pos + d * 2;
-				TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_deck_pos);
-				if (neighbor_cell && neighbor_cell->Counter != 1 && neighbor_cell->CellType == ECellType::DECK)
+				for (const FIntVector2& d : vertical_dirs)
 				{
-					neighbor_cell->Counter = 1;
-					neighbor_cell->Part->Counter = 1;
-					deck_queue.Add(neighbor_deck_pos);
+					FIntVector2 neighbor_deck_pos = deck_pos + d;
+					if (!visited_intersections.Contains(neighbor_deck_pos))
+					{
+						deck_queue.Add(neighbor_deck_pos);
+					}
+				}
+			}
+			if (IsDeckHorizontal(deck_pos))
+			{
+				for (const FIntVector2& d : horizontal_dirs)
+				{
+					FIntVector2 neighbor_deck_pos = deck_pos + d;
+					if (!visited_intersections.Contains(neighbor_deck_pos))
+					{
+						deck_queue.Add(neighbor_deck_pos);
+					}
 				}
 			}
 		}
@@ -163,7 +202,7 @@ void FShipStructure::Process()
 		{
 			if (neighbor_cell->CellType != ECellType::NONE)
 			{
-				neighbor_cell->Counter = 2;
+				neighbor_cell->Visited = 2;
 				empty_queue.Add(neighbor_cabin_pos);
 			}
 		}
@@ -179,7 +218,7 @@ void FShipStructure::Process()
 		}
 
 		// For each neighbor of this empty cell, if there is no cell present in structure => add armor there
-		for (const FIntVector2& d : horizontal_dirs)
+		for (const FIntVector2& d : dirs)
 		{
 			FIntVector2 neighbor_cabin_pos = cabin_pos + d * 2;
 			FIntVector2 neighbor_deck_pos = cabin_pos + d;
@@ -188,12 +227,12 @@ void FShipStructure::Process()
 			bool no_cell = true;
 			if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
 			{
-				if (neighbor_cell->CellType != ECellType::NONE && (neighbor_cell->Part->Counter == 1 or neighbor_cell->Part->LoadBearing == false))
+				if (neighbor_cell->CellType != ECellType::NONE && (neighbor_cell->Device->WallConnected or !neighbor_cell->Device->RequiresWallConnection))
 				{
 					no_cell = false;
-					if (neighbor_cell->Counter != 2)
+					if (neighbor_cell->Visited != 2)
 					{
-						neighbor_cell->Counter = 2;
+						neighbor_cell->Visited = 2;
 						empty_queue.Add(neighbor_cabin_pos);
 					}
 				}
@@ -201,7 +240,7 @@ void FShipStructure::Process()
 
 			if (no_cell)
 			{
-				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK, cell->Part);
+				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK, cell->Part, cell->Device);
 				armor_cell->DeckType = EDeckType::ARMOR;
 				Cells.Add(neighbor_deck_pos, armor_cell);
 			}
