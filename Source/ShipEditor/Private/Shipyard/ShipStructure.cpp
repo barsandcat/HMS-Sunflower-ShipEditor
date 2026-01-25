@@ -39,14 +39,18 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 		UShipPartInstance* part_instance = part_instances[i];
 		TSharedPtr<FShipStructurePart> part = MakeShared<FShipStructurePart>();
 		Parts[i] = part;
-		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device->DeviceType, part_instance->PartAsset->LoadBearing, part);
+		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device->DeviceType, part);
 		Devices[i] = device;
 		part->Device = device;
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
 		{
-			if (cell.CellType == ECellType::ROOT && device->DeviceType == EDeviceType::BRIDGE)
+			if (cell.CellType == ECellType::ROOT)
 			{
-				Root = render_transform(part_instance->Transform(cell.Position));
+				device->WallConnected = false;
+				if (device->DeviceType == EDeviceType::BRIDGE)
+				{
+					Root = render_transform(part_instance->Transform(cell.Position));
+				}
 			}
 			Cells.Add(render_transform(part_instance->Transform(cell.Position)), MakeShared<FShipStructureCell>(cell.CellType, part, device));
 		}
@@ -227,7 +231,7 @@ void FShipStructure::Process()
 			bool no_cell = true;
 			if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
 			{
-				if (neighbor_cell->CellType != ECellType::NONE && (neighbor_cell->Device->WallConnected or !neighbor_cell->Device->RequiresWallConnection))
+				if (neighbor_cell->CellType != ECellType::NONE && neighbor_cell->Device->WallConnected)
 				{
 					no_cell = false;
 					if (neighbor_cell->Visited != 2)

@@ -23,14 +23,13 @@ struct FShipStructureDevice
 {
 	FShipStructureDevice() = default;
 	~FShipStructureDevice() = default;
-	FShipStructureDevice(EDeviceType device_type, bool load_bearing, TSharedPtr<FShipStructurePart> part)
-	    : DeviceType(device_type), RequiresWallConnection(load_bearing), Part(part)
+	FShipStructureDevice(EDeviceType device_type, TSharedPtr<FShipStructurePart> part)
+	    : DeviceType(device_type), Part(part)
 	{
 	}
 	EDeviceType DeviceType = EDeviceType::NONE;
-	bool RequiresWallConnection = false;
 	TSharedPtr<FShipStructurePart> Part = nullptr;
-	bool WallConnected = false;
+	bool WallConnected = true;
 };
 
 struct FShipStructureCell
