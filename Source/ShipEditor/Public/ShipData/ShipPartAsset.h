@@ -22,11 +22,10 @@ public:
 	FName PartId;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool LoadBearing = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UShipDeviceAsset> Device;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FShipCellData> Cells;
+
+	bool RequiresWallConnection() const;
 };

@@ -249,7 +249,7 @@ void UShipyardSubsystem::OnShipPartAssetsLoaded()
 			    (int32) (ship_part_asset->Device->DeviceType),
 			    ship_part_asset->Device->Elevation,
 			    ship_part_asset->Device->DynamicMount,
-			    ship_part_asset->LoadBearing);
+			    ship_part_asset->RequiresWallConnection());
 			PartList.Add(part);
 		}
 		else
