@@ -80,6 +80,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
 	TObjectPtr<UStaticMesh> TechnicalCorridorMesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
+	TObjectPtr<UStaticMesh> TechnicalCorridorRootMesh;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> SceneComponent;
 

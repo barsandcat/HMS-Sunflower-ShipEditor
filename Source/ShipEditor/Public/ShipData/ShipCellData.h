@@ -14,6 +14,7 @@ enum class ECellType : uint8
 	DECK = 2,
 	ROOT = 3,
 	TECHNICAL_CORRIDOR = 4,
+	TECHNICAL_CORRIDOR_ROOT = 5,
 };
 
 UENUM(BlueprintType)
