@@ -55,6 +55,15 @@ void UShipyardSubsystem::AddCategory(TUVMShipPartCategoryArray& list, const FTex
 	list.Add(category);
 }
 
+void UShipyardSubsystem::AddDevice(TArray<TObjectPtr<UVMDeviceStatus>>& list, const FText& name, float usage, FIntVector2 pos)
+{
+	TObjectPtr<UVMDeviceStatus> device = NewObject<UVMDeviceStatus>();
+	device->SetName(name);
+	device->SetUsage(usage);
+	device->SetPosition(pos);
+	list.Add(device);
+}
+
 void UShipyardSubsystem::OnCategorySelected(UObject* view_model, UE::FieldNotification::FFieldId field_id)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnCategorySelected %s %s"), *view_model->GetName(), *field_id.GetName().ToString());
@@ -192,6 +201,14 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& collection)
 	VMPartBrowser->SelectPart.AddDynamic(this, &UShipyardSubsystem::SetBrushId);
 
 	VMBrush = NewObject<UVMBrush>();
+
+	VMDevices = NewObject<UVMDevices>();
+	TArray<TObjectPtr<UVMDeviceStatus>> devices;
+	AddDevice(devices, FText::FromString(TEXT("Test40")), 0.5, {40, 40});
+	AddDevice(devices, FText::FromString(TEXT("Test10")), 0, {10, 10});
+	AddDevice(devices, FText::FromString(TEXT("Test20")), 1, {20, 20});
+	AddDevice(devices, FText::FromString(TEXT("Test30")), 2, {30, 30});
+	VMDevices->SetDeviceList(devices);
 
 	VMShipPlan = NewObject<UVMShipPlan>();
 	VMShipPlan->SetName(FString("Flower"));

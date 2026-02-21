@@ -58,6 +58,10 @@ FShipStructure AShipPlanRender::CreateStructure()
 	return FShipStructure(Transform, ShipPartInstances);
 }
 
+void AShipPlanRender::SetDeviceStatus(const FIntVector2& pos, float usage)
+{
+}
+
 void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type, EDeckType deck_type)
 {
 	switch (cell_type)
@@ -268,6 +272,11 @@ void AShipPlanRender::ClearMeshes()
 FShipRenderUpdate::FShipRenderUpdate(AShipPlanRender& owner, TSet<FIntVector2> current_cells)
     : Owner(owner), CurrentCells(current_cells)
 {
+}
+
+void FShipRenderUpdate::SetDeviceStatus(const FIntVector2& device_pos, float usage)
+{
+	Owner.SetDeviceStatus(device_pos, usage);
 }
 
 void FShipRenderUpdate::SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type, EDeckType deck_type)

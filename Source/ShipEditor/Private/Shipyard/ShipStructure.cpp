@@ -39,7 +39,7 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 		UShipPartInstance* part_instance = part_instances[i];
 		TSharedPtr<FShipStructurePart> part = MakeShared<FShipStructurePart>();
 		Parts[i] = part;
-		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device->DeviceType, part);
+		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device, part_instance->Transform.Position, part);
 		Devices[i] = device;
 		part->Device = device;
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
@@ -112,14 +112,78 @@ void FShipStructure::Process()
 	//
 	// Find root (*), should be only one
 	// Iterate BFS from root along decks (|, -) setting deck type to structural
-	// Iterate BFS from root along empty cells (C). If cell has no adjecent cell - add armor in that spot
+	// Iterate BFS from root along empty cells (C). If cell has no adjacent cell - add armor in that spot
 
-	// Directions: 4-neighborhood
-	const FIntVector2 dirs[4] = {FIntVector2(1, 0), FIntVector2(-1, 0), FIntVector2(0, 1), FIntVector2(0, -1)};
-	const FIntVector2 diagonal_dirs[4] = {FIntVector2(1, 1), FIntVector2(1, -1), FIntVector2(-1, 1), FIntVector2(-1, -1)};
-	const FIntVector2 vertical_dirs[2] = {FIntVector2(0, 1), FIntVector2(0, -1)};
-	const FIntVector2 horizontal_dirs[2] = {FIntVector2(1, 0), FIntVector2(-1, 0)};
+	ConnectDecks();
 
+	// Mark devices as part of the ship.
+	AddArmor();
+
+	ConnectFuel();
+}
+
+void FShipStructure::AddArmor()
+{
+	TArray<FIntVector2> empty_queue;
+	empty_queue.Reserve(Cells.Num());
+	int32 empty_queue_head = 0;
+
+	// Enqueue empty neighbors of root
+	for (const FIntVector2& d : diagonal_dirs)
+	{
+		FIntVector2 neighbor_cabin_pos = *Root + d;
+		if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
+		{
+			if (neighbor_cell->CellType != ECellType::NONE)
+			{
+				neighbor_cell->Visited = 2;
+				empty_queue.Add(neighbor_cabin_pos);
+			}
+		}
+	}
+
+	while (empty_queue_head < empty_queue.Num())
+	{
+		FIntVector2 cabin_pos = empty_queue[empty_queue_head++];
+		TSharedPtr<FShipStructureCell> cell = Cells.FindRef(cabin_pos);
+		if (!cell)
+		{
+			continue;
+		}
+
+		// For each neighbor of this empty cell, if there is no cell present in structure => add armor there
+		for (const FIntVector2& d : dirs)
+		{
+			FIntVector2 neighbor_cabin_pos = cabin_pos + d * 2;
+			FIntVector2 neighbor_deck_pos = cabin_pos + d;
+
+			// If neighbor exists and is empty, continue BFS
+			bool no_cell = true;
+			if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
+			{
+				if (neighbor_cell->CellType != ECellType::NONE && neighbor_cell->Device->WallConnected)
+				{
+					no_cell = false;
+					if (neighbor_cell->Visited != 2)
+					{
+						neighbor_cell->Visited = 2;
+						empty_queue.Add(neighbor_cabin_pos);
+					}
+				}
+			}
+
+			if (no_cell)
+			{
+				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK, cell->Part, cell->Device);
+				armor_cell->DeckType = EDeckType::ARMOR;
+				Cells.Add(neighbor_deck_pos, armor_cell);
+			}
+		}
+	}
+}
+
+void FShipStructure::ConnectDecks()
+{
 	// BFS along decks to mark structural decks
 	TArray<FIntVector2> deck_queue;
 	deck_queue.Reserve(Cells.Num());
@@ -192,64 +256,6 @@ void FShipStructure::Process()
 			pair.Value->DeckType = EDeckType::REGULAR;
 		}
 	}
-
-	// BFS along empty cells from root; collect missing neighbors to place armor
-	TArray<FIntVector2> empty_queue;
-	empty_queue.Reserve(Cells.Num());
-	int32 empty_queue_head = 0;
-
-	// Enqueue empty neighbors of root
-	for (const FIntVector2& d : diagonal_dirs)
-	{
-		FIntVector2 neighbor_cabin_pos = *Root + d;
-		if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
-		{
-			if (neighbor_cell->CellType != ECellType::NONE)
-			{
-				neighbor_cell->Visited = 2;
-				empty_queue.Add(neighbor_cabin_pos);
-			}
-		}
-	}
-
-	while (empty_queue_head < empty_queue.Num())
-	{
-		FIntVector2 cabin_pos = empty_queue[empty_queue_head++];
-		TSharedPtr<FShipStructureCell> cell = Cells.FindRef(cabin_pos);
-		if (!cell)
-		{
-			continue;
-		}
-
-		// For each neighbor of this empty cell, if there is no cell present in structure => add armor there
-		for (const FIntVector2& d : dirs)
-		{
-			FIntVector2 neighbor_cabin_pos = cabin_pos + d * 2;
-			FIntVector2 neighbor_deck_pos = cabin_pos + d;
-
-			// If neighbor exists and is empty, continue BFS
-			bool no_cell = true;
-			if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
-			{
-				if (neighbor_cell->CellType != ECellType::NONE && neighbor_cell->Device->WallConnected)
-				{
-					no_cell = false;
-					if (neighbor_cell->Visited != 2)
-					{
-						neighbor_cell->Visited = 2;
-						empty_queue.Add(neighbor_cabin_pos);
-					}
-				}
-			}
-
-			if (no_cell)
-			{
-				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK, cell->Part, cell->Device);
-				armor_cell->DeckType = EDeckType::ARMOR;
-				Cells.Add(neighbor_deck_pos, armor_cell);
-			}
-		}
-	}
 }
 
 void FShipStructure::SetUpdate(FShipRenderUpdate* update)
@@ -267,5 +273,148 @@ void FShipStructure::CallUpdate() const
 		const FIntVector2& cell_pos = i.Key;
 		const TSharedPtr<FShipStructureCell> cell = i.Value;
 		cell->Part->Update->SetCellMesh(cell_pos, cell->CellType, cell->DeckType);
+	}
+
+	for (const auto& i : Devices)
+	{
+		const TSharedPtr<FShipStructureDevice> device = i;
+		device->Part->Update->SetDeviceStatus(device->Position, device->Usage);
+	}
+}
+
+void FShipStructure::ConnectFuel()
+{
+	// Gather unvisited technical corridor roots that belong to the ship (device is wall-connected)
+	TSet<FIntVector2> unvisited_roots;
+	for (const auto& pair : Cells)
+	{
+		const TSharedPtr<FShipStructureCell> cell = pair.Value;
+		if (cell && cell->CellType == ECellType::TECHNICAL_CORRIDOR_ROOT && cell->Device->WallConnected)
+		{
+			unvisited_roots.Add(pair.Key);
+		}
+	}
+
+	// Storage for discovered subnetworks (each subnetwork is an set of device pointers)
+	TArray<TSet<TSharedPtr<FShipStructureDevice>>> subnetworks;
+	subnetworks.Reserve(unvisited_roots.Num());
+
+	// BFS along technical corridors to build subnetworks
+	while (unvisited_roots.Num() > 0)
+	{
+		// Devices that belong to the current subnetwork
+		TSet<TSharedPtr<FShipStructureDevice>> devices_in_net;
+		devices_in_net.Reserve(8);
+
+		// Pick a start root from the set
+		FIntVector2 start_pos = unvisited_roots.Array()[0];
+		unvisited_roots.Remove(start_pos);
+
+		// BFS queue of corridor positions
+		TArray<FIntVector2> queue;
+		queue.Add(start_pos);
+		int32 queue_head = 0;
+
+		// Mark the start position as visited for fuel traversal (Visited == 3)
+		if (TSharedPtr<FShipStructureCell> start_cell = Cells.FindRef(start_pos))
+		{
+			start_cell->Visited = 3;
+			devices_in_net.Add(start_cell->Device);
+		}
+
+		// Traverse
+		while (queue_head < queue.Num())
+		{
+			FIntVector2 pos = queue[queue_head++];
+			TSharedPtr<FShipStructureCell> cell = Cells.FindRef(pos);
+			if (!cell)
+			{
+				continue;
+			}
+
+			// Ensure the device of this cell is recorded
+			devices_in_net.Add(cell->Device);
+
+			// Explore 4 cardinal neighbors for technical corridor connectivity
+			for (const FIntVector2& d : dirs)
+			{
+				FIntVector2 neighbor_pos = pos + d;
+				if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_pos))
+				{
+					// Only traverse along technical corridor cells or corridor roots
+					if (neighbor_cell->IsTechnicalCorridor() && neighbor_cell->Visited != 3)
+					{
+						neighbor_cell->Visited = 3;
+						queue.Add(neighbor_pos);
+
+						// If this neighbor is a corridor root that was in the unvisited set, remove it
+						if (neighbor_cell->CellType == ECellType::TECHNICAL_CORRIDOR_ROOT)
+						{
+							unvisited_roots.Remove(neighbor_pos);
+						}
+
+						// Record neighbor's device
+						devices_in_net.Add(neighbor_cell->Device);
+					}
+				}
+			}
+		}
+
+		// Store discovered subnetwork devices for later processing
+		subnetworks.Add(MoveTemp(devices_in_net));
+	}
+
+	for (const TSet<TSharedPtr<FShipStructureDevice>>& device_set : subnetworks)
+	{
+		CalculateFuelConsumption(device_set);
+	}
+}
+
+void FShipStructure::CalculateFuelConsumption(const TSet<TSharedPtr<FShipStructureDevice>>& device_set)
+{
+	// Sum production and consumption in this subnetwork
+	float total_production = 0.0f;
+	float total_consumption = 0.0f;
+
+	for (const TSharedPtr<FShipStructureDevice>& device : device_set)
+	{
+		if (device->Asset->FuelConsumption < 0.0f)
+		{
+			total_consumption -= device->Asset->FuelConsumption;
+		}
+		if (device->Asset->FuelConsumption > 0.0f)
+		{
+			total_production += device->Asset->FuelConsumption;
+		}
+	}
+
+	// Determine fractions
+	float used_fraction = 0.0f;
+	if (total_production > 0.0f)
+	{
+		used_fraction = FMath::Min(1.0f, total_consumption / total_production);
+	}
+
+	float satisfaction = 1.0f;
+	if (total_consumption < 0.0f)
+	{
+		satisfaction = FMath::Min(1.0f, total_production / total_consumption);
+	}
+
+	// Apply to devices
+	for (const TSharedPtr<FShipStructureDevice>& device : device_set)
+	{
+		// Producers: set how much of their production is actually used (absolute amount)
+		if (device->Asset->FuelConsumption > 0.0f)
+		{
+			// Absolute amount of fuel that this device supplies to consumers
+			device->Usage = used_fraction;
+		}
+
+		// Consumers: set fraction of consumption satisfied
+		if (device->Asset->FuelConsumption < 0.0f)
+		{
+			device->Usage = satisfaction;
+		}
 	}
 }

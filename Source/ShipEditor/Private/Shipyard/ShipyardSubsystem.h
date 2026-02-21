@@ -8,6 +8,7 @@
 #include "Shipyard/ShipPartInstance.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "UI/ViewModels/VMBrush.h"
+#include "UI/ViewModels/VMDevices.h"
 #include "UI/ViewModels/VMPartBrowser.h"
 #include "UI/ViewModels/VMShipPlan.h"
 
@@ -77,6 +78,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UVMShipPlan> VMShipPlan;
 
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UVMDevices> VMDevices;
+
 	void SetCursorPosition(const TOptional<FVector>& world_position);
 	void SetBrushPosition(const TOptional<FVector>& world_position);
 
@@ -112,6 +116,8 @@ private:
 	FIntVector2 CursorPosToCellId(const FVector& world_pos);
 	FVector CellIdToCursorPos(const FIntVector2& cell_id);
 	void AddCategory(TUVMShipPartCategoryArray& list, const FText& name, int32 id);
+
+	void AddDevice(TArray<TObjectPtr<UVMDeviceStatus>>& list, const FText& name, float usage, FIntVector2 pos);
 
 	void LoadAllShipPartAssetsAsync();
 	void OnShipPartAssetsLoaded();

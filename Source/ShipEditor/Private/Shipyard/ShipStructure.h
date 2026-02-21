@@ -23,13 +23,20 @@ struct FShipStructureDevice
 {
 	FShipStructureDevice() = default;
 	~FShipStructureDevice() = default;
-	FShipStructureDevice(EDeviceType device_type, TSharedPtr<FShipStructurePart> part)
-	    : DeviceType(device_type), Part(part)
+	FShipStructureDevice(UShipDeviceAsset* asset, const FIntVector2& pos, TSharedPtr<FShipStructurePart> part)
+	    : Asset(asset), Position(pos), Part(part)
 	{
 	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UShipDeviceAsset> Asset;
+
+	FIntVector2 Position;
+
 	EDeviceType DeviceType = EDeviceType::NONE;
 	TSharedPtr<FShipStructurePart> Part = nullptr;
 	bool WallConnected = true;
+	float Usage = 0.0f;
 };
 
 struct FShipStructureCell
@@ -47,6 +54,7 @@ struct FShipStructureCell
 	TSharedPtr<FShipStructurePart> Part;
 	TSharedPtr<FShipStructureDevice> Device;
 	int32 Visited = 0;
+	bool IsTechnicalCorridor() const { return CellType == ECellType::TECHNICAL_CORRIDOR || CellType == ECellType::TECHNICAL_CORRIDOR_ROOT; }
 };
 
 struct FShipStructure
@@ -61,11 +69,24 @@ struct FShipStructure
 
 	void Process();
 
+	void AddArmor();
+
+	void ConnectDecks();
+
 	void SetUpdate(FShipRenderUpdate* update);
 	void CallUpdate() const;
+
+	void ConnectFuel();
+
+	void CalculateFuelConsumption(const TSet<TSharedPtr<FShipStructureDevice>>& device_set);
 
 	TOptional<FIntVector2> Root;
 	TMap<FIntVector2, TSharedPtr<FShipStructureCell>> Cells;
 	TArray<TSharedPtr<FShipStructurePart>> Parts;
 	TArray<TSharedPtr<FShipStructureDevice>> Devices;
+
+	static inline const FIntVector2 dirs[4] = {FIntVector2(1, 0), FIntVector2(-1, 0), FIntVector2(0, 1), FIntVector2(0, -1)};
+	static inline const FIntVector2 diagonal_dirs[4] = {FIntVector2(1, 1), FIntVector2(1, -1), FIntVector2(-1, 1), FIntVector2(-1, -1)};
+	static inline const FIntVector2 vertical_dirs[2] = {FIntVector2(0, 1), FIntVector2(0, -1)};
+	static inline const FIntVector2 horizontal_dirs[2] = {FIntVector2(1, 0), FIntVector2(-1, 0)};
 };

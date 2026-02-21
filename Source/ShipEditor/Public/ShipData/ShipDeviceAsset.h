@@ -37,4 +37,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool DynamicMount = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float FuelConsumption = 0.0f;
 };

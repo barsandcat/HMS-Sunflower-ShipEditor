@@ -20,6 +20,7 @@ class FShipRenderUpdate
 public:
 	FShipRenderUpdate() = delete;
 	FShipRenderUpdate(AShipPlanRender& owner, TSet<FIntVector2> current_cells);
+	void SetDeviceStatus(const FIntVector2& device_pos, float usage);
 	void SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type, EDeckType deck_type);
 	~FShipRenderUpdate();
 
@@ -92,6 +93,7 @@ public:
 	FShipRenderUpdate CreateRenderUpdate();
 	FShipStructure CreateStructure();
 	void SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type, EDeckType deck_type);
+	void SetDeviceStatus(const FIntVector2& pos, float usage);
 
 private:
 	void AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
