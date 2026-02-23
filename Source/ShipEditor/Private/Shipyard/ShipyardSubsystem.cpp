@@ -205,9 +205,9 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& collection)
 	VMDevices = NewObject<UVMDevices>();
 	TArray<TObjectPtr<UVMDeviceStatus>> devices;
 	AddDevice(devices, FText::FromString(TEXT("Test40")), 0.5, {40, 40});
-	AddDevice(devices, FText::FromString(TEXT("Test10")), 0, {10, 10});
-	AddDevice(devices, FText::FromString(TEXT("Test20")), 1, {20, 20});
-	AddDevice(devices, FText::FromString(TEXT("Test30")), 2, {30, 30});
+	AddDevice(devices, FText::FromString(TEXT("Test10")), 0, {100, 100});
+	AddDevice(devices, FText::FromString(TEXT("Test20")), 1, {200, 200});
+	AddDevice(devices, FText::FromString(TEXT("Test30")), 2, {300, 300});
 	VMDevices->SetDeviceList(devices);
 
 	VMShipPlan = NewObject<UVMShipPlan>();
