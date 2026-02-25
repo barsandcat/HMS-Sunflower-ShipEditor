@@ -22,12 +22,12 @@ float UVMDeviceStatus::GetUsage() const
 	return Usage;
 }
 
-void UVMDeviceStatus::SetPosition(const FIntVector2& position)
+void UVMDeviceStatus::SetCellId(const FIntVector2& cell_id)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(Position, position);
+	UE_MVVM_SET_PROPERTY_VALUE(CellId, cell_id);
 }
 
-FIntVector2 UVMDeviceStatus::GetPosition() const
+FIntVector2 UVMDeviceStatus::GetCellId() const
 {
-	return Position;
+	return CellId;
 }

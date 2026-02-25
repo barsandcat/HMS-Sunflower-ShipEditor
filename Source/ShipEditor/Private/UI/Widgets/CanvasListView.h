@@ -22,9 +22,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Canvas List View")
 	TSubclassOf<UDeviceStatusWidget> DeviceWidgetClass;
 
-	// * Iterate - Remove unnecessary widgets
-	// * Iterate - Add missing widgets. Construct widgets and set their view model
-	// Keep the ones that are there.
 	UFUNCTION(BlueprintCallable)
 	void SetList(const TArray<UVMDeviceStatus*>& device_list);
 

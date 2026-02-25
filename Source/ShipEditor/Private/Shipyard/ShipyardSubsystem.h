@@ -102,6 +102,9 @@ public:
 	void OnCategorySelected(UObject* view_model, UE::FieldNotification::FFieldId field_id);
 	void OnFilterSelected(UObject* view_model, UE::FieldNotification::FFieldId field_id);
 
+	FIntVector2 CursorPosToCellId(const FVector& world_pos);
+	FVector CellIdToCursorPos(const FIntVector2& cell_id);
+
 private:
 	UPROPERTY()
 	TObjectPtr<AShipPlanRender> ShipPlanRender;
@@ -113,8 +116,6 @@ private:
 	TArray<TSharedPtr<IPartFilter>> FilterList;
 	std::set<int32> GetSelectedCategories() const;
 	bool IsAllowedByFiters(const TObjectPtr<UVMShipPart>& part_vm) const;
-	FIntVector2 CursorPosToCellId(const FVector& world_pos);
-	FVector CellIdToCursorPos(const FIntVector2& cell_id);
 	void AddCategory(TUVMShipPartCategoryArray& list, const FText& name, int32 id);
 
 	void AddDevice(TArray<TObjectPtr<UVMDeviceStatus>>& list, const FText& name, float usage, FIntVector2 pos);

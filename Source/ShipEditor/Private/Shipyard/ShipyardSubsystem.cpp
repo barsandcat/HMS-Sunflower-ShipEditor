@@ -60,7 +60,7 @@ void UShipyardSubsystem::AddDevice(TArray<TObjectPtr<UVMDeviceStatus>>& list, co
 	TObjectPtr<UVMDeviceStatus> device = NewObject<UVMDeviceStatus>();
 	device->SetName(name);
 	device->SetUsage(usage);
-	device->SetPosition(pos);
+	device->SetCellId(pos);
 	list.Add(device);
 }
 
@@ -91,7 +91,9 @@ void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& world_posit
 
 	if (world_position)
 	{
-		FVector cursor_pos = CellIdToCursorPos(CursorPosToCellId(*world_position));
+		FIntVector2 cell_id = CursorPosToCellId(*world_position);
+		UE_LOG(LogTemp, Warning, TEXT("SetCursorPosition %f %f %f, cell_id %d %d"), world_position->X, world_position->Y, world_position->Z, cell_id.X, cell_id.Y);
+		FVector cursor_pos = CellIdToCursorPos(cell_id);
 		cursor_pos.Y = world_position->Y;
 
 		if (!Cursor)
@@ -204,10 +206,11 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& collection)
 
 	VMDevices = NewObject<UVMDevices>();
 	TArray<TObjectPtr<UVMDeviceStatus>> devices;
-	AddDevice(devices, FText::FromString(TEXT("Test40")), 0.5, {40, 40});
-	AddDevice(devices, FText::FromString(TEXT("Test10")), 0, {100, 100});
-	AddDevice(devices, FText::FromString(TEXT("Test20")), 1, {200, 200});
-	AddDevice(devices, FText::FromString(TEXT("Test30")), 2, {300, 300});
+
+	AddDevice(devices, FText::FromString(TEXT("Test40")), 0.5, {0, 40});
+	AddDevice(devices, FText::FromString(TEXT("Test10")), 0, {-20, 40});
+	AddDevice(devices, FText::FromString(TEXT("Test20")), 1, {20, 40});
+	AddDevice(devices, FText::FromString(TEXT("Test30")), 2, {0, 0});
 	VMDevices->SetDeviceList(devices);
 
 	VMShipPlan = NewObject<UVMShipPlan>();

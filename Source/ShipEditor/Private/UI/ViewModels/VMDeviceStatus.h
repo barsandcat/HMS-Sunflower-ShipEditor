@@ -19,7 +19,7 @@ protected:
 	float Usage = 0.0f;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
-	FIntVector2 Position;
+	FIntVector2 CellId;
 
 public:
 	void SetName(const FText& name);
@@ -28,6 +28,6 @@ public:
 	void SetUsage(float usage);
 	float GetUsage() const;
 
-	void SetPosition(const FIntVector2& position);
-	FIntVector2 GetPosition() const;
+	void SetCellId(const FIntVector2& cell_id);
+	FIntVector2 GetCellId() const;
 };

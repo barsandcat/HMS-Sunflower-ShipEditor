@@ -69,3 +69,21 @@ TOptional<FVector> AMyCommonPlayerController::GetMouseWorldPosition(double plane
 
 	return world_mouse_position;
 }
+
+FVector2D AMyCommonPlayerController::CellIdToScreenPosition(const FIntVector2& cell_id)
+{
+	FVector2D screen_position = FVector2D::Zero();
+	UWorld* world = GetWorld();
+	if (!world)
+	{
+		return screen_position;
+	}
+	UShipyardSubsystem* shipyard = world->GetSubsystem<UShipyardSubsystem>();
+	if (!shipyard)
+	{
+		return screen_position;
+	}
+
+	ProjectWorldLocationToScreen(shipyard->CellIdToCursorPos(cell_id), screen_position);
+	return screen_position;
+}

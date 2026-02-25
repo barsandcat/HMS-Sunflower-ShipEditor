@@ -15,4 +15,7 @@ class SHIPEDITOR_API AMyCommonPlayerController : public ACommonPlayerController
 public:
 	virtual void PlayerTick(float delta_time) override;
 	TOptional<FVector> GetMouseWorldPosition(double plane_y);
+
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
+	FVector2D CellIdToScreenPosition(const FIntVector2& cell_id);
 };
