@@ -7,6 +7,7 @@
 #include "ShipData/ShipCellData.h"
 #include "ShipData/ShipDeviceAsset.h"
 #include "ShipPartTransform.h"
+#include "Shipyard/ShipDevicesUpdate.h"
 #include "Shipyard/ShipPartInstance.h"
 #include "UObject/NoExportTypes.h"
 
@@ -74,6 +75,7 @@ struct FShipStructure
 	void ConnectDecks();
 
 	void SetUpdate(FShipRenderUpdate* update);
+	void SetDevicesUpdate(FShipDevicesUpdate* devices_update);
 	void CallUpdate() const;
 
 	void ConnectFuel();
@@ -84,6 +86,7 @@ struct FShipStructure
 	TMap<FIntVector2, TSharedPtr<FShipStructureCell>> Cells;
 	TArray<TSharedPtr<FShipStructurePart>> Parts;
 	TArray<TSharedPtr<FShipStructureDevice>> Devices;
+	FShipDevicesUpdate* DevicesUpdate = nullptr;
 
 	static inline const FIntVector2 dirs[4] = {FIntVector2(1, 0), FIntVector2(-1, 0), FIntVector2(0, 1), FIntVector2(0, -1)};
 	static inline const FIntVector2 diagonal_dirs[4] = {FIntVector2(1, 1), FIntVector2(1, -1), FIntVector2(-1, 1), FIntVector2(-1, -1)};

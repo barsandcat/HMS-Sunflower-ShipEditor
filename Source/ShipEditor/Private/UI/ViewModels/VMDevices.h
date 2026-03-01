@@ -12,11 +12,26 @@ UCLASS()
 class UVMDevices : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
-protected:
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
-	TArray<TObjectPtr<UVMDeviceStatus>> DeviceList;
-
 public:
-	void SetDeviceList(const TArray<TObjectPtr<UVMDeviceStatus>>& device_list);
-	const TArray<TObjectPtr<UVMDeviceStatus>>& GetDeviceList() const;
+	UFUNCTION(BlueprintPure, FieldNotify)
+	TArray<UVMDeviceStatus*> GetDeviceList() const
+	{
+		TArray<UVMDeviceStatus*> result;
+		DeviceMap.GenerateValueArray(result);
+		return result;
+	}
+
+	TSet<FIntVector2> GetCurrentCells() const
+	{
+		TSet<FIntVector2> result;
+		DeviceMap.GetKeys(result);
+		return result;
+	}
+
+	void UpdateDeviceStatus(const FText& name, const FIntVector2& device_pos, float usage);
+	void RemoveDevice(const FIntVector2& device_pos);
+
+private:
+	UPROPERTY(Transient)
+	TMap<FIntVector2, UVMDeviceStatus*> DeviceMap;
 };

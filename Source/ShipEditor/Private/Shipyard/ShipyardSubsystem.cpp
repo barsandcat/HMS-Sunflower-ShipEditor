@@ -92,7 +92,6 @@ void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& world_posit
 	if (world_position)
 	{
 		FIntVector2 cell_id = CursorPosToCellId(*world_position);
-		UE_LOG(LogTemp, Warning, TEXT("SetCursorPosition %f %f %f, cell_id %d %d"), world_position->X, world_position->Y, world_position->Z, cell_id.X, cell_id.Y);
 		FVector cursor_pos = CellIdToCursorPos(cell_id);
 		cursor_pos.Y = world_position->Y;
 
@@ -117,13 +116,16 @@ void UShipyardSubsystem::SetCursorPosition(const TOptional<FVector>& world_posit
 
 void UShipyardSubsystem::UpdateShipPlanAndPreviewMeshes()
 {
+	FShipDevicesUpdate devices_update(*VMDevices);
 	FShipRenderUpdate ship_update = ShipPlanRender->CreateRenderUpdate();
 	FShipStructure ship_structure = ShipPlanRender->CreateStructure();
 	ship_structure.SetUpdate(&ship_update);
+	ship_structure.SetDevicesUpdate(&devices_update);
 
 	FShipRenderUpdate preview_update = PreviewRender->CreateRenderUpdate();
 	FShipStructure preview_structure = PreviewRender->CreateStructure();
 	preview_structure.SetUpdate(&preview_update);
+	preview_structure.SetDevicesUpdate(&devices_update);
 
 	FShipStructure new_structure;
 	if (FShipStructure::MergeStructures(ship_structure, preview_structure, new_structure))
@@ -203,15 +205,7 @@ void UShipyardSubsystem::Initialize(FSubsystemCollectionBase& collection)
 	VMPartBrowser->SelectPart.AddDynamic(this, &UShipyardSubsystem::SetBrushId);
 
 	VMBrush = NewObject<UVMBrush>();
-
 	VMDevices = NewObject<UVMDevices>();
-	TArray<TObjectPtr<UVMDeviceStatus>> devices;
-
-	AddDevice(devices, FText::FromString(TEXT("Test40")), 0.5, {0, 40});
-	AddDevice(devices, FText::FromString(TEXT("Test10")), 0, {-20, 40});
-	AddDevice(devices, FText::FromString(TEXT("Test20")), 1, {20, 40});
-	AddDevice(devices, FText::FromString(TEXT("Test30")), 2, {0, 0});
-	VMDevices->SetDeviceList(devices);
 
 	VMShipPlan = NewObject<UVMShipPlan>();
 	VMShipPlan->SetName(FString("Flower"));
@@ -293,8 +287,10 @@ void UShipyardSubsystem::DoBrush()
 
 	// Update ship meshes
 	{
+		FShipDevicesUpdate devices_update(*VMDevices);
 		FShipRenderUpdate ship_update = ShipPlanRender->CreateRenderUpdate();
 		FShipStructure ship_structure = ShipPlanRender->CreateStructure();
+		ship_structure.SetDevicesUpdate(&devices_update);
 		ship_structure.SetUpdate(&ship_update);
 		ship_structure.Process();
 		ship_structure.CallUpdate();

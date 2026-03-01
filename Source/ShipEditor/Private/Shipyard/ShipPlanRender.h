@@ -93,7 +93,6 @@ public:
 	FShipRenderUpdate CreateRenderUpdate();
 	FShipStructure CreateStructure();
 	void SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type, EDeckType deck_type);
-	void SetDeviceStatus(const FIntVector2& pos, float usage);
 
 private:
 	void AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
