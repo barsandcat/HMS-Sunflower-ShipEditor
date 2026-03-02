@@ -53,9 +53,9 @@ FShipRenderUpdate AShipPlanRender::CreateRenderUpdate()
 	return FShipRenderUpdate(*this, current_cells);
 }
 
-FShipStructure AShipPlanRender::CreateStructure()
+FShipStructure AShipPlanRender::CreateStructure(FShipRenderUpdate* update)
 {
-	return FShipStructure(Transform, ShipPartInstances);
+	return FShipStructure(Transform, ShipPartInstances, update);
 }
 
 void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type, EDeckType deck_type)

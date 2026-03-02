@@ -91,7 +91,7 @@ public:
 	void SetPartTransform(const FShipPartTransform& transform) { Transform = transform; }
 
 	FShipRenderUpdate CreateRenderUpdate();
-	FShipStructure CreateStructure();
+	FShipStructure CreateStructure(FShipRenderUpdate* update);
 	void SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type, EDeckType deck_type);
 
 private:

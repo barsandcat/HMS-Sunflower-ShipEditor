@@ -14,18 +14,12 @@
 class FShipRenderUpdate;
 struct FShipStructureDevice;
 
-struct FShipStructurePart
-{
-	FShipRenderUpdate* Update = nullptr;
-	TSharedPtr<FShipStructureDevice> Device = nullptr;
-};
-
 struct FShipStructureDevice
 {
 	FShipStructureDevice() = default;
 	~FShipStructureDevice() = default;
-	FShipStructureDevice(UShipDeviceAsset* asset, const FIntVector2& pos, TSharedPtr<FShipStructurePart> part)
-	    : Asset(asset), Position(pos), Part(part)
+	FShipStructureDevice(UShipDeviceAsset* asset, const FIntVector2& pos)
+	    : Asset(asset), Position(pos)
 	{
 	}
 
@@ -34,8 +28,6 @@ struct FShipStructureDevice
 
 	FIntVector2 Position;
 
-	EDeviceType DeviceType = EDeviceType::NONE;
-	TSharedPtr<FShipStructurePart> Part = nullptr;
 	bool WallConnected = true;
 	float Usage = 0.0f;
 };
@@ -44,25 +36,25 @@ struct FShipStructureCell
 {
 	FShipStructureCell() = default;
 	~FShipStructureCell() = default;
-	FShipStructureCell(ECellType cell_type, TSharedPtr<FShipStructurePart> part, TSharedPtr<FShipStructureDevice> device)
-	    : CellType(cell_type), Part(part), Device(device)
+	FShipStructureCell(ECellType cell_type, TSharedPtr<FShipStructureDevice> device, FShipRenderUpdate* update)
+	    : CellType(cell_type), Device(device), Update(update)
 	{
 	}
 
 	ECellType CellType = ECellType::NONE;
 	EDeckType DeckType = EDeckType::NONE;
 
-	TSharedPtr<FShipStructurePart> Part;
 	TSharedPtr<FShipStructureDevice> Device;
 	int32 Visited = 0;
 	bool IsTechnicalCorridor() const { return CellType == ECellType::TECHNICAL_CORRIDOR || CellType == ECellType::TECHNICAL_CORRIDOR_ROOT; }
+	FShipRenderUpdate* Update = nullptr;
 };
 
 struct FShipStructure
 {
 	FShipStructure() = default;
 	~FShipStructure() = default;
-	FShipStructure(const FShipPartTransform& render_transform, const TArray<TObjectPtr<UShipPartInstance>>& part_instances);
+	FShipStructure(const FShipPartTransform& render_transform, const TArray<TObjectPtr<UShipPartInstance>>& part_instances, FShipRenderUpdate* update);
 
 	static bool MergeStructures(const FShipStructure& structure_a,
 	    const FShipStructure& structure_b,
@@ -74,7 +66,6 @@ struct FShipStructure
 
 	void ConnectDecks();
 
-	void SetUpdate(FShipRenderUpdate* update);
 	void SetDevicesUpdate(FShipDevicesUpdate* devices_update);
 	void CallUpdate() const;
 
@@ -84,7 +75,6 @@ struct FShipStructure
 
 	TOptional<FIntVector2> Root;
 	TMap<FIntVector2, TSharedPtr<FShipStructureCell>> Cells;
-	TArray<TSharedPtr<FShipStructurePart>> Parts;
 	TArray<TSharedPtr<FShipStructureDevice>> Devices;
 	FShipDevicesUpdate* DevicesUpdate = nullptr;
 

@@ -118,13 +118,11 @@ void UShipyardSubsystem::UpdateShipPlanAndPreviewMeshes()
 {
 	FShipDevicesUpdate devices_update(*VMDevices);
 	FShipRenderUpdate ship_update = ShipPlanRender->CreateRenderUpdate();
-	FShipStructure ship_structure = ShipPlanRender->CreateStructure();
-	ship_structure.SetUpdate(&ship_update);
+	FShipStructure ship_structure = ShipPlanRender->CreateStructure(&ship_update);
 	ship_structure.SetDevicesUpdate(&devices_update);
 
 	FShipRenderUpdate preview_update = PreviewRender->CreateRenderUpdate();
-	FShipStructure preview_structure = PreviewRender->CreateStructure();
-	preview_structure.SetUpdate(&preview_update);
+	FShipStructure preview_structure = PreviewRender->CreateStructure(&preview_update);
 	preview_structure.SetDevicesUpdate(&devices_update);
 
 	FShipStructure new_structure;
@@ -289,9 +287,8 @@ void UShipyardSubsystem::DoBrush()
 	{
 		FShipDevicesUpdate devices_update(*VMDevices);
 		FShipRenderUpdate ship_update = ShipPlanRender->CreateRenderUpdate();
-		FShipStructure ship_structure = ShipPlanRender->CreateStructure();
+		FShipStructure ship_structure = ShipPlanRender->CreateStructure(&ship_update);
 		ship_structure.SetDevicesUpdate(&devices_update);
-		ship_structure.SetUpdate(&ship_update);
 		ship_structure.Process();
 		ship_structure.CallUpdate();
 	}

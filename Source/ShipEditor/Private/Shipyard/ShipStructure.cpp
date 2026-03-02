@@ -30,29 +30,25 @@ bool IsCabin(const FIntVector2& pos)
 
 }    // namespace
 
-FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const TArray<TObjectPtr<UShipPartInstance>>& part_instances)
+FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const TArray<TObjectPtr<UShipPartInstance>>& part_instances, FShipRenderUpdate* update)
 {
-	Parts.SetNum(part_instances.Num());
 	Devices.SetNum(part_instances.Num());
-	for (int32 i = 0; i < Parts.Num(); i++)
+	for (int32 i = 0; i < part_instances.Num(); i++)
 	{
 		UShipPartInstance* part_instance = part_instances[i];
-		TSharedPtr<FShipStructurePart> part = MakeShared<FShipStructurePart>();
-		Parts[i] = part;
-		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device, render_transform(part_instance->Transform.Position), part);
+		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device, render_transform(part_instance->Transform.Position));
 		Devices[i] = device;
-		part->Device = device;
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
 		{
 			if (cell.CellType == ECellType::ROOT)
 			{
 				device->WallConnected = false;
-				if (device->DeviceType == EDeviceType::BRIDGE)
+				if (device->Asset->DeviceType == EDeviceType::BRIDGE)
 				{
 					Root = render_transform(part_instance->Transform(cell.Position));
 				}
 			}
-			Cells.Add(render_transform(part_instance->Transform(cell.Position)), MakeShared<FShipStructureCell>(cell.CellType, part, device));
+			Cells.Add(render_transform(part_instance->Transform(cell.Position)), MakeShared<FShipStructureCell>(cell.CellType, device, update));
 		}
 	}
 }
@@ -66,14 +62,9 @@ bool FShipStructure::MergeStructures(const FShipStructure& structure_a, const FS
 
 	out_merged_structure = structure_a;
 	out_merged_structure.Cells.Reserve(structure_a.Cells.Num() + structure_b.Cells.Num());
-	out_merged_structure.Parts.Reserve(structure_a.Parts.Num() + structure_b.Parts.Num());
 	out_merged_structure.Devices.Reserve(structure_a.Devices.Num() + structure_b.Devices.Num());
 	out_merged_structure.Root = structure_a.Root.IsSet() ? structure_a.Root : structure_b.Root;
 
-	for (const auto& i : structure_b.Parts)
-	{
-		out_merged_structure.Parts.Add(i);
-	}
 	for (const auto& i : structure_b.Devices)
 	{
 		out_merged_structure.Devices.Add(i);
@@ -174,7 +165,7 @@ void FShipStructure::AddArmor()
 
 			if (no_cell)
 			{
-				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK, cell->Part, cell->Device);
+				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK, cell->Device, cell->Update);
 				armor_cell->DeckType = EDeckType::ARMOR;
 				Cells.Add(neighbor_deck_pos, armor_cell);
 			}
@@ -258,14 +249,6 @@ void FShipStructure::ConnectDecks()
 	}
 }
 
-void FShipStructure::SetUpdate(FShipRenderUpdate* update)
-{
-	for (TSharedPtr<FShipStructurePart>& part : Parts)
-	{
-		part->Update = update;
-	}
-}
-
 void FShipStructure::SetDevicesUpdate(FShipDevicesUpdate* devices_update)
 {
 	DevicesUpdate = devices_update;
@@ -277,7 +260,7 @@ void FShipStructure::CallUpdate() const
 	{
 		const FIntVector2& cell_pos = i.Key;
 		const TSharedPtr<FShipStructureCell> cell = i.Value;
-		cell->Part->Update->SetCellMesh(cell_pos, cell->CellType, cell->DeckType);
+		cell->Update->SetCellMesh(cell_pos, cell->CellType, cell->DeckType);
 	}
 
 	for (const auto& i : Devices)
