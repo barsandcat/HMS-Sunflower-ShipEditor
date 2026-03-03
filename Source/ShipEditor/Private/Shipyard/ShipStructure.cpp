@@ -323,13 +323,10 @@ void FShipStructure::ConnectFuel()
 				continue;
 			}
 
-			// Ensure the device of this cell is recorded
-			devices_in_net.Add(cell->Device);
-
 			// Explore 4 cardinal neighbors for technical corridor connectivity
 			for (const FIntVector2& d : dirs)
 			{
-				FIntVector2 neighbor_pos = pos + d;
+				FIntVector2 neighbor_pos = pos + d * 2;
 				if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_pos))
 				{
 					// Only traverse along technical corridor cells or corridor roots
@@ -369,13 +366,13 @@ void FShipStructure::CalculateFuelConsumption(const TSet<TSharedPtr<FShipStructu
 
 	for (const TSharedPtr<FShipStructureDevice>& device : device_set)
 	{
-		if (device->Asset->FuelConsumption < 0.0f)
+		if (device->Asset->FuelConsumption > 0.0f)
 		{
 			total_consumption -= device->Asset->FuelConsumption;
 		}
-		if (device->Asset->FuelConsumption > 0.0f)
+		if (device->Asset->FuelConsumption < 0.0f)
 		{
-			total_production += device->Asset->FuelConsumption;
+			total_production -= device->Asset->FuelConsumption;
 		}
 	}
 
@@ -383,13 +380,13 @@ void FShipStructure::CalculateFuelConsumption(const TSet<TSharedPtr<FShipStructu
 	float used_fraction = 0.0f;
 	if (total_production > 0.0f)
 	{
-		used_fraction = FMath::Min(1.0f, total_consumption / total_production);
+		used_fraction = FMath::Min(1.0f, total_production / -total_consumption);
 	}
 
 	float satisfaction = 1.0f;
 	if (total_consumption < 0.0f)
 	{
-		satisfaction = FMath::Min(1.0f, total_production / total_consumption);
+		satisfaction = FMath::Min(1.0f, -total_consumption / total_production);
 	}
 
 	// Apply to devices
