@@ -266,7 +266,7 @@ void FShipStructure::CallUpdate() const
 	for (const auto& i : Devices)
 	{
 		const TSharedPtr<FShipStructureDevice> device = i;
-		if (device->Asset->FuelConsumption != 0.0f)
+		if (device->Asset->FuelConsumption != 0.0f || device->Asset->AmmoConsumption != 0.0f)
 		{
 			DevicesUpdate->SetDeviceStatus(device->Asset->DeviceName, device->Position, device->Usage);
 		}
@@ -355,6 +355,7 @@ void FShipStructure::ConnectFuel()
 	for (const TSet<TSharedPtr<FShipStructureDevice>>& device_set : subnetworks)
 	{
 		CalculateFuelConsumption(device_set);
+		CalculateAmmoConsumption(device_set);
 	}
 }
 
@@ -401,6 +402,55 @@ void FShipStructure::CalculateFuelConsumption(const TSet<TSharedPtr<FShipStructu
 
 		// Consumers: set fraction of consumption satisfied
 		if (device->Asset->FuelConsumption < 0.0f)
+		{
+			device->Usage = satisfaction;
+		}
+	}
+}
+
+void FShipStructure::CalculateAmmoConsumption(const TSet<TSharedPtr<FShipStructureDevice>>& device_set)
+{
+	// Sum production and consumption in this subnetwork
+	float total_production = 0.0f;
+	float total_consumption = 0.0f;
+
+	for (const TSharedPtr<FShipStructureDevice>& device : device_set)
+	{
+		if (device->Asset->AmmoConsumption > 0.0f)
+		{
+			total_consumption -= device->Asset->AmmoConsumption;
+		}
+		if (device->Asset->AmmoConsumption < 0.0f)
+		{
+			total_production -= device->Asset->AmmoConsumption;
+		}
+	}
+
+	// Determine fractions
+	float used_fraction = 0.0f;
+	if (total_production > 0.0f)
+	{
+		used_fraction = FMath::Min(1.0f, total_production / -total_consumption);
+	}
+
+	float satisfaction = 1.0f;
+	if (total_consumption < 0.0f)
+	{
+		satisfaction = FMath::Min(1.0f, -total_consumption / total_production);
+	}
+
+	// Apply to devices
+	for (const TSharedPtr<FShipStructureDevice>& device : device_set)
+	{
+		// Producers: set how much of their production is actually used (absolute amount)
+		if (device->Asset->AmmoConsumption > 0.0f)
+		{
+			// Absolute amount of ammo that this device supplies to consumers
+			device->Usage = used_fraction;
+		}
+
+		// Consumers: set fraction of consumption satisfied
+		if (device->Asset->AmmoConsumption < 0.0f)
 		{
 			device->Usage = satisfaction;
 		}

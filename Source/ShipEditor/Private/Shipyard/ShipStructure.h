@@ -72,6 +72,7 @@ struct FShipStructure
 	void ConnectFuel();
 
 	void CalculateFuelConsumption(const TSet<TSharedPtr<FShipStructureDevice>>& device_set);
+	void CalculateAmmoConsumption(const TSet<TSharedPtr<FShipStructureDevice>>& device_set);
 
 	TOptional<FIntVector2> Root;
 	TMap<FIntVector2, TSharedPtr<FShipStructureCell>> Cells;

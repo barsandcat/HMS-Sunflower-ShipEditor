@@ -40,4 +40,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float FuelConsumption = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AmmoConsumption = 0.0f;
 };
