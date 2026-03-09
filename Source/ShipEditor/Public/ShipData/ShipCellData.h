@@ -6,25 +6,85 @@
 
 #include "ShipCellData.generated.h"
 
-UENUM(BlueprintType)
-enum class ECellType : uint8
+/*
+ * Enum for defining different types of ship cells.
+ * The values are set up to allow bitwise operations for checking multiple properties at once.
+ * First bit - 1 for cabin
+ * Second bit - 1 for deck
+ * Third bit - 1 for the root
+ * Every thing else to differentiate types of cabins and decks
+ */
+
+enum ECellTypeFlag : uint8
 {
-	NONE = 0,
-	CABIN = 1,
-	DECK = 2,
-	ROOT = 3,
-	TECHNICAL_CORRIDOR = 4,
-	TECHNICAL_CORRIDOR_ROOT = 5,
+	CABIN = 0b000001,
+	DECK = 0b000010,
+	ROOT = 0b000100,
+	SUBTYPE_MASK = 0b111000,
+	SUBTYPE1 = 0b001000,
+	SUBTYPE2 = 0b010000,
+	SUBTYPE3 = 0b011000,
+	SUBTYPE4 = 0b100000,
 };
 
 UENUM(BlueprintType)
-enum class EDeckType : uint8
+enum class ECellType : uint8
 {
-	NONE = 0,
-	REGULAR = 1,
-	STRUCTURAL = 2,
-	ARMOR = 3,
+	NONE = 0b000000,
+	CABIN = ECellTypeFlag::CABIN,
+	CABIN_TECHNICAL_CORRIDOR = ECellTypeFlag::CABIN | ECellTypeFlag::SUBTYPE1,
+	CABIN_TECHNICAL_CORRIDOR_ROOT = ECellTypeFlag::CABIN | ECellTypeFlag::SUBTYPE1 | ECellTypeFlag::ROOT,
+	CABIN_BLOCKED = ECellTypeFlag::CABIN | ECellTypeFlag::SUBTYPE2,
+	DECK = ECellTypeFlag::DECK,
+	DECK_PHONE_LINE = ECellTypeFlag::DECK | ECellTypeFlag::SUBTYPE1,
+	DECK_PHONE_LINE_ROOT = ECellTypeFlag::DECK | ECellTypeFlag::SUBTYPE1 | ECellTypeFlag::ROOT,
+	DECK_ARMOR = ECellTypeFlag::DECK | ECellTypeFlag::SUBTYPE2,
 };
+
+FORCEINLINE bool HasCellTypeFlag(ECellType cell_type, ECellTypeFlag flag)
+{
+	return (static_cast<uint8>(cell_type) & static_cast<uint8>(flag)) != 0;
+}
+
+FORCEINLINE uint8 IsSubTypeCell(ECellType cell_type, ECellTypeFlag sub_type)
+{
+	return (static_cast<uint8>(cell_type) & static_cast<uint8>(ECellTypeFlag::SUBTYPE_MASK)) == sub_type;
+}
+
+FORCEINLINE bool IsCabinCell(ECellType cell_type)
+{
+	return HasCellTypeFlag(cell_type, ECellTypeFlag::CABIN);
+}
+
+FORCEINLINE bool IsDeckCell(ECellType cell_type)
+{
+	return HasCellTypeFlag(cell_type, ECellTypeFlag::DECK);
+}
+
+FORCEINLINE bool IsRootCell(ECellType cell_type)
+{
+	return HasCellTypeFlag(cell_type, ECellTypeFlag::ROOT);
+}
+
+FORCEINLINE bool IsTechnicalCorridorCell(ECellType cell_type)
+{
+	return IsCabinCell(cell_type) && IsSubTypeCell(cell_type, ECellTypeFlag::SUBTYPE1);
+}
+
+FORCEINLINE bool IsDeckPhoneLineCell(ECellType cell_type)
+{
+	return IsDeckCell(cell_type) && IsSubTypeCell(cell_type, ECellTypeFlag::SUBTYPE1);
+}
+
+FORCEINLINE bool IsDeckRootCell(ECellType cell_type)
+{
+	return IsDeckCell(cell_type) && IsRootCell(cell_type);
+}
+
+FORCEINLINE bool IsCabinRootCell(ECellType cell_type)
+{
+	return IsCabinCell(cell_type) && IsRootCell(cell_type);
+}
 
 USTRUCT(BlueprintType)
 struct SHIPEDITOR_API FShipCellData

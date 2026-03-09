@@ -42,11 +42,9 @@ struct FShipStructureCell
 	}
 
 	ECellType CellType = ECellType::NONE;
-	EDeckType DeckType = EDeckType::NONE;
 
 	TSharedPtr<FShipStructureDevice> Device;
 	int32 Visited = 0;
-	bool IsTechnicalCorridor() const { return CellType == ECellType::TECHNICAL_CORRIDOR || CellType == ECellType::TECHNICAL_CORRIDOR_ROOT; }
 	FShipRenderUpdate* Update = nullptr;
 };
 

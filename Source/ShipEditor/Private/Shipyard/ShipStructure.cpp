@@ -40,7 +40,7 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 		Devices[i] = device;
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
 		{
-			if (cell.CellType == ECellType::ROOT)
+			if (IsDeckRootCell(cell.CellType))
 			{
 				device->WallConnected = false;
 				if (device->Asset->DeviceType == EDeviceType::BRIDGE)
@@ -165,8 +165,7 @@ void FShipStructure::AddArmor()
 
 			if (no_cell)
 			{
-				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK, cell->Device, cell->Update);
-				armor_cell->DeckType = EDeckType::ARMOR;
+				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK_ARMOR, cell->Device, cell->Update);
 				Cells.Add(neighbor_deck_pos, armor_cell);
 			}
 		}
@@ -194,7 +193,7 @@ void FShipStructure::ConnectDecks()
 
 		if (IsDeckIntersection(deck_pos))
 		{
-			if (cell && cell->CellType == ECellType::ROOT)
+			if (cell && IsDeckRootCell(cell->CellType))
 			{
 				cell->Device->WallConnected = true;
 			}
@@ -203,7 +202,7 @@ void FShipStructure::ConnectDecks()
 			{
 				FIntVector2 neighbor_deck_pos = deck_pos + d;
 				TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_deck_pos);
-				if (neighbor_cell && neighbor_cell->Visited != 1 && neighbor_cell->CellType == ECellType::DECK)
+				if (neighbor_cell && neighbor_cell->Visited != 1 && IsDeckCell(neighbor_cell->CellType))
 				{
 					neighbor_cell->Visited = 1;
 					deck_queue.Add(neighbor_deck_pos);
@@ -211,9 +210,13 @@ void FShipStructure::ConnectDecks()
 			}
 		}
 
+		if (cell && cell->CellType == ECellType::DECK)
+		{
+			cell->CellType = ECellType::DECK_PHONE_LINE;
+		}
+
 		if (cell)
 		{
-			cell->DeckType = EDeckType::STRUCTURAL;
 			if (IsDeckVertical(deck_pos))
 			{
 				for (const FIntVector2& d : vertical_dirs)
@@ -238,15 +241,6 @@ void FShipStructure::ConnectDecks()
 			}
 		}
 	}
-
-	// Any deck not visited is regular
-	for (auto& pair : Cells)
-	{
-		if (pair.Value->CellType == ECellType::DECK && pair.Value->DeckType == EDeckType::NONE)
-		{
-			pair.Value->DeckType = EDeckType::REGULAR;
-		}
-	}
 }
 
 void FShipStructure::SetDevicesUpdate(FShipDevicesUpdate* devices_update)
@@ -260,7 +254,7 @@ void FShipStructure::CallUpdate() const
 	{
 		const FIntVector2& cell_pos = i.Key;
 		const TSharedPtr<FShipStructureCell> cell = i.Value;
-		cell->Update->SetCellMesh(cell_pos, cell->CellType, cell->DeckType);
+		cell->Update->SetCellMesh(cell_pos, cell->CellType);
 	}
 
 	for (const auto& i : Devices)
@@ -280,7 +274,7 @@ void FShipStructure::ConnectFuel()
 	for (const auto& pair : Cells)
 	{
 		const TSharedPtr<FShipStructureCell> cell = pair.Value;
-		if (cell && cell->CellType == ECellType::TECHNICAL_CORRIDOR_ROOT && cell->Device->WallConnected)
+		if (cell && cell->CellType == ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT && cell->Device->WallConnected)
 		{
 			unvisited_roots.Add(pair.Key);
 		}
@@ -330,13 +324,13 @@ void FShipStructure::ConnectFuel()
 				if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_pos))
 				{
 					// Only traverse along technical corridor cells or corridor roots
-					if (neighbor_cell->IsTechnicalCorridor() && neighbor_cell->Visited != 3)
+					if (IsTechnicalCorridorCell(neighbor_cell->CellType) && neighbor_cell->Visited != 3)
 					{
 						neighbor_cell->Visited = 3;
 						queue.Add(neighbor_pos);
 
 						// If this neighbor is a corridor root that was in the unvisited set, remove it
-						if (neighbor_cell->CellType == ECellType::TECHNICAL_CORRIDOR_ROOT)
+						if (neighbor_cell->CellType == ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT)
 						{
 							unvisited_roots.Remove(neighbor_pos);
 						}

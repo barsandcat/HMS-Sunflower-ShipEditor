@@ -58,31 +58,30 @@ FShipStructure AShipPlanRender::CreateStructure(FShipRenderUpdate* update)
 	return FShipStructure(Transform, ShipPartInstances, update);
 }
 
-void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type, EDeckType deck_type)
+void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type)
 {
 	switch (cell_type)
 	{
+		case ECellType::DECK_PHONE_LINE:
+			SetCellMeshComponent(cell_pos_local, IsWall(Transform(cell_pos_local)) ? StructuralWallMesh : StructuralFloorMesh);
+			break;
+		case ECellType::DECK_PHONE_LINE_ROOT:
+			RemoveCellMeshComponent(cell_pos_local);
+			break;
+		case ECellType::DECK_ARMOR:
+			SetCellMeshComponent(cell_pos_local, IsWall(Transform(cell_pos_local)) ? ArmorWallMesh : ArmorFloorMesh);
+			break;
 		case ECellType::DECK:
-			switch (deck_type)
-			{
-				case EDeckType::STRUCTURAL:
-					SetCellMeshComponent(cell_pos_local, IsWall(Transform(cell_pos_local)) ? StructuralWallMesh : StructuralFloorMesh);
-					break;
-				case EDeckType::ARMOR:
-					SetCellMeshComponent(cell_pos_local, IsWall(Transform(cell_pos_local)) ? ArmorWallMesh : ArmorFloorMesh);
-					break;
-				default:
-					SetCellMeshComponent(cell_pos_local, IsWall(Transform(cell_pos_local)) ? WallMesh : FloorMesh);
-					break;
-			}
+			SetCellMeshComponent(cell_pos_local, IsWall(Transform(cell_pos_local)) ? WallMesh : FloorMesh);
 			break;
 		case ECellType::CABIN:
+		case ECellType::CABIN_BLOCKED:
 			SetCellMeshComponent(cell_pos_local, CellMesh);
 			break;
-		case ECellType::TECHNICAL_CORRIDOR:
+		case ECellType::CABIN_TECHNICAL_CORRIDOR:
 			SetCellMeshComponent(cell_pos_local, TechnicalCorridorMesh);
 			break;
-		case ECellType::TECHNICAL_CORRIDOR_ROOT:
+		case ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT:
 			SetCellMeshComponent(cell_pos_local, TechnicalCorridorRootMesh);
 			break;
 		case ECellType::NONE:
@@ -270,17 +269,17 @@ FShipRenderUpdate::FShipRenderUpdate(AShipPlanRender& owner, TSet<FIntVector2> c
 {
 }
 
-void FShipRenderUpdate::SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type, EDeckType deck_type)
+void FShipRenderUpdate::SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type)
 {
 	FIntVector2 cell_pos_local = Owner.GetPartTransform().Inverse()(cell_pos);
 	CurrentCells.Remove(cell_pos_local);
-	Owner.SetCellMesh(cell_pos_local, cell_type, deck_type);
+	Owner.SetCellMesh(cell_pos_local, cell_type);
 }
 
 FShipRenderUpdate::~FShipRenderUpdate()
 {
 	for (const FIntVector2& cell_pos_local : CurrentCells)
 	{
-		Owner.SetCellMesh(cell_pos_local, ECellType::NONE, EDeckType::NONE);
+		Owner.SetCellMesh(cell_pos_local, ECellType::NONE);
 	}
 }
