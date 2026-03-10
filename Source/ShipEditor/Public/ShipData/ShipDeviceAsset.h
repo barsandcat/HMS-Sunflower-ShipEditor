@@ -20,12 +20,11 @@ enum class EDeviceType : uint8
 	BRIDGE = 7,
 };
 
-UCLASS()
-class SHIPEDITOR_API UShipDeviceAsset : public UPrimaryDataAsset
+USTRUCT(BlueprintType)
+struct FDeviceStats
 {
 	GENERATED_BODY()
 
-public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText DeviceName;
 
@@ -43,4 +42,14 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AmmoConsumption = 0.0f;
+};
+
+UCLASS()
+class SHIPEDITOR_API UShipDeviceAsset : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FDeviceStats Stats;
 };

@@ -36,14 +36,14 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 	for (int32 i = 0; i < part_instances.Num(); i++)
 	{
 		UShipPartInstance* part_instance = part_instances[i];
-		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device, render_transform(part_instance->Transform.Position));
+		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device->Stats, render_transform(part_instance->Transform.Position));
 		Devices[i] = device;
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
 		{
 			if (IsDeckRootCell(cell.CellType))
 			{
 				device->WallConnected = false;
-				if (device->Asset->DeviceType == EDeviceType::BRIDGE)
+				if (device->Stats.DeviceType == EDeviceType::BRIDGE)
 				{
 					Root = render_transform(part_instance->Transform(cell.Position));
 				}
@@ -260,9 +260,9 @@ void FShipStructure::CallUpdate() const
 	for (const auto& i : Devices)
 	{
 		const TSharedPtr<FShipStructureDevice> device = i;
-		if (device->Asset->FuelConsumption != 0.0f || device->Asset->AmmoConsumption != 0.0f)
+		if (device->Stats.FuelConsumption != 0.0f || device->Stats.AmmoConsumption != 0.0f)
 		{
-			DevicesUpdate->SetDeviceStatus(device->Asset->DeviceName, device->Position, device->Usage);
+			DevicesUpdate->SetDeviceStatus(device->Stats.DeviceName, device->Position, device->Usage);
 		}
 	}
 }
@@ -361,13 +361,13 @@ void FShipStructure::CalculateFuelConsumption(const TSet<TSharedPtr<FShipStructu
 
 	for (const TSharedPtr<FShipStructureDevice>& device : device_set)
 	{
-		if (device->Asset->FuelConsumption > 0.0f)
+		if (device->Stats.FuelConsumption > 0.0f)
 		{
-			total_consumption -= device->Asset->FuelConsumption;
+			total_consumption -= device->Stats.FuelConsumption;
 		}
-		if (device->Asset->FuelConsumption < 0.0f)
+		if (device->Stats.FuelConsumption < 0.0f)
 		{
-			total_production -= device->Asset->FuelConsumption;
+			total_production -= device->Stats.FuelConsumption;
 		}
 	}
 
@@ -388,14 +388,14 @@ void FShipStructure::CalculateFuelConsumption(const TSet<TSharedPtr<FShipStructu
 	for (const TSharedPtr<FShipStructureDevice>& device : device_set)
 	{
 		// Producers: set how much of their production is actually used (absolute amount)
-		if (device->Asset->FuelConsumption > 0.0f)
+		if (device->Stats.FuelConsumption > 0.0f)
 		{
 			// Absolute amount of fuel that this device supplies to consumers
 			device->Usage = used_fraction;
 		}
 
 		// Consumers: set fraction of consumption satisfied
-		if (device->Asset->FuelConsumption < 0.0f)
+		if (device->Stats.FuelConsumption < 0.0f)
 		{
 			device->Usage = satisfaction;
 		}
@@ -410,13 +410,13 @@ void FShipStructure::CalculateAmmoConsumption(const TSet<TSharedPtr<FShipStructu
 
 	for (const TSharedPtr<FShipStructureDevice>& device : device_set)
 	{
-		if (device->Asset->AmmoConsumption > 0.0f)
+		if (device->Stats.AmmoConsumption > 0.0f)
 		{
-			total_consumption -= device->Asset->AmmoConsumption;
+			total_consumption -= device->Stats.AmmoConsumption;
 		}
-		if (device->Asset->AmmoConsumption < 0.0f)
+		if (device->Stats.AmmoConsumption < 0.0f)
 		{
-			total_production -= device->Asset->AmmoConsumption;
+			total_production -= device->Stats.AmmoConsumption;
 		}
 	}
 
@@ -437,14 +437,14 @@ void FShipStructure::CalculateAmmoConsumption(const TSet<TSharedPtr<FShipStructu
 	for (const TSharedPtr<FShipStructureDevice>& device : device_set)
 	{
 		// Producers: set how much of their production is actually used (absolute amount)
-		if (device->Asset->AmmoConsumption > 0.0f)
+		if (device->Stats.AmmoConsumption > 0.0f)
 		{
 			// Absolute amount of ammo that this device supplies to consumers
 			device->Usage = used_fraction;
 		}
 
 		// Consumers: set fraction of consumption satisfied
-		if (device->Asset->AmmoConsumption < 0.0f)
+		if (device->Stats.AmmoConsumption < 0.0f)
 		{
 			device->Usage = satisfaction;
 		}

@@ -258,9 +258,9 @@ void UShipyardSubsystem::OnShipPartAssetsLoaded()
 			part->Initialize(
 			    ship_part_asset->PartName,
 			    ship_part_asset->PartId,
-			    (int32) (ship_part_asset->Device->DeviceType),
-			    ship_part_asset->Device->Elevation,
-			    ship_part_asset->Device->DynamicMount,
+			    (int32) (ship_part_asset->Device->Stats.DeviceType),
+			    ship_part_asset->Device->Stats.Elevation,
+			    ship_part_asset->Device->Stats.DynamicMount,
 			    ship_part_asset->RequiresWallConnection());
 			PartList.Add(part);
 		}

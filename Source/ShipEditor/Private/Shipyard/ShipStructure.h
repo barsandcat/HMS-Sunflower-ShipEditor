@@ -18,13 +18,12 @@ struct FShipStructureDevice
 {
 	FShipStructureDevice() = default;
 	~FShipStructureDevice() = default;
-	FShipStructureDevice(UShipDeviceAsset* asset, const FIntVector2& pos)
-	    : Asset(asset), Position(pos)
+	FShipStructureDevice(const FDeviceStats& stats, const FIntVector2& pos)
+	    : Stats(stats), Position(pos)
 	{
 	}
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UShipDeviceAsset> Asset;
+	FDeviceStats Stats;
 
 	FIntVector2 Position;
 
