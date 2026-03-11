@@ -27,7 +27,13 @@ struct FShipStructureDevice
 
 	FIntVector2 Position;
 
-	bool WallConnected = true;
+	bool CanPhoneTheBridge = false;
+	bool RequiresPhoneConnection = false;
+	bool CanReachTheBridge = false;
+	bool IsPartOfTheShip() const
+	{
+		return Stats.DeviceType == EDeviceType::BRIDGE || CanReachTheBridge && (CanPhoneTheBridge || !RequiresPhoneConnection);
+	}
 	float Usage = 0.0f;
 };
 

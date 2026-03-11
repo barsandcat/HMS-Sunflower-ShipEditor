@@ -27,5 +27,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FShipCellData> Cells;
 
-	bool RequiresWallConnection() const;
+	bool RequiresPhoneConnection() const;
 };

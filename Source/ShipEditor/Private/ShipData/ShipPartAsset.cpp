@@ -2,7 +2,7 @@
 
 #include "ShipData/ShipPartAsset.h"
 
-bool UShipPartAsset::RequiresWallConnection() const
+bool UShipPartAsset::RequiresPhoneConnection() const
 {
 	for (const FShipCellData& cell : Cells)
 	{

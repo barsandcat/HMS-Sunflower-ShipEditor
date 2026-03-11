@@ -42,7 +42,7 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 		{
 			if (IsIntersectionRootCell(cell.CellType))
 			{
-				device->WallConnected = false;
+				device->RequiresPhoneConnection = true;
 				if (device->Stats.DeviceType == EDeviceType::BRIDGE)
 				{
 					Root = render_transform(part_instance->Transform(cell.Position));
@@ -127,6 +127,7 @@ void FShipStructure::AddArmor()
 		{
 			if (neighbor_cell->CellType != ECellType::NONE)
 			{
+				neighbor_cell->Device->CanReachTheBridge = true;
 				neighbor_cell->Visited = 2;
 				empty_queue.Add(neighbor_cabin_pos);
 			}
@@ -149,21 +150,17 @@ void FShipStructure::AddArmor()
 			FIntVector2 neighbor_deck_pos = cabin_pos + d;
 
 			// If neighbor exists and is empty, continue BFS
-			bool no_cell = true;
-			if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
+			TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos);
+			if (neighbor_cell && IsCabinTraversableCell(neighbor_cell->CellType) && (neighbor_cell->Device->CanPhoneTheBridge || !neighbor_cell->Device->RequiresPhoneConnection))
 			{
-				if (neighbor_cell->CellType != ECellType::NONE && neighbor_cell->Device->WallConnected)
+				if (neighbor_cell->Visited != 2)
 				{
-					no_cell = false;
-					if (neighbor_cell->Visited != 2)
-					{
-						neighbor_cell->Visited = 2;
-						empty_queue.Add(neighbor_cabin_pos);
-					}
+					neighbor_cell->Visited = 2;
+					neighbor_cell->Device->CanReachTheBridge = true;
+					empty_queue.Add(neighbor_cabin_pos);
 				}
 			}
-
-			if (no_cell)
+			else
 			{
 				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK_ARMOR, cell->Device, cell->Update);
 				Cells.Add(neighbor_deck_pos, armor_cell);
@@ -195,7 +192,7 @@ void FShipStructure::ConnectDecks()
 		{
 			if (cell && IsIntersectionRootCell(cell->CellType))
 			{
-				cell->Device->WallConnected = true;
+				cell->Device->CanPhoneTheBridge = true;
 			}
 
 			for (const FIntVector2& d : dirs)
@@ -274,7 +271,7 @@ void FShipStructure::ConnectFuel()
 	for (const auto& pair : Cells)
 	{
 		const TSharedPtr<FShipStructureCell> cell = pair.Value;
-		if (cell && cell->CellType == ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT && cell->Device->WallConnected)
+		if (cell && cell->CellType == ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT)
 		{
 			unvisited_roots.Add(pair.Key);
 		}
@@ -324,7 +321,7 @@ void FShipStructure::ConnectFuel()
 				if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_pos))
 				{
 					// Only traverse along technical corridor cells or corridor roots
-					if (IsTechnicalCorridorCell(neighbor_cell->CellType) && neighbor_cell->Visited != 3)
+					if (IsTechnicalCorridorCell(neighbor_cell->CellType) && cell->Device->IsPartOfTheShip() == neighbor_cell->Device->IsPartOfTheShip() && neighbor_cell->Visited != 3)
 					{
 						neighbor_cell->Visited = 3;
 						queue.Add(neighbor_pos);

@@ -261,7 +261,7 @@ void UShipyardSubsystem::OnShipPartAssetsLoaded()
 			    (int32) (ship_part_asset->Device->Stats.DeviceType),
 			    ship_part_asset->Device->Stats.Elevation,
 			    ship_part_asset->Device->Stats.DynamicMount,
-			    ship_part_asset->RequiresWallConnection());
+			    ship_part_asset->RequiresPhoneConnection());
 			PartList.Add(part);
 		}
 		else

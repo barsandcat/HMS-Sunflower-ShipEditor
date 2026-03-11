@@ -83,19 +83,14 @@ FORCEINLINE bool IsTechnicalCorridorCell(ECellType cell_type)
 	return IsCabinCell(cell_type) && IsSubTypeCell(cell_type, ECellTypeFlag::SUBTYPE1);
 }
 
-FORCEINLINE bool IsDeckPhoneLineCell(ECellType cell_type)
+FORCEINLINE bool IsCabinTraversableCell(ECellType cell_type)
 {
-	return IsDeckCell(cell_type) && IsSubTypeCell(cell_type, ECellTypeFlag::SUBTYPE1);
+	return IsCabinCell(cell_type) && !IsSubTypeCell(cell_type, ECellTypeFlag::SUBTYPE2);
 }
 
 FORCEINLINE bool IsIntersectionRootCell(ECellType cell_type)
 {
 	return IsIntersectionCell(cell_type) && IsRootCell(cell_type);
-}
-
-FORCEINLINE bool IsCabinRootCell(ECellType cell_type)
-{
-	return IsCabinCell(cell_type) && IsRootCell(cell_type);
 }
 
 USTRUCT(BlueprintType)
