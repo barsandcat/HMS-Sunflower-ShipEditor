@@ -40,7 +40,7 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 		Devices[i] = device;
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
 		{
-			if (IsDeckRootCell(cell.CellType))
+			if (IsIntersectionRootCell(cell.CellType))
 			{
 				device->WallConnected = false;
 				if (device->Stats.DeviceType == EDeviceType::BRIDGE)
@@ -193,7 +193,7 @@ void FShipStructure::ConnectDecks()
 
 		if (IsDeckIntersection(deck_pos))
 		{
-			if (cell && IsDeckRootCell(cell->CellType))
+			if (cell && IsIntersectionRootCell(cell->CellType))
 			{
 				cell->Device->WallConnected = true;
 			}

@@ -65,7 +65,7 @@ void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType c
 		case ECellType::DECK_PHONE_LINE:
 			SetCellMeshComponent(cell_pos_local, IsWall(Transform(cell_pos_local)) ? StructuralWallMesh : StructuralFloorMesh);
 			break;
-		case ECellType::DECK_PHONE_LINE_ROOT:
+		case ECellType::INTERSECTION_PHONE_LINE_ROOT:
 			RemoveCellMeshComponent(cell_pos_local);
 			break;
 		case ECellType::DECK_ARMOR:

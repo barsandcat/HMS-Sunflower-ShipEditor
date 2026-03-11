@@ -17,8 +17,10 @@
 
 enum ECellTypeFlag : uint8
 {
+	TYPE_MASK = 0b000011,
 	CABIN = 0b000001,
 	DECK = 0b000010,
+	INTERSECTION = 0b000011,
 	ROOT = 0b000100,
 	SUBTYPE_MASK = 0b111000,
 	SUBTYPE1 = 0b001000,
@@ -37,7 +39,7 @@ enum class ECellType : uint8
 	CABIN_BLOCKED = ECellTypeFlag::CABIN | ECellTypeFlag::SUBTYPE2,
 	DECK = ECellTypeFlag::DECK,
 	DECK_PHONE_LINE = ECellTypeFlag::DECK | ECellTypeFlag::SUBTYPE1,
-	DECK_PHONE_LINE_ROOT = ECellTypeFlag::DECK | ECellTypeFlag::SUBTYPE1 | ECellTypeFlag::ROOT,
+	INTERSECTION_PHONE_LINE_ROOT = ECellTypeFlag::INTERSECTION | ECellTypeFlag::SUBTYPE1 | ECellTypeFlag::ROOT,
 	DECK_ARMOR = ECellTypeFlag::DECK | ECellTypeFlag::SUBTYPE2,
 };
 
@@ -46,19 +48,29 @@ FORCEINLINE bool HasCellTypeFlag(ECellType cell_type, ECellTypeFlag flag)
 	return (static_cast<uint8>(cell_type) & static_cast<uint8>(flag)) != 0;
 }
 
-FORCEINLINE uint8 IsSubTypeCell(ECellType cell_type, ECellTypeFlag sub_type)
+FORCEINLINE bool IsTypeCell(ECellType cell_type, ECellTypeFlag type)
+{
+	return (static_cast<uint8>(cell_type) & static_cast<uint8>(ECellTypeFlag::TYPE_MASK)) == type;
+}
+
+FORCEINLINE bool IsSubTypeCell(ECellType cell_type, ECellTypeFlag sub_type)
 {
 	return (static_cast<uint8>(cell_type) & static_cast<uint8>(ECellTypeFlag::SUBTYPE_MASK)) == sub_type;
 }
 
 FORCEINLINE bool IsCabinCell(ECellType cell_type)
 {
-	return HasCellTypeFlag(cell_type, ECellTypeFlag::CABIN);
+	return IsTypeCell(cell_type, ECellTypeFlag::CABIN);
 }
 
 FORCEINLINE bool IsDeckCell(ECellType cell_type)
 {
-	return HasCellTypeFlag(cell_type, ECellTypeFlag::DECK);
+	return IsTypeCell(cell_type, ECellTypeFlag::DECK);
+}
+
+FORCEINLINE bool IsIntersectionCell(ECellType cell_type)
+{
+	return IsTypeCell(cell_type, ECellTypeFlag::INTERSECTION);
 }
 
 FORCEINLINE bool IsRootCell(ECellType cell_type)
@@ -76,9 +88,9 @@ FORCEINLINE bool IsDeckPhoneLineCell(ECellType cell_type)
 	return IsDeckCell(cell_type) && IsSubTypeCell(cell_type, ECellTypeFlag::SUBTYPE1);
 }
 
-FORCEINLINE bool IsDeckRootCell(ECellType cell_type)
+FORCEINLINE bool IsIntersectionRootCell(ECellType cell_type)
 {
-	return IsDeckCell(cell_type) && IsRootCell(cell_type);
+	return IsIntersectionCell(cell_type) && IsRootCell(cell_type);
 }
 
 FORCEINLINE bool IsCabinRootCell(ECellType cell_type)

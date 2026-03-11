@@ -6,7 +6,7 @@ bool UShipPartAsset::RequiresWallConnection() const
 {
 	for (const FShipCellData& cell : Cells)
 	{
-		if (IsDeckRootCell(cell.CellType))
+		if (IsIntersectionRootCell(cell.CellType))
 		{
 			return true;
 		}
