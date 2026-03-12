@@ -125,10 +125,10 @@ void FShipStructure::AddArmor()
 		FIntVector2 neighbor_cabin_pos = *Root + d;
 		if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
 		{
-			if (neighbor_cell->CellType != ECellType::NONE)
+			if (IsCabinTraversableCell(neighbor_cell->CellType))
 			{
-				neighbor_cell->Device->CanReachTheBridge = true;
 				neighbor_cell->Visited = 2;
+				neighbor_cell->Device->CanReachTheBridge = true;
 				empty_queue.Add(neighbor_cabin_pos);
 			}
 		}
@@ -149,8 +149,16 @@ void FShipStructure::AddArmor()
 			FIntVector2 neighbor_cabin_pos = cabin_pos + d * 2;
 			FIntVector2 neighbor_deck_pos = cabin_pos + d;
 
-			// If neighbor exists and is empty, continue BFS
 			TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos);
+
+			// Add armor between traversable cabin and exterior
+			if (IsCabinTraversableCell(cell->CellType) && (!neighbor_cell || neighbor_cell->CellType == ECellType::NONE))
+			{
+				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK_ARMOR, cell->Device, cell->Update);
+				Cells.Add(neighbor_deck_pos, armor_cell);
+			}
+
+			// Add neighbor to BFS if it's traversable and not visited yet
 			if (neighbor_cell && IsCabinTraversableCell(neighbor_cell->CellType) && (neighbor_cell->Device->CanPhoneTheBridge || !neighbor_cell->Device->RequiresPhoneConnection))
 			{
 				if (neighbor_cell->Visited != 2)
@@ -159,11 +167,6 @@ void FShipStructure::AddArmor()
 					neighbor_cell->Device->CanReachTheBridge = true;
 					empty_queue.Add(neighbor_cabin_pos);
 				}
-			}
-			else
-			{
-				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK_ARMOR, cell->Device, cell->Update);
-				Cells.Add(neighbor_deck_pos, armor_cell);
 			}
 		}
 	}
