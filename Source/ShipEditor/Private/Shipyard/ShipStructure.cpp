@@ -333,10 +333,9 @@ void FShipStructure::ConnectFuel()
 						if (neighbor_cell->CellType == ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT)
 						{
 							unvisited_roots.Remove(neighbor_pos);
+							// Record neighbor's device
+							devices_in_net.Add(neighbor_cell->Device);
 						}
-
-						// Record neighbor's device
-						devices_in_net.Add(neighbor_cell->Device);
 					}
 				}
 			}
