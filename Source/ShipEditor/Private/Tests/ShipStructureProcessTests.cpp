@@ -14,7 +14,7 @@ TSharedPtr<FShipStructureDevice> MakeDevice(EDeviceType type, const FIntVector2&
 	stats.DeviceType = type;
 	stats.FuelConsumption = fuel;
 	stats.AmmoConsumption = ammo;
-	return MakeShared<FShipStructureDevice>(stats, pos);
+	return MakeShared<FShipStructureDevice>(stats, pos, nullptr);
 }
 
 void AddCell(FShipStructure& structure, const FIntVector2& pos, ECellType type, const TSharedPtr<FShipStructureDevice>& device)

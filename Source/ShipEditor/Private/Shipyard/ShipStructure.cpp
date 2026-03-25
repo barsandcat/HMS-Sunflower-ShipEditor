@@ -36,7 +36,7 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 	for (int32 i = 0; i < part_instances.Num(); i++)
 	{
 		UShipPartInstance* part_instance = part_instances[i];
-		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device->Stats, render_transform(part_instance->Transform.Position));
+		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device->Stats, render_transform(part_instance->Transform.Position), update);
 		Devices[i] = device;
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
 		{
@@ -264,6 +264,7 @@ void FShipStructure::CallUpdate() const
 		{
 			DevicesUpdate->SetDeviceStatus(device->Stats.DeviceName, device->Position, device->Usage);
 		}
+		device->Update->SetDeviceMesh(device->Position, device->Stats.Mesh);
 	}
 }
 

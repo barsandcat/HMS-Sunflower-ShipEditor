@@ -42,6 +42,9 @@ struct FDeviceStats
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AmmoConsumption = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UStaticMesh> Mesh;
 };
 
 UCLASS()

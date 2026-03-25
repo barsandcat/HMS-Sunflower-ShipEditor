@@ -18,14 +18,16 @@ struct FShipStructureDevice
 {
 	FShipStructureDevice() = default;
 	~FShipStructureDevice() = default;
-	FShipStructureDevice(const FDeviceStats& stats, const FIntVector2& pos)
-	    : Stats(stats), Position(pos)
+	FShipStructureDevice(const FDeviceStats& stats, const FIntVector2& pos, FShipRenderUpdate* update)
+	    : Stats(stats), Position(pos), Update(update)
 	{
 	}
 
 	FDeviceStats Stats;
 
 	FIntVector2 Position;
+
+	FShipRenderUpdate* Update = nullptr;
 
 	bool CanPhoneTheBridge = false;
 	bool RequiresPhoneConnection = false;
@@ -48,7 +50,7 @@ struct FShipStructureCell
 
 	ECellType CellType = ECellType::NONE;
 
-	TSharedPtr<FShipStructureDevice> Device;
+	TSharedPtr<FShipStructureDevice> Device;    // Multiple cells point to same device
 	int32 Visited = 0;
 	FShipRenderUpdate* Update = nullptr;
 };

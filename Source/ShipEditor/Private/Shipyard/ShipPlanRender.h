@@ -19,14 +19,16 @@ class FShipRenderUpdate
 {
 public:
 	FShipRenderUpdate() = delete;
-	FShipRenderUpdate(AShipPlanRender& owner, TSet<FIntVector2> current_cells);
+	FShipRenderUpdate(AShipPlanRender& owner, TSet<FIntVector2> current_cells, TSet<FIntVector2> current_device_cells);
 	void SetDeviceStatus(const FIntVector2& device_pos, float usage);
 	void SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type);
+	void SetDeviceMesh(const FIntVector2& device_pos, UStaticMesh* static_mesh);
 	~FShipRenderUpdate();
 
 private:
 	AShipPlanRender& Owner;
-	TSet<FIntVector2> CurrentCells;
+	TSet<FIntVector2> CurrentCells;          // Keys for current cell meshes in local space
+	TSet<FIntVector2> CurrentDeviceCells;    // Keys for current device meshes in local space
 };
 
 UCLASS()
@@ -92,7 +94,8 @@ public:
 
 	FShipRenderUpdate CreateRenderUpdate();
 	FShipStructure CreateStructure(FShipRenderUpdate* update);
-	void SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type);
+	void SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type);             // None to remove
+	void SetDeviceMesh(const FIntVector2& device_pos_local, UStaticMesh* static_mesh);    // nullptr to remove
 
 private:
 	void AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
@@ -105,6 +108,9 @@ private:
 
 	UPROPERTY()
 	TMap<FIntVector2, TObjectPtr<UStaticMeshComponent>> CellMeshComponents;
+
+	UPROPERTY()
+	TMap<FIntVector2, TObjectPtr<UStaticMeshComponent>> DeviceMeshComponents;
 
 	UPROPERTY()
 	TArray<TObjectPtr<UShipPartInstance>> ShipPartInstances;
