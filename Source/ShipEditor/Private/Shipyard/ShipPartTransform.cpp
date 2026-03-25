@@ -4,10 +4,10 @@
 
 namespace
 {
-FIntVector2 RotatePointAroundZ(const FIntVector2& point, int32 z_rotation)
+FIntVector2 RotatePoint(const FIntVector2& point, int32 rotation)
 {
 	FIntVector2 result = point;
-	switch (z_rotation)
+	switch (rotation)
 	{
 		case -3:
 		case 1:
@@ -30,56 +30,61 @@ FIntVector2 RotatePointAroundZ(const FIntVector2& point, int32 z_rotation)
 	return result;
 }
 
-FIntVector2 RotatePointAroundY(const FIntVector2& point, bool y_rotation)
+FIntVector2 MirrorPoint(const FIntVector2& point, bool mirror)
 {
 	FIntVector2 result = point;
-	if (y_rotation)
+	if (mirror)
 	{
 		result.X = -result.X;
 	}
 	return result;
 }
 
-int32 AddZRotation(int32 z_rotation_a, int32 z_rotation_b, bool y_rotation)
+int32 AddRotation(int32 rotation_a, int32 rotation_b, bool mirror)
 {
-	return (z_rotation_a + (y_rotation ? -z_rotation_b : z_rotation_b)) % 4;
+	return (rotation_a + (mirror ? -rotation_b : rotation_b)) % 4;
 }
 
 }    // namespace
 
-FShipPartTransform::FShipPartTransform(const FIntVector2& position, int32 z_rotation, bool y_rotation)
+FShipPartTransform::FShipPartTransform(const FIntVector2& position, int32 rotation, bool mirror)
     : Position(position)
-    , ZRotation(z_rotation)
-    , YRotation(y_rotation)
+    , Rotation(rotation)
+    , Mirror(mirror)
 {
 }
 
 void FShipPartTransform::RotateClockwise()
 {
-	ZRotation = AddZRotation(ZRotation, 1, YRotation);
+	Rotation = AddRotation(Rotation, 1, Mirror);
 }
 
 void FShipPartTransform::RotateCounterClockwise()
 {
-	ZRotation = AddZRotation(ZRotation, -1, YRotation);
+	Rotation = AddRotation(Rotation, -1, Mirror);
 }
 
 void FShipPartTransform::Flip()
 {
-	YRotation = !YRotation;
+	Mirror = !Mirror;
 }
 
 FIntVector2 FShipPartTransform::operator()(const FIntVector2& point) const
 {
-	return RotatePointAroundY(RotatePointAroundZ(point, ZRotation), YRotation) + Position;
+	return MirrorPoint(RotatePoint(point, Rotation), Mirror) + Position;
 }
 
 FShipPartTransform FShipPartTransform::operator()(const FShipPartTransform& t) const
 {
-	return {(*this)(t.Position), AddZRotation(t.ZRotation, ZRotation, t.YRotation), YRotation != t.YRotation};
+	return {(*this)(t.Position), AddRotation(t.Rotation, Rotation, t.Mirror), Mirror != t.Mirror};
 }
 
 FShipPartTransform FShipPartTransform::Inverse() const
 {
-	return {RotatePointAroundZ(RotatePointAroundY(FIntVector2::ZeroValue - Position, YRotation), -ZRotation), YRotation ? ZRotation : -ZRotation, YRotation};
+	return {RotatePoint(MirrorPoint(FIntVector2::ZeroValue - Position, Mirror), -Rotation), Mirror ? Rotation : -Rotation, Mirror};
+}
+
+FRotator FShipPartTransform::ToRotator() const
+{
+	return FRotator(Rotation * (Mirror ? 90.0f : -90.0f) + (Mirror ? 180.0f : 0.0f), 0.0f, 0.0f);
 }

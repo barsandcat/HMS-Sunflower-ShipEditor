@@ -34,7 +34,7 @@ TEST_CASE_NAMED(FPartTransformTest, "Editor::PartTransform", "[Editor][PartTrans
 		CHECK(transform(FIntVector2(2, 1)) == FIntVector2(-1, 2));
 	}
 
-	SECTION("Flip (YRotation) without rotation")
+	SECTION("Flip (Mirror) without rotation")
 	{
 		FShipPartTransform transform;
 		transform.Flip();

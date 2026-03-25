@@ -25,15 +25,15 @@ struct FShipPartTransform
 	-2: 180 to the left,
 	-3: 270 to the left */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ZRotation = 0;
+	int32 Rotation = 0;
 
 	/* Rotation around Y axis, true = 180 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool YRotation = false;
+	bool Mirror = false;
 
 	FShipPartTransform() = default;
 	~FShipPartTransform() = default;
-	FShipPartTransform(const FIntVector2& position, int32 z_rotation, bool y_rotation);
+	FShipPartTransform(const FIntVector2& position, int32 rotation, bool mirror);
 
 	void RotateClockwise();
 
@@ -45,4 +45,6 @@ struct FShipPartTransform
 
 	FShipPartTransform operator()(const FShipPartTransform& point) const;
 	FShipPartTransform Inverse() const;
+
+	FRotator ToRotator() const;
 };
