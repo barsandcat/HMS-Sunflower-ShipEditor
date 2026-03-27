@@ -97,26 +97,26 @@ void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType c
 	}
 }
 
-void AShipPlanRender::SetDeviceMesh(const FIntVector2& device_pos_local, UStaticMesh* static_mesh)
+void AShipPlanRender::SetDeviceMesh(const FShipPartTransform& device_transform_local, UStaticMesh* static_mesh)
 {
+	FShipPartTransform device_transform = Transform(device_transform_local);
 	if (IsValid(static_mesh))
 	{
-		TObjectPtr<UStaticMeshComponent> mesh_component = DeviceMeshComponents.FindRef(device_pos_local);
+		TObjectPtr<UStaticMeshComponent> mesh_component = DeviceMeshComponents.FindRef(device_transform_local.Position);
 		if (!mesh_component)
 		{
 			// Create mesh component
-			const FString name = FString::Printf(TEXT("%s_DeviceMeshComponent_%d_%d"), *GetName(), device_pos_local.X, device_pos_local.Y);
+			const FString name = FString::Printf(TEXT("%s_DeviceMeshComponent_%d_%d"), *GetName(), device_transform_local.Position.X, device_transform_local.Position.Y);
 			mesh_component = NewObject<UStaticMeshComponent>(this, *name);
 			mesh_component->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 			mesh_component->RegisterComponent();
 			mesh_component->SetStaticMesh(static_mesh);
-			DeviceMeshComponents.Add(device_pos_local, mesh_component);
+			DeviceMeshComponents.Add(device_transform_local.Position, mesh_component);
 		}
 
 		mesh_component->SetStaticMesh(static_mesh);
-		FIntVector2 device_pos = Transform(device_pos_local);
-		mesh_component->SetWorldLocation(FVector(device_pos.X * MeshSpacing, GetActorLocation().Y, device_pos.Y * MeshSpacing));
-		mesh_component->SetWorldRotation(Transform.ToRotator());
+		mesh_component->SetWorldLocation(FVector(device_transform.Position.X * MeshSpacing, GetActorLocation().Y, device_transform.Position.Y * MeshSpacing));
+		mesh_component->SetWorldRotation(device_transform.ToRotator());
 		mesh_component->UpdateComponentToWorld();
 		if (auto* overlay_material = GetRenderOverlayMaterial())
 		{
@@ -125,11 +125,11 @@ void AShipPlanRender::SetDeviceMesh(const FIntVector2& device_pos_local, UStatic
 	}
 	else
 	{
-		if (TObjectPtr<UStaticMeshComponent> mesh_component = DeviceMeshComponents.FindRef(device_pos_local))
+		if (TObjectPtr<UStaticMeshComponent> mesh_component = DeviceMeshComponents.FindRef(device_transform_local.Position))
 		{
 			mesh_component->UnregisterComponent();
 			mesh_component->DestroyComponent();
-			DeviceMeshComponents.Remove(device_pos_local);
+			DeviceMeshComponents.Remove(device_transform_local.Position);
 		}
 	}
 }
@@ -331,11 +331,11 @@ void FShipRenderUpdate::SetCellMesh(const FIntVector2& cell_pos, ECellType cell_
 	Owner.SetCellMesh(cell_pos_local, cell_type);
 }
 
-void FShipRenderUpdate::SetDeviceMesh(const FIntVector2& device_pos, UStaticMesh* static_mesh)
+void FShipRenderUpdate::SetDeviceMesh(const FShipPartTransform& device_transform, UStaticMesh* static_mesh)
 {
-	FIntVector2 device_pos_local = Owner.GetPartTransform().Inverse()(device_pos);
-	CurrentDeviceCells.Remove(device_pos_local);
-	Owner.SetDeviceMesh(device_pos_local, static_mesh);
+	FShipPartTransform device_transform_local = Owner.GetPartTransform().Inverse()(device_transform);
+	CurrentDeviceCells.Remove(device_transform_local.Position);
+	Owner.SetDeviceMesh(device_transform_local, static_mesh);
 }
 
 FShipRenderUpdate::~FShipRenderUpdate()
@@ -346,6 +346,6 @@ FShipRenderUpdate::~FShipRenderUpdate()
 	}
 	for (const FIntVector2& device_pos_local : CurrentDeviceCells)
 	{
-		Owner.SetDeviceMesh(device_pos_local, nullptr);
+		Owner.SetDeviceMesh({device_pos_local, 0, false}, nullptr);
 	}
 }

@@ -18,14 +18,14 @@ struct FShipStructureDevice
 {
 	FShipStructureDevice() = default;
 	~FShipStructureDevice() = default;
-	FShipStructureDevice(const FDeviceStats& stats, const FIntVector2& pos, FShipRenderUpdate* update)
-	    : Stats(stats), Position(pos), Update(update)
+	FShipStructureDevice(const FDeviceStats& stats, const FShipPartTransform& transform, FShipRenderUpdate* update)
+	    : Stats(stats), Transform(transform), Update(update)
 	{
 	}
 
 	FDeviceStats Stats;
 
-	FIntVector2 Position;
+	FShipPartTransform Transform;
 
 	FShipRenderUpdate* Update = nullptr;
 

@@ -22,7 +22,7 @@ public:
 	FShipRenderUpdate(AShipPlanRender& owner, TSet<FIntVector2> current_cells, TSet<FIntVector2> current_device_cells);
 	void SetDeviceStatus(const FIntVector2& device_pos, float usage);
 	void SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type);
-	void SetDeviceMesh(const FIntVector2& device_pos, UStaticMesh* static_mesh);
+	void SetDeviceMesh(const FShipPartTransform& device_transform, UStaticMesh* static_mesh);
 	~FShipRenderUpdate();
 
 private:
@@ -95,7 +95,7 @@ public:
 	FShipRenderUpdate CreateRenderUpdate();
 	FShipStructure CreateStructure(FShipRenderUpdate* update);
 	void SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type);             // None to remove
-	void SetDeviceMesh(const FIntVector2& device_pos_local, UStaticMesh* static_mesh);    // nullptr to remove
+	void SetDeviceMesh(const FShipPartTransform& device_transform_local, UStaticMesh* static_mesh);    // nullptr to remove
 
 private:
 	void AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);

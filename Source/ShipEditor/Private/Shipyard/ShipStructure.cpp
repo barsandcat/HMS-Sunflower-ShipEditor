@@ -36,7 +36,7 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 	for (int32 i = 0; i < part_instances.Num(); i++)
 	{
 		UShipPartInstance* part_instance = part_instances[i];
-		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device->Stats, render_transform(part_instance->Transform.Position), update);
+		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device->Stats, render_transform(part_instance->Transform), update);
 		Devices[i] = device;
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
 		{
@@ -262,9 +262,9 @@ void FShipStructure::CallUpdate() const
 		const TSharedPtr<FShipStructureDevice> device = i;
 		if (device->Stats.FuelConsumption != 0.0f || device->Stats.AmmoConsumption != 0.0f)
 		{
-			DevicesUpdate->SetDeviceStatus(device->Stats.DeviceName, device->Position, device->Usage);
+			DevicesUpdate->SetDeviceStatus(device->Stats.DeviceName, device->Transform.Position, device->Usage);
 		}
-		device->Update->SetDeviceMesh(device->Position, device->Stats.Mesh);
+		device->Update->SetDeviceMesh(device->Transform, device->Stats.Mesh);
 	}
 }
 
