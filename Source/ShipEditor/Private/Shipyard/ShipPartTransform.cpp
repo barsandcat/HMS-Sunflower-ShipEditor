@@ -86,5 +86,8 @@ FShipPartTransform FShipPartTransform::Inverse() const
 
 FRotator FShipPartTransform::ToRotator() const
 {
-	return FRotator(Rotation * (Mirror ? 90.0f : -90.0f) + (Mirror ? 180.0f : 0.0f), 0.0f, 0.0f);
+	int32 rotation = (Rotation + (Mirror ? 2 : 0)) % 4;
+	double pitch = rotation * (Mirror ? 90.0f : -90.0f);
+	double roll = FMath::Abs(rotation) == 2 ? 180.0f : 0.0f;
+	return FRotator(pitch, 0.0f, roll);
 }

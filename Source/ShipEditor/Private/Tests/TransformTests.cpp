@@ -119,4 +119,84 @@ TEST_CASE_NAMED(FPartTransformTest, "Editor::PartTransform", "[Editor][PartTrans
 
 		CHECK(inv(transform(FIntVector2(2, 1))) == FIntVector2(2, 1));
 	}
+
+	SECTION("To Rotator 0")
+	{
+		FShipPartTransform transform({0, 0}, 0, false);
+		FRotator rotator = transform.ToRotator();
+
+		CHECK(rotator.Pitch == 0.0f);
+		CHECK(rotator.Yaw == 0.0f);
+		CHECK(rotator.Roll == 0.0f);
+	}
+
+	SECTION("To Rotator mirror")
+	{
+		FShipPartTransform transform({0, 0}, 0, true);
+		FRotator rotator = transform.ToRotator();
+
+		CHECK(rotator.Pitch == 180.0f);
+		CHECK(rotator.Yaw == 0.0f);
+		CHECK(rotator.Roll == 180.0f);
+	}
+
+	SECTION("To Rotator 180 + mirror")
+	{
+		FShipPartTransform transform({0, 0}, 2, true);
+		FRotator rotator = transform.ToRotator();
+
+		CHECK(rotator.Pitch == 0.0f);
+		CHECK(rotator.Yaw == 0.0f);
+		CHECK(rotator.Roll == 0.0f);
+	}
+
+	SECTION("To Rotator -180 + mirror")
+	{
+		FShipPartTransform transform({0, 0}, -2, true);
+		FRotator rotator = transform.ToRotator();
+
+		CHECK(rotator.Pitch == 0.0f);
+		CHECK(rotator.Yaw == 0.0f);
+		CHECK(rotator.Roll == 0.0f);
+	}
+
+	SECTION("To Rotator 90")
+	{
+		FShipPartTransform transform({0, 0}, -1, false);
+		FRotator rotator = transform.ToRotator();
+
+		CHECK(rotator.Pitch == 90.0f);
+		CHECK(rotator.Yaw == 0.0f);
+		CHECK(rotator.Roll == 0.0f);
+	}
+
+	SECTION("To Rotator -90")
+	{
+		FShipPartTransform transform({0, 0}, 1, false);
+		FRotator rotator = transform.ToRotator();
+
+		CHECK(rotator.Pitch == -90.0f);
+		CHECK(rotator.Yaw == 0.0f);
+		CHECK(rotator.Roll == 0.0f);
+	}
+
+	SECTION("To Rotator 90 + mirror")
+	{
+		FShipPartTransform transform({0, 0}, -1, true);
+		FRotator rotator = transform.ToRotator();
+
+		CHECK(rotator.Pitch == 90.0f);
+		CHECK(rotator.Yaw == 0.0f);
+		CHECK(rotator.Roll == 0.0f);
+	}
+
+	SECTION("To Rotator -90 + mirror")
+	{
+		FShipPartTransform transform({0, 0}, 1, true);
+		FRotator rotator = transform.ToRotator();
+
+		CHECK(rotator.Pitch == 270.0f);
+		CHECK(rotator.Yaw == 0.0f);
+		CHECK(rotator.Roll == 0.0f);
+	}
 }

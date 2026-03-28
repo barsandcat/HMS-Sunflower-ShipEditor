@@ -2,6 +2,7 @@
 	"id": "MyTests",
 	"name": "MyTests",
 	"enabledTests": [
+		"Editor.ShipStructure.Process",
 		"Editor.PartTransform"
 	]
 }
