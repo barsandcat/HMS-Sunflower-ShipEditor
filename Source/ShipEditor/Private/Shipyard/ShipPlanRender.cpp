@@ -80,7 +80,6 @@ void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType c
 			SetCellMeshComponent(cell_pos_local, IsWall(Transform(cell_pos_local)) ? WallMesh : FloorMesh);
 			break;
 		case ECellType::CABIN:
-		case ECellType::CABIN_BLOCKED:
 			SetCellMeshComponent(cell_pos_local, CellMesh);
 			break;
 		case ECellType::CABIN_TECHNICAL_CORRIDOR:
@@ -90,6 +89,7 @@ void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType c
 			SetCellMeshComponent(cell_pos_local, TechnicalCorridorRootMesh);
 			break;
 		case ECellType::NONE:
+		case ECellType::CABIN_BLOCKED:
 			RemoveCellMeshComponent(cell_pos_local);
 			break;
 		default:
