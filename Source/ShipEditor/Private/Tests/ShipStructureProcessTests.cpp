@@ -34,7 +34,7 @@ TSharedPtr<FShipStructureDevice> AddBridgeRoot(FShipStructure& structure, const 
 
 }    // namespace
 
-TEST_CASE_NAMED(FShipStructureProcessTest, "Editor::ShipStructure::Process", "[Editor][ShipStructure]")
+TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process", "[ShipEditor][ShipStructure]")
 {
 	SECTION("Decks connected to root become DECK_PHONE_LINE")
 	{

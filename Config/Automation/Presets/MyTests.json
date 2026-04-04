@@ -2,7 +2,8 @@
 	"id": "MyTests",
 	"name": "MyTests",
 	"enabledTests": [
-		"Editor.ShipStructure.Process",
-		"Editor.PartTransform"
+		"ShipEditor.ShipStructure.Process",
+		"ShipEditor.DeviceSector",
+		"ShipEditor.PartTransform"
 	]
 }
