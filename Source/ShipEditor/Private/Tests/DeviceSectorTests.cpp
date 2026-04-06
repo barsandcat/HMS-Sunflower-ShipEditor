@@ -7,6 +7,7 @@ namespace
 {
 
 constexpr float kAngleTol = 0.001f;
+constexpr float kDeg5 = PI / 36.0f;
 constexpr float kDeg10 = PI / 18.0f;
 constexpr float kDeg20 = PI / 9.0f;
 constexpr float kDeg30 = PI / 6.0f;
@@ -92,5 +93,36 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 
 		FDeviceSector combined = CombineDeviceSectors(a, b);
 		CHECK(!combined.IsValid());
+	}
+
+	SECTION("Find common sector for overlapping sectors")
+	{
+		const FDeviceSector a(0.0f, kDeg30);
+		const FDeviceSector b(kDeg10, kDeg30);
+
+		FDeviceSector common = FindCommonSector(a, b);
+		CHECK(common.IsValid());
+		CHECK(IsAngleNear(common.Rotation, kDeg5));
+		CHECK(FMath::IsNearlyEqual(common.Width, kDeg20, kAngleTol));
+	}
+
+	SECTION("Find common sector returns invalid when no overlap")
+	{
+		const FDeviceSector a(kDeg90, kDeg20);
+		const FDeviceSector b(kDeg200, kDeg30);
+
+		FDeviceSector common = FindCommonSector(a, b);
+		CHECK(!common.IsValid());
+	}
+
+	SECTION("Find common sector with full circle")
+	{
+		const FDeviceSector a(0.0f, 2.0f * kDeg180);
+		const FDeviceSector b(kDeg10, kDeg30);
+
+		FDeviceSector common = FindCommonSector(a, b);
+		CHECK(common.IsValid());
+		CHECK(IsAngleNear(common.Rotation, kDeg10));
+		CHECK(FMath::IsNearlyEqual(common.Width, kDeg30, kAngleTol));
 	}
 }

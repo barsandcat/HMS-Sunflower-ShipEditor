@@ -57,6 +57,8 @@ FDeviceSector MakeBlockedDeviceSector(const FIntVector2& device_center, const FI
 // Returns true if two sectors overlap (inclusive).
 bool DoDeviceSectorsOverlap(const FDeviceSector& a, const FDeviceSector& b);
 
-// Combines two overlapping sectors into one. Returns false if they do not overlap.
 // Combines two overlapping sectors into one. Returns invalid sector if they do not overlap.
 FDeviceSector CombineDeviceSectors(const FDeviceSector& a, const FDeviceSector& b);
+
+// Returns the overlap of two sectors. Returns invalid sector if they do not overlap.
+FDeviceSector FindCommonSector(const FDeviceSector& a, const FDeviceSector& b);

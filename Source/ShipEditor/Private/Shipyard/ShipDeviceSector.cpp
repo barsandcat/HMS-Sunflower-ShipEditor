@@ -143,3 +143,50 @@ FDeviceSector CombineDeviceSectors(const FDeviceSector& a, const FDeviceSector& 
 	const float union_rotation = DeviceSectorMath::NormalizeAngleRadians(union_start + union_width * 0.5f);
 	return {union_rotation, ClampWidthRadians(union_width)};
 }
+
+FDeviceSector FindCommonSector(const FDeviceSector& a, const FDeviceSector& b)
+{
+	checkf(IsNormalizedSector(a), TEXT("Expected normalized device sector A (Rotation in [0, 2*PI), Width in [0, 2*PI])."));
+	checkf(IsNormalizedSector(b), TEXT("Expected normalized device sector B (Rotation in [0, 2*PI), Width in [0, 2*PI])."));
+
+	if (!DoDeviceSectorsOverlap(a, b))
+	{
+		return {};
+	}
+
+	if (a.Width >= kFullCircleRadians - kAngleTolerance)
+	{
+		return b;
+	}
+	if (b.Width >= kFullCircleRadians - kAngleTolerance)
+	{
+		return a;
+	}
+
+	float rotation_b = b.Rotation;
+	if (rotation_b - a.Rotation > PI)
+	{
+		rotation_b -= kFullCircleRadians;
+	}
+	else if (rotation_b - a.Rotation < -PI)
+	{
+		rotation_b += kFullCircleRadians;
+	}
+
+	const float start_a = a.Rotation - a.Width * 0.5f;
+	const float end_a = a.Rotation + a.Width * 0.5f;
+	const float start_b = rotation_b - b.Width * 0.5f;
+	const float end_b = rotation_b + b.Width * 0.5f;
+
+	const float common_start = FMath::Max(start_a, start_b);
+	const float common_end = FMath::Min(end_a, end_b);
+	const float common_width = common_end - common_start;
+
+	if (common_width <= kAngleTolerance)
+	{
+		return {};
+	}
+
+	const float common_rotation = DeviceSectorMath::NormalizeAngleRadians(common_start + common_width * 0.5f);
+	return {common_rotation, ClampWidthRadians(common_width)};
+}
