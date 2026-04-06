@@ -28,7 +28,7 @@ bool IsNormalizedSector(const FDeviceSector& sector)
 
 }    // namespace
 
-FDeviceSector MakeBlockedDeviceSector(const FIntVector2& device_center, const FIntVector2& cabin_position, float grid_size)
+FDeviceSector FindAvailableSector(const FIntVector2& device_center, const FIntVector2& cabin_position, float grid_size)
 {
 	checkf(grid_size > 0.0f, TEXT("Expected positive grid size."));
 
@@ -39,7 +39,7 @@ FDeviceSector MakeBlockedDeviceSector(const FIntVector2& device_center, const FI
 	const FVector2D delta = device_world - cabin_world;
 	if (FMath::Abs(delta.X) <= half_size && FMath::Abs(delta.Y) <= half_size)
 	{
-		return {0.0f, kFullCircleRadians};
+		return {};
 	}
 
 	TArray<float> angles;
@@ -63,7 +63,7 @@ FDeviceSector MakeBlockedDeviceSector(const FIntVector2& device_center, const FI
 
 	// Max gap between angles will be an unblocked sector, i.e. sector that does not include cabin
 	float max_gap = -1.0f;
-	float end_of_max_gap = 0.0f;
+	float start_of_max_gap = 0.0f;
 	for (int32 i = 0; i < angles.Num(); i++)
 	{
 		int32 next_index = (i + 1) % angles.Num();
@@ -72,22 +72,21 @@ FDeviceSector MakeBlockedDeviceSector(const FIntVector2& device_center, const FI
 		{
 			next = next + kFullCircleRadians;
 		}
-		const float gap = next - angles[i];
+		const float current = angles[i];
+		const float gap = next - current;
 		if (gap > max_gap)
 		{
 			max_gap = gap;
-			end_of_max_gap = angles[next_index];
+			start_of_max_gap = current;
 		}
 	}
 
-	// Since max_gap is the unblocked sector, invert it to get the blocked sector width
-	const float width = ClampWidthRadians(kFullCircleRadians - max_gap);
-	const float rotation = DeviceSectorMath::NormalizeAngleRadians(end_of_max_gap + width * 0.5f);
+	const float rotation = DeviceSectorMath::NormalizeAngleRadians(start_of_max_gap + max_gap * 0.5f);
 
-	return {rotation, width};
+	return {rotation, max_gap};
 }
 
-bool DoDeviceSectorsOverlap(const FDeviceSector& a, const FDeviceSector& b)
+bool DoSectorsOverlap(const FDeviceSector& a, const FDeviceSector& b)
 {
 	checkf(IsNormalizedSector(a), TEXT("Expected normalized device sector A (Rotation in [0, 2*PI), Width in [0, 2*PI])."));
 	checkf(IsNormalizedSector(b), TEXT("Expected normalized device sector B (Rotation in [0, 2*PI), Width in [0, 2*PI])."));
@@ -102,9 +101,9 @@ bool DoDeviceSectorsOverlap(const FDeviceSector& a, const FDeviceSector& b)
 	return distance <= half_sum + kAngleTolerance;
 }
 
-FDeviceSector CombineDeviceSectors(const FDeviceSector& a, const FDeviceSector& b)
+FDeviceSector CombineSectors(const FDeviceSector& a, const FDeviceSector& b)
 {
-	if (!DoDeviceSectorsOverlap(a, b))
+	if (!DoSectorsOverlap(a, b))
 	{
 		return {};
 	}
@@ -149,7 +148,7 @@ FDeviceSector FindCommonSector(const FDeviceSector& a, const FDeviceSector& b)
 	checkf(IsNormalizedSector(a), TEXT("Expected normalized device sector A (Rotation in [0, 2*PI), Width in [0, 2*PI])."));
 	checkf(IsNormalizedSector(b), TEXT("Expected normalized device sector B (Rotation in [0, 2*PI), Width in [0, 2*PI])."));
 
-	if (!DoDeviceSectorsOverlap(a, b))
+	if (!DoSectorsOverlap(a, b))
 	{
 		return {};
 	}

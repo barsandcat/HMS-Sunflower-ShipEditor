@@ -51,14 +51,14 @@ FORCEINLINE float DeltaAngleRadians(float angle, float reference)
 
 }    // namespace DeviceSectorMath
 
-// Returns the angular sector (in radians) blocked by a cabin cell from a device center.
-FDeviceSector MakeBlockedDeviceSector(const FIntVector2& device_center, const FIntVector2& cabin_position, float grid_size);
+// Returns the angular sector (in radians) that is not obstructed by a cabin  around a device center.
+FDeviceSector FindAvailableSector(const FIntVector2& device_center, const FIntVector2& cabin_position, float grid_size);
 
 // Returns true if two sectors overlap (inclusive).
-bool DoDeviceSectorsOverlap(const FDeviceSector& a, const FDeviceSector& b);
+bool DoSectorsOverlap(const FDeviceSector& a, const FDeviceSector& b);
 
 // Combines two overlapping sectors into one. Returns invalid sector if they do not overlap.
-FDeviceSector CombineDeviceSectors(const FDeviceSector& a, const FDeviceSector& b);
+FDeviceSector CombineSectors(const FDeviceSector& a, const FDeviceSector& b);
 
 // Returns the overlap of two sectors. Returns invalid sector if they do not overlap.
 FDeviceSector FindCommonSector(const FDeviceSector& a, const FDeviceSector& b);

@@ -25,32 +25,32 @@ bool IsAngleNear(float angle, float expected)
 
 TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][DeviceSector]")
 {
-	SECTION("Blocked sector for cabin to the right")
+	SECTION("Available sector for cabin to the right")
 	{
 		const float grid_size = 1.0f;
-		FDeviceSector sector = MakeBlockedDeviceSector(FIntVector2(0, 0), FIntVector2(2, 0), grid_size);
+		FDeviceSector sector = FindAvailableSector(FIntVector2(0, 0), FIntVector2(2, 0), grid_size);
 
 		const float expected_width = 2.0f * FMath::Atan2(0.5f * grid_size, 1.5f * grid_size);
-		CHECK(IsAngleNear(sector.Rotation, 0.0f));
-		CHECK(FMath::IsNearlyEqual(sector.Width, expected_width, kAngleTol));
+		CHECK(IsAngleNear(sector.Rotation, kDeg180));
+		CHECK(FMath::IsNearlyEqual(sector.Width, 2.0f * kDeg180 - expected_width, kAngleTol));
 	}
 
-	SECTION("Blocked sector for cabin above")
+	SECTION("Available sector for cabin above")
 	{
 		const float grid_size = 1.0f;
-		FDeviceSector sector = MakeBlockedDeviceSector(FIntVector2(0, 0), FIntVector2(0, 2), grid_size);
+		FDeviceSector sector = FindAvailableSector(FIntVector2(0, 0), FIntVector2(0, 2), grid_size);
 
 		const float expected_width = 2.0f * FMath::Atan2(0.5f * grid_size, 1.5f * grid_size);
-		CHECK(IsAngleNear(sector.Rotation, PI * 0.5f));
-		CHECK(FMath::IsNearlyEqual(sector.Width, expected_width, kAngleTol));
+		CHECK(IsAngleNear(sector.Rotation, 3.0f * kDeg90));
+		CHECK(FMath::IsNearlyEqual(sector.Width, 2.0f * kDeg180 - expected_width, kAngleTol));
 	}
 
-	SECTION("Device inside cabin blocks full circle")
+	SECTION("Device inside cabin returns invalid sector")
 	{
 		const float grid_size = 2.0f;
-		FDeviceSector sector = MakeBlockedDeviceSector(FIntVector2(0, 0), FIntVector2(0, 0), grid_size);
+		FDeviceSector sector = FindAvailableSector(FIntVector2(0, 0), FIntVector2(0, 0), grid_size);
 
-		CHECK(FMath::IsNearlyEqual(sector.Width, 2.0f * PI, kAngleTol));
+		CHECK(!sector.IsValid());
 	}
 
 	SECTION("Overlap detection across wrap")
@@ -60,8 +60,8 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 		const FDeviceSector c(kDeg90, kDeg20);     // 90deg center, 20deg width
 		const FDeviceSector d(kDeg200, kDeg30);    // 200deg center, 30deg width
 
-		CHECK(DoDeviceSectorsOverlap(a, b));
-		CHECK(!DoDeviceSectorsOverlap(c, d));
+		CHECK(DoSectorsOverlap(a, b));
+		CHECK(!DoSectorsOverlap(c, d));
 	}
 
 	SECTION("Combine overlapping sectors")
@@ -69,7 +69,7 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 		const FDeviceSector a(kDeg350, kDeg30);
 		const FDeviceSector b(kDeg10, kDeg30);
 
-		FDeviceSector combined = CombineDeviceSectors(a, b);
+		FDeviceSector combined = CombineSectors(a, b);
 		CHECK(combined.IsValid());
 		CHECK(IsAngleNear(combined.Rotation, 0.0f));
 		CHECK(FMath::IsNearlyEqual(combined.Width, 5.0f * kDeg10, kAngleTol));
@@ -80,7 +80,7 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 		const FDeviceSector a(0.0f, kDeg180);
 		const FDeviceSector b(kDeg180, kDeg180);
 
-		FDeviceSector combined = CombineDeviceSectors(a, b);
+		FDeviceSector combined = CombineSectors(a, b);
 		CHECK(combined.IsValid());
 		CHECK(IsAngleNear(combined.Rotation, 0.0f));
 		CHECK(FMath::IsNearlyEqual(combined.Width, 2.0f * kDeg180, kAngleTol));
@@ -91,7 +91,7 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 		const FDeviceSector a(kDeg90, kDeg20);
 		const FDeviceSector b(kDeg200, kDeg30);
 
-		FDeviceSector combined = CombineDeviceSectors(a, b);
+		FDeviceSector combined = CombineSectors(a, b);
 		CHECK(!combined.IsValid());
 	}
 
