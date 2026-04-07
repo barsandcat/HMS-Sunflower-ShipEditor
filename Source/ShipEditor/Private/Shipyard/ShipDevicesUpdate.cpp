@@ -5,10 +5,10 @@ FShipDevicesUpdate::FShipDevicesUpdate(UVMDevices& devices):VMDevices(devices)
     CurrentCells = devices.GetCurrentCells();
 }
 
-void FShipDevicesUpdate::SetDeviceStatus(const FText& name, const FIntVector2& device_pos, float usage)
+void FShipDevicesUpdate::SetDeviceStatus(const FText& name, const FIntVector2& device_pos, float usage, const FDeviceSector& available_sector, const FDeviceSector& obstructed_sector)
 {
     CurrentCells.Remove(device_pos);
-    VMDevices.UpdateDeviceStatus(name, device_pos, usage);
+	VMDevices.UpdateDeviceStatus(name, device_pos, usage, available_sector, obstructed_sector);
 }
 
 FShipDevicesUpdate::~FShipDevicesUpdate()

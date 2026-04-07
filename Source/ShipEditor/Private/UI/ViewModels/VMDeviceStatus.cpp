@@ -31,3 +31,23 @@ FIntVector2 UVMDeviceStatus::GetCellId() const
 {
 	return CellId;
 }
+
+void UVMDeviceStatus::SetAvailableSector(const FDeviceSector& sector)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(AvailableSector, sector);
+}
+
+FDeviceSector UVMDeviceStatus::GetAvailableSector() const
+{
+	return AvailableSector;
+}
+
+void UVMDeviceStatus::SetObstructedSector(const FDeviceSector& sector)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(ObstructedSector, sector);
+}
+
+FDeviceSector UVMDeviceStatus::GetObstructedSector() const
+{
+	return ObstructedSector;
+}

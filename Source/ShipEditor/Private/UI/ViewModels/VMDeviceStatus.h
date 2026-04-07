@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MVVMViewModelBase.h"
+#include "Shipyard/ShipDeviceSector.h"
 
 #include "VMDeviceStatus.generated.h"
 
@@ -21,6 +22,12 @@ protected:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
 	FIntVector2 CellId;
 
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
+	FDeviceSector AvailableSector;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
+	FDeviceSector ObstructedSector;
+
 public:
 	void SetName(const FText& name);
 	FText GetName() const;
@@ -30,4 +37,10 @@ public:
 
 	void SetCellId(const FIntVector2& cell_id);
 	FIntVector2 GetCellId() const;
+
+	void SetAvailableSector(const FDeviceSector& sector);
+	FDeviceSector GetAvailableSector() const;
+
+	void SetObstructedSector(const FDeviceSector& sector);
+	FDeviceSector GetObstructedSector() const;
 };

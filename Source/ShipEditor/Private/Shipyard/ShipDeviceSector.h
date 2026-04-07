@@ -4,18 +4,37 @@
 
 #include "CoreMinimal.h"
 
+#include "ShipDeviceSector.generated.h"
+
+USTRUCT(BlueprintType)
 struct FDeviceSector
 {
+	GENERATED_BODY()
+
 	// Rotation in radians. 0 points along +X, PI/2 along +Y.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Rotation = 0.0f;
 
 	// Angular width in radians, clamped to [0, 2*PI].
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Width = 0.0f;
 
 	FDeviceSector() = default;
 	FDeviceSector(float rotation, float width)
 	    : Rotation(rotation), Width(width)
 	{
+	}
+
+	FDeviceSector& operator=(const FDeviceSector& other) = default;
+
+	bool operator==(const FDeviceSector& other) const
+	{
+		return Rotation == other.Rotation && Width == other.Width;
+	}
+
+	bool operator!=(const FDeviceSector& other) const
+	{
+		return !(*this == other);
 	}
 
 	bool IsValid() const

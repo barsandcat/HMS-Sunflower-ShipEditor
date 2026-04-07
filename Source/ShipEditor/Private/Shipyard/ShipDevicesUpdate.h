@@ -10,7 +10,7 @@ class FShipDevicesUpdate
 public:
 	FShipDevicesUpdate() = delete;
 	FShipDevicesUpdate(UVMDevices& devices_vm);
-	void SetDeviceStatus(const FText& name, const FIntVector2& device_pos, float usage);
+	void SetDeviceStatus(const FText& name, const FIntVector2& device_pos, float usage, const FDeviceSector& available_sector, const FDeviceSector& obstructed_sector);
 	~FShipDevicesUpdate();
 
 private:

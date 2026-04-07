@@ -28,7 +28,7 @@ public:
 		return result;
 	}
 
-	void UpdateDeviceStatus(const FText& name, const FIntVector2& device_pos, float usage);
+	void UpdateDeviceStatus(const FText& name, const FIntVector2& device_pos, float usage, const FDeviceSector& available_sector, const FDeviceSector& obstructed_sector);
 	void RemoveDevice(const FIntVector2& device_pos);
 
 private:

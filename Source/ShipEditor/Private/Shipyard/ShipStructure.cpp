@@ -260,9 +260,16 @@ void FShipStructure::CallUpdate() const
 	for (const auto& i : Devices)
 	{
 		const TSharedPtr<FShipStructureDevice> device = i;
+		FDeviceSector available_sector;
+		FDeviceSector obstructed_sector;
+		if (device->Stats.DeviceType == EDeviceType::GUN)
+		{
+			available_sector = {0.0f, PI / 8};
+			obstructed_sector = {PI / 8, PI / 8};
+		}
 		if (device->Stats.FuelConsumption != 0.0f || device->Stats.AmmoConsumption != 0.0f)
 		{
-			DevicesUpdate->SetDeviceStatus(device->Stats.DeviceName, device->Transform.Position, device->Usage);
+			DevicesUpdate->SetDeviceStatus(device->Stats.DeviceName, device->Transform.Position, device->Usage, available_sector, obstructed_sector);
 		}
 		device->Update->SetDeviceMesh(device->Transform, device->Stats.Mesh);
 	}
