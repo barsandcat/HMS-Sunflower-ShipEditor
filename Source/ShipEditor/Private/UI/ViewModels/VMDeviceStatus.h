@@ -26,7 +26,7 @@ protected:
 	FDeviceSector AvailableSector;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter)
-	FDeviceSector ObstructedSector;
+	FDeviceSector Sector;
 
 public:
 	void SetName(const FText& name);
@@ -41,6 +41,6 @@ public:
 	void SetAvailableSector(const FDeviceSector& sector);
 	FDeviceSector GetAvailableSector() const;
 
-	void SetObstructedSector(const FDeviceSector& sector);
-	FDeviceSector GetObstructedSector() const;
+	void SetSector(const FDeviceSector& sector);
+	FDeviceSector GetSector() const;
 };

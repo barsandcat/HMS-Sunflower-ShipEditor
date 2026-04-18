@@ -4,14 +4,14 @@
 
 #include "VMDevices.h"
 
-void UVMDevices::UpdateDeviceStatus(const FText& name, const FIntVector2& device_pos, float usage, const FDeviceSector& available_sector, const FDeviceSector& obstructed_sector)
+void UVMDevices::UpdateDeviceStatus(const FText& name, const FIntVector2& device_pos, float usage, const FDeviceSector& sector, const FDeviceSector& available_sector)
 {
 	if (UVMDeviceStatus* device = DeviceMap.FindRef(device_pos))
 	{
 		device->SetName(name);
 		device->SetUsage(usage);
 		device->SetAvailableSector(available_sector);
-		device->SetObstructedSector(obstructed_sector);
+		device->SetSector(sector);
 	}
 	else
 	{
@@ -20,7 +20,7 @@ void UVMDevices::UpdateDeviceStatus(const FText& name, const FIntVector2& device
 		new_device->SetName(name);
 		new_device->SetUsage(usage);
 		new_device->SetAvailableSector(available_sector);
-		new_device->SetObstructedSector(obstructed_sector);
+		new_device->SetSector(sector);
 		DeviceMap.Add(device_pos, new_device);
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(GetDeviceList);
 	}

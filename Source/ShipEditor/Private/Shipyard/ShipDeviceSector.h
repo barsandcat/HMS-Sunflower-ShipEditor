@@ -11,11 +11,11 @@ struct FDeviceSector
 {
 	GENERATED_BODY()
 
-	// Rotation in radians. 0 points along +X, PI/2 along +Y.
+	// Rotation in degrees. 0 points along +X, 90 along +Y.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Rotation = 0.0f;
 
-	// Angular width in radians, clamped to [0, 2*PI].
+	// Angular width in degrees, clamped to [0, 360].
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Width = 0.0f;
 
@@ -41,37 +41,43 @@ struct FDeviceSector
 	{
 		return Width > 0.0f;
 	}
+
+	FString ToDebugString() const
+	{
+		return FString::Printf(TEXT("R:%.0f W:%.0f"), Rotation, Width);
+	}
 };
 
 namespace DeviceSectorMath
 {
 
-constexpr float kFullCircleRadians = 2.0f * PI;
+constexpr float kFullCircleDegrees = 360.0f;
+constexpr float kHalfCircleDegrees = 180.0f;
 
-FORCEINLINE float NormalizeAngleRadians(float angle)
+FORCEINLINE float NormalizeAngleDegrees(float angle)
 {
-	float normalized = FMath::Fmod(angle, kFullCircleRadians);
+	float normalized = FMath::Fmod(angle, kFullCircleDegrees);
 	if (normalized < 0.0f)
 	{
-		normalized += kFullCircleRadians;
+		normalized += kFullCircleDegrees;
 	}
 	return normalized;
 }
 
-FORCEINLINE float DeltaAngleRadians(float angle, float reference)
+FORCEINLINE float DeltaAngleDegrees(float angle, float reference)
 {
-	float delta = NormalizeAngleRadians(angle - reference);
-	if (delta > PI)
+	float delta = NormalizeAngleDegrees(angle - reference);
+	if (delta > kHalfCircleDegrees)
 	{
-		delta -= kFullCircleRadians;
+		delta -= kFullCircleDegrees;
 	}
 	return delta;
 }
 
 }    // namespace DeviceSectorMath
 
-// Returns the angular sector (in radians) that is not obstructed by a cabin  around a device center.
-FDeviceSector FindAvailableSector(const FIntVector2& device_center, const FIntVector2& cabin_position, float grid_size);
+// Returns the angular sector (in degrees) that is not obstructed by a cabin around a device center.
+FDeviceSector FindAvailableSector(const FIntVector2& device_center, const FIntVector2& cabin_position);
 
 // Returns true if two sectors overlap (inclusive).
 bool DoSectorsOverlap(const FDeviceSector& a, const FDeviceSector& b);

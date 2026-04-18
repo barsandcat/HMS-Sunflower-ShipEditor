@@ -34,6 +34,10 @@ FIntVector2 UVMDeviceStatus::GetCellId() const
 
 void UVMDeviceStatus::SetAvailableSector(const FDeviceSector& sector)
 {
+	if (!sector.IsValid())
+	{
+		return;
+	}
 	UE_MVVM_SET_PROPERTY_VALUE(AvailableSector, sector);
 }
 
@@ -42,12 +46,16 @@ FDeviceSector UVMDeviceStatus::GetAvailableSector() const
 	return AvailableSector;
 }
 
-void UVMDeviceStatus::SetObstructedSector(const FDeviceSector& sector)
+void UVMDeviceStatus::SetSector(const FDeviceSector& sector)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(ObstructedSector, sector);
+	if (!sector.IsValid())
+	{
+		return;
+	}
+	UE_MVVM_SET_PROPERTY_VALUE(Sector, sector);
 }
 
-FDeviceSector UVMDeviceStatus::GetObstructedSector() const
+FDeviceSector UVMDeviceStatus::GetSector() const
 {
-	return ObstructedSector;
+	return Sector;
 }

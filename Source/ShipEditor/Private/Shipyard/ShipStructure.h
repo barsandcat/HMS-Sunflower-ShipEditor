@@ -18,8 +18,11 @@ struct FShipStructureDevice
 {
 	FShipStructureDevice() = default;
 	~FShipStructureDevice() = default;
-	FShipStructureDevice(const FDeviceStats& stats, const FShipPartTransform& transform, FShipRenderUpdate* update)
-	    : Stats(stats), Transform(transform), Update(update)
+	FShipStructureDevice(const FDeviceStats& stats, const FShipPartTransform& transform, float rotation, FShipRenderUpdate* update)
+	    : Stats(stats)
+	    , Transform(transform)
+	    , Update(update)
+	    , Sector(rotation, FMath::Clamp(stats.SectorWidth, 0.0f, DeviceSectorMath::kFullCircleDegrees))
 	{
 	}
 
@@ -37,6 +40,9 @@ struct FShipStructureDevice
 		return Stats.DeviceType == EDeviceType::BRIDGE || CanReachTheBridge && (CanPhoneTheBridge || !RequiresPhoneConnection);
 	}
 	float Usage = 0.0f;
+	FDeviceSector Sector;
+	FDeviceSector AvailableSector;
+	TArray<FDeviceSector> AvailableSectors;
 };
 
 struct FShipStructureCell
@@ -74,7 +80,8 @@ struct FShipStructure
 	void SetDevicesUpdate(FShipDevicesUpdate* devices_update);
 	void CallUpdate() const;
 
-	void ConnectFuel();
+	void ConnectTechnicalCorridors();
+	void CalculateDeviceSectors();
 
 	void CalculateFuelConsumption(const TSet<TSharedPtr<FShipStructureDevice>>& device_set);
 	void CalculateAmmoConsumption(const TSet<TSharedPtr<FShipStructureDevice>>& device_set);

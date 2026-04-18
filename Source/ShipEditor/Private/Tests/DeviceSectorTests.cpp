@@ -6,19 +6,11 @@
 namespace
 {
 
-constexpr float kAngleTol = 0.001f;
-constexpr float kDeg5 = PI / 36.0f;
-constexpr float kDeg10 = PI / 18.0f;
-constexpr float kDeg20 = PI / 9.0f;
-constexpr float kDeg30 = PI / 6.0f;
-constexpr float kDeg90 = PI / 2.0f;
-constexpr float kDeg180 = PI;
-constexpr float kDeg200 = 10.0f * PI / 9.0f;
-constexpr float kDeg350 = 35.0f * PI / 18.0f;
+constexpr float kAngleTol = 0.05f;
 
 bool IsAngleNear(float angle, float expected)
 {
-	return FMath::Abs(DeviceSectorMath::DeltaAngleRadians(angle, expected)) <= kAngleTol;
+	return FMath::Abs(DeviceSectorMath::DeltaAngleDegrees(angle, expected)) <= kAngleTol;
 }
 
 }    // namespace
@@ -27,38 +19,45 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 {
 	SECTION("Available sector for cabin to the right")
 	{
-		const float grid_size = 1.0f;
-		FDeviceSector sector = FindAvailableSector(FIntVector2(0, 0), FIntVector2(2, 0), grid_size);
+		FDeviceSector sector = FindAvailableSector(FIntVector2(0, 0), FIntVector2(2, 0));
 
-		const float expected_width = 2.0f * FMath::Atan2(0.5f * grid_size, 1.5f * grid_size);
-		CHECK(IsAngleNear(sector.Rotation, kDeg180));
-		CHECK(FMath::IsNearlyEqual(sector.Width, 2.0f * kDeg180 - expected_width, kAngleTol));
+		CHECK(IsAngleNear(sector.Rotation, 180));
+		CHECK(IsAngleNear(sector.Width, 270));
 	}
 
 	SECTION("Available sector for cabin above")
 	{
-		const float grid_size = 1.0f;
-		FDeviceSector sector = FindAvailableSector(FIntVector2(0, 0), FIntVector2(0, 2), grid_size);
+		FDeviceSector sector = FindAvailableSector(FIntVector2(0, 0), FIntVector2(0, 2));
 
-		const float expected_width = 2.0f * FMath::Atan2(0.5f * grid_size, 1.5f * grid_size);
-		CHECK(IsAngleNear(sector.Rotation, 3.0f * kDeg90));
-		CHECK(FMath::IsNearlyEqual(sector.Width, 2.0f * kDeg180 - expected_width, kAngleTol));
+		CHECK(IsAngleNear(sector.Rotation, 270));
+		CHECK(IsAngleNear(sector.Width, 270));
+	}
+
+	SECTION("Available sector symmetry")
+	{
+		FDeviceSector sector1 = FindAvailableSector(FIntVector2(0, 0), FIntVector2(2, 2));
+		FDeviceSector sector2 = FindAvailableSector(FIntVector2(0, 0), FIntVector2(-2, 2));
+		FDeviceSector sector3 = FindAvailableSector(FIntVector2(0, 0), FIntVector2(2, -2));
+		FDeviceSector sector4 = FindAvailableSector(FIntVector2(0, 0), FIntVector2(-2, -2));
+
+		CHECK(IsAngleNear(sector1.Width, sector2.Width));
+		CHECK(IsAngleNear(sector1.Width, sector3.Width));
+		CHECK(IsAngleNear(sector1.Width, sector4.Width));
 	}
 
 	SECTION("Device inside cabin returns invalid sector")
 	{
-		const float grid_size = 2.0f;
-		FDeviceSector sector = FindAvailableSector(FIntVector2(0, 0), FIntVector2(0, 0), grid_size);
+		FDeviceSector sector = FindAvailableSector(FIntVector2(0, 0), FIntVector2(0, 0));
 
 		CHECK(!sector.IsValid());
 	}
 
 	SECTION("Overlap detection across wrap")
 	{
-		const FDeviceSector a(kDeg350, kDeg30);    // 350deg center, 30deg width
-		const FDeviceSector b(kDeg10, kDeg30);     // 10deg center, 30deg width
-		const FDeviceSector c(kDeg90, kDeg20);     // 90deg center, 20deg width
-		const FDeviceSector d(kDeg200, kDeg30);    // 200deg center, 30deg width
+		const FDeviceSector a(350, 30);    // 350deg center, 30deg width
+		const FDeviceSector b(10, 30);     // 10deg center, 30deg width
+		const FDeviceSector c(90, 20);     // 90deg center, 20deg width
+		const FDeviceSector d(200, 30);    // 200deg center, 30deg width
 
 		CHECK(DoSectorsOverlap(a, b));
 		CHECK(!DoSectorsOverlap(c, d));
@@ -66,30 +65,30 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 
 	SECTION("Combine overlapping sectors")
 	{
-		const FDeviceSector a(kDeg350, kDeg30);
-		const FDeviceSector b(kDeg10, kDeg30);
+		const FDeviceSector a(350, 30);
+		const FDeviceSector b(10, 30);
 
 		FDeviceSector combined = CombineSectors(a, b);
 		CHECK(combined.IsValid());
 		CHECK(IsAngleNear(combined.Rotation, 0.0f));
-		CHECK(FMath::IsNearlyEqual(combined.Width, 5.0f * kDeg10, kAngleTol));
+		CHECK(IsAngleNear(combined.Width, 50));
 	}
 
 	SECTION("Combine two 180 degree sectors into full circle")
 	{
-		const FDeviceSector a(0.0f, kDeg180);
-		const FDeviceSector b(kDeg180, kDeg180);
+		const FDeviceSector a(0.0f, 180);
+		const FDeviceSector b(180, 180);
 
 		FDeviceSector combined = CombineSectors(a, b);
 		CHECK(combined.IsValid());
 		CHECK(IsAngleNear(combined.Rotation, 0.0f));
-		CHECK(FMath::IsNearlyEqual(combined.Width, 2.0f * kDeg180, kAngleTol));
+		CHECK(IsAngleNear(combined.Width, 360));
 	}
 
 	SECTION("Combine fails for non-overlapping sectors")
 	{
-		const FDeviceSector a(kDeg90, kDeg20);
-		const FDeviceSector b(kDeg200, kDeg30);
+		const FDeviceSector a(90, 20);
+		const FDeviceSector b(200, 30);
 
 		FDeviceSector combined = CombineSectors(a, b);
 		CHECK(!combined.IsValid());
@@ -97,19 +96,23 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 
 	SECTION("Find common sector for overlapping sectors")
 	{
-		const FDeviceSector a(0.0f, kDeg30);
-		const FDeviceSector b(kDeg10, kDeg30);
+		const FDeviceSector a(0.0f, 30);
+		const FDeviceSector b(10, 30);
+		const FDeviceSector d(350, 30);
 
-		FDeviceSector common = FindCommonSector(a, b);
-		CHECK(common.IsValid());
-		CHECK(IsAngleNear(common.Rotation, kDeg5));
-		CHECK(FMath::IsNearlyEqual(common.Width, kDeg20, kAngleTol));
+		FDeviceSector common_ab = FindCommonSector(a, b);
+		FDeviceSector common_ad = FindCommonSector(a, d);
+		CHECK(common_ab.IsValid());
+		CHECK(common_ad.IsValid());
+		CHECK(IsAngleNear(common_ab.Rotation, 5));
+		CHECK(IsAngleNear(common_ad.Rotation, 355));
+		CHECK(IsAngleNear(common_ab.Width, common_ad.Width));
 	}
 
 	SECTION("Find common sector returns invalid when no overlap")
 	{
-		const FDeviceSector a(kDeg90, kDeg20);
-		const FDeviceSector b(kDeg200, kDeg30);
+		const FDeviceSector a(90, 20);
+		const FDeviceSector b(200, 30);
 
 		FDeviceSector common = FindCommonSector(a, b);
 		CHECK(!common.IsValid());
@@ -117,12 +120,12 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 
 	SECTION("Find common sector with full circle")
 	{
-		const FDeviceSector a(0.0f, 2.0f * kDeg180);
-		const FDeviceSector b(kDeg10, kDeg30);
+		const FDeviceSector a(0.0f, 360);
+		const FDeviceSector b(10, 30);
 
 		FDeviceSector common = FindCommonSector(a, b);
 		CHECK(common.IsValid());
-		CHECK(IsAngleNear(common.Rotation, kDeg10));
-		CHECK(FMath::IsNearlyEqual(common.Width, kDeg30, kAngleTol));
+		CHECK(IsAngleNear(common.Rotation, 10));
+		CHECK(IsAngleNear(common.Width, 30));
 	}
 }

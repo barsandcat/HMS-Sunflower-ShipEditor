@@ -1,20 +1,33 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
+#include "Shipyard/ShipDeviceSector.h"
 #include "Shipyard/ShipStructure.h"
 #include "Tests/TestHarnessAdapter.h"
 
 namespace
 {
 
+constexpr float kAngleTol = 0.05f;
 constexpr float kUsageTol = 0.001f;
 
-TSharedPtr<FShipStructureDevice> MakeDevice(EDeviceType type, const FIntVector2& pos, float fuel = 0.0f, float ammo = 0.0f)
+bool IsAngleNear(float angle, float expected)
+{
+	return FMath::Abs(DeviceSectorMath::DeltaAngleDegrees(angle, expected)) <= kAngleTol;
+}
+
+TSharedPtr<FShipStructureDevice> MakeDevice(EDeviceType type,
+    const FIntVector2& pos,
+    float fuel = 0.0f,
+    float ammo = 0.0f,
+    float sector_width = 0.0f,
+    float sector_rotation = 0.0f)
 {
 	FDeviceStats stats;
 	stats.DeviceType = type;
 	stats.FuelConsumption = fuel;
 	stats.AmmoConsumption = ammo;
-	return MakeShared<FShipStructureDevice>(stats, FShipPartTransform(pos, 0, false), nullptr);
+	stats.SectorWidth = sector_width;
+	return MakeShared<FShipStructureDevice>(stats, FShipPartTransform(pos, 0, false), sector_rotation, nullptr);
 }
 
 void AddCell(FShipStructure& structure, const FIntVector2& pos, ECellType type, const TSharedPtr<FShipStructureDevice>& device)
@@ -157,6 +170,44 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		CHECK(exterior_armor);
 		CHECK(exterior_armor->CellType == ECellType::DECK_ARMOR);
 		CHECK(!structure.Cells.Contains(FIntVector2(1, 0)));
+	}
+
+	SECTION("Device sector is partially blocked by one cabin cell")
+	{
+		FShipStructure structure;
+		AddBridgeRoot(structure, FIntVector2(10, 10));
+
+		TSharedPtr<FShipStructureDevice> gun_device =
+		    MakeDevice(EDeviceType::GUN, FIntVector2(0, 0), 0.0f, 0.0f, 90.f, 45.f);
+		structure.Devices.Add(gun_device);
+
+		AddCell(structure, FIntVector2(0, 0), ECellType::CABIN_BLOCKED, gun_device);
+		AddCell(structure, FIntVector2(2, 0), ECellType::CABIN, gun_device);
+
+		structure.Process();
+
+		CHECK(gun_device->AvailableSector.IsValid());
+		CHECK(IsAngleNear(gun_device->AvailableSector.Rotation, 45.f + 45.f / 2.0f));
+		CHECK(FMath::IsNearlyEqual(gun_device->AvailableSector.Width, 45.f, kAngleTol));
+	}
+
+	SECTION("Split device sector keeps the side closest to the device rotation")
+	{
+		FShipStructure structure;
+		AddBridgeRoot(structure, FIntVector2(10, 10));
+
+		TSharedPtr<FShipStructureDevice> gun_device =
+		    MakeDevice(EDeviceType::GUN, FIntVector2(0, 0), 0.0f, 0.0f, 270.f, 90.f + 45.f);
+		structure.Devices.Add(gun_device);
+
+		AddCell(structure, FIntVector2(0, 0), ECellType::CABIN_BLOCKED, gun_device);
+		AddCell(structure, FIntVector2(0, 2), ECellType::CABIN, gun_device);
+
+		structure.Process();
+
+		CHECK(gun_device->AvailableSector.IsValid());
+		CHECK(IsAngleNear(gun_device->AvailableSector.Rotation, 202.5f));
+		CHECK(FMath::IsNearlyEqual(gun_device->AvailableSector.Width, 90.f + 45.f, kAngleTol));
 	}
 
 	SECTION("Disconnected corridor roots compute fuel usage separately")

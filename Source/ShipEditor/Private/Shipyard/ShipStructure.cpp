@@ -2,6 +2,7 @@
 
 #include "Shipyard/ShipStructure.h"
 
+#include "Shipyard/ShipDeviceSector.h"
 #include "Shipyard/ShipPartInstance.h"
 #include "Shipyard/ShipPlanRender.h"
 
@@ -36,7 +37,11 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 	for (int32 i = 0; i < part_instances.Num(); i++)
 	{
 		UShipPartInstance* part_instance = part_instances[i];
-		TSharedPtr<FShipStructureDevice> device = MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device->Stats, render_transform(part_instance->Transform), update);
+		FRotator part_rotation = render_transform(part_instance->Transform).ToRotator();
+		float rotation = DeviceSectorMath::NormalizeAngleDegrees(part_rotation.Pitch);
+		TSharedPtr<FShipStructureDevice> device =
+		    MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device->Stats,
+		        render_transform(part_instance->Transform), rotation, update);
 		Devices[i] = device;
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
 		{
@@ -110,7 +115,9 @@ void FShipStructure::Process()
 	// Mark devices as part of the ship.
 	AddArmor();
 
-	ConnectFuel();
+	ConnectTechnicalCorridors();
+
+	CalculateDeviceSectors();
 }
 
 void FShipStructure::AddArmor()
@@ -257,25 +264,17 @@ void FShipStructure::CallUpdate() const
 		cell->Update->SetCellMesh(cell_pos, cell->CellType);
 	}
 
-	for (const auto& i : Devices)
+	for (TSharedPtr<FShipStructureDevice> device : Devices)
 	{
-		const TSharedPtr<FShipStructureDevice> device = i;
-		FDeviceSector available_sector;
-		FDeviceSector obstructed_sector;
-		if (device->Stats.DeviceType == EDeviceType::GUN)
+		if (device->Stats.FuelConsumption != 0.0f || device->Stats.AmmoConsumption != 0.0f || device->Stats.SectorWidth > 0.0f)
 		{
-			available_sector = {0.0f, PI / 8};
-			obstructed_sector = {PI / 8, PI / 8};
-		}
-		if (device->Stats.FuelConsumption != 0.0f || device->Stats.AmmoConsumption != 0.0f)
-		{
-			DevicesUpdate->SetDeviceStatus(device->Stats.DeviceName, device->Transform.Position, device->Usage, available_sector, obstructed_sector);
+			DevicesUpdate->SetDeviceStatus(device->Stats.DeviceName, device->Transform.Position, device->Usage, device->Sector, device->AvailableSector);
 		}
 		device->Update->SetDeviceMesh(device->Transform, device->Stats.Mesh);
 	}
 }
 
-void FShipStructure::ConnectFuel()
+void FShipStructure::ConnectTechnicalCorridors()
 {
 	// Gather unvisited technical corridor roots that belong to the ship (device is wall-connected)
 	TSet<FIntVector2> unvisited_roots;
@@ -357,6 +356,59 @@ void FShipStructure::ConnectFuel()
 	{
 		CalculateFuelConsumption(device_set);
 		CalculateAmmoConsumption(device_set);
+	}
+}
+
+void FShipStructure::CalculateDeviceSectors()
+{
+	for (const auto& pair : Cells)
+	{
+		const FIntVector2& cabin_pos = pair.Key;
+		const TSharedPtr<FShipStructureCell>& cell = pair.Value;
+		if (cell && IsCabinCell(cell->CellType) && cell->CellType != ECellType::CABIN_BLOCKED)
+		{
+			for (const TSharedPtr<FShipStructureDevice>& device : Devices)
+			{
+				if (device->Sector.IsValid())
+				{
+					const FDeviceSector available_sector = FindAvailableSector(device->Transform.Position, cabin_pos);
+					if (available_sector.IsValid())
+					{
+						device->AvailableSectors.Add(available_sector);
+					}
+				}
+			}
+		}
+	}
+
+	for (const TSharedPtr<FShipStructureDevice>& device : Devices)
+	{
+		if (device->Sector.IsValid())
+		{
+			device->AvailableSectors.Sort([&device](const FDeviceSector& a, const FDeviceSector& b)
+			    {
+				const float distance_a = FMath::Abs(DeviceSectorMath::DeltaAngleDegrees(a.Rotation, device->Sector.Rotation));
+				const float distance_b = FMath::Abs(DeviceSectorMath::DeltaAngleDegrees(b.Rotation, device->Sector.Rotation));
+
+				if (!FMath::IsNearlyEqual(distance_a, distance_b))
+				{
+					return distance_a < distance_b;
+				}
+
+				return a.Width > b.Width; });
+
+			FDeviceSector common_sector = device->Sector;
+			for (const FDeviceSector& available_sector : device->AvailableSectors)
+			{
+				common_sector = FindCommonSector(common_sector, available_sector);
+				if (!common_sector.IsValid())
+				{
+					break;
+				}
+			}
+
+			device->AvailableSector = common_sector;
+		}
 	}
 }
 
