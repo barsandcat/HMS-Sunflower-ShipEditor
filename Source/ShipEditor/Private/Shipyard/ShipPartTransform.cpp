@@ -11,9 +11,9 @@ FIntVector2 RotatePoint(const FIntVector2& point, int32 rotation)
 	{
 		case -3:
 		case 1:
-			// rotate 90 degree clockwise or 270 degree counter clockwise
-			// 2,1  ->  1,-2
-			result = FIntVector2(point.Y, -point.X);
+			// rotate 90 degree counter clockwise or 270 degree clockwise
+			// 2,1  ->  -1,2
+			result = FIntVector2(-point.Y, point.X);
 			break;
 		case -2:
 		case 2:
@@ -22,10 +22,12 @@ FIntVector2 RotatePoint(const FIntVector2& point, int32 rotation)
 			break;
 		case -1:
 		case 3:
-			// rotate 270 degree clockwise or 90 degree counter clockwise
-			result = FIntVector2(-point.Y, point.X);
+			// rotate 270 degree counter clockwise or 90 degree clockwise
+			// 2,1  ->  1,-2
+			result = FIntVector2(point.Y, -point.X);
 			break;
-		default:;
+		default:
+			break;
 	}
 	return result;
 }
@@ -56,12 +58,12 @@ FShipPartTransform::FShipPartTransform(const FIntVector2& position, int32 rotati
 
 void FShipPartTransform::RotateClockwise()
 {
-	Rotation = AddRotation(Rotation, 1, Mirror);
+	Rotation = AddRotation(Rotation, -1, Mirror);
 }
 
 void FShipPartTransform::RotateCounterClockwise()
 {
-	Rotation = AddRotation(Rotation, -1, Mirror);
+	Rotation = AddRotation(Rotation, 1, Mirror);
 }
 
 void FShipPartTransform::Flip()
@@ -86,8 +88,8 @@ FShipPartTransform FShipPartTransform::Inverse() const
 
 FRotator FShipPartTransform::ToRotator() const
 {
-	int32 rotation = (Rotation + (Mirror ? 2 : 0)) % 4;
-	double pitch = rotation * (Mirror ? 90.0f : -90.0f);
+	int32 rotation = Mirror ? (2 - Rotation) % 4 : Rotation % 4;
+	double pitch = rotation * 90.0f;
 	double roll = FMath::Abs(rotation) == 2 ? 180.0f : 0.0f;
 	return FRotator(pitch, 0.0f, roll);
 }

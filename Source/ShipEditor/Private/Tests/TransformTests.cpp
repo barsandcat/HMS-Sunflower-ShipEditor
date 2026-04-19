@@ -62,7 +62,7 @@ TEST_CASE_NAMED(FPartTransformTest, "ShipEditor::PartTransform", "[ShipEditor][P
 
 	SECTION("Composition operator 2")
 	{
-		FShipPartTransform p({0, 0}, 1, false);
+		FShipPartTransform p({0, 0}, -1, false);
 		FShipPartTransform r({0, 0}, 0, true);
 		FShipPartTransform composed = r(p);
 
@@ -72,7 +72,7 @@ TEST_CASE_NAMED(FPartTransformTest, "ShipEditor::PartTransform", "[ShipEditor][P
 	SECTION("Composition operator 3")
 	{
 		FShipPartTransform p({0, 0}, 0, true);
-		FShipPartTransform r({0, 0}, 1, false);
+		FShipPartTransform r({0, 0}, -1, false);
 		FShipPartTransform composed = r(p);
 
 		CHECK(composed(FIntVector2(2, 1)) == FIntVector2(1, 2));
@@ -81,7 +81,7 @@ TEST_CASE_NAMED(FPartTransformTest, "ShipEditor::PartTransform", "[ShipEditor][P
 	SECTION("Composition operator 4")
 	{
 		FShipPartTransform p({0, 0}, 0, true);
-		FShipPartTransform r({0, 0}, 1, true);
+		FShipPartTransform r({0, 0}, -1, true);
 		FShipPartTransform composed = r(p);
 
 		CHECK(composed(FIntVector2(2, 1)) == FIntVector2(-1, 2));
@@ -89,8 +89,8 @@ TEST_CASE_NAMED(FPartTransformTest, "ShipEditor::PartTransform", "[ShipEditor][P
 
 	SECTION("Composition operator 5")
 	{
-		FShipPartTransform p({0, 0}, 1, true);
-		FShipPartTransform r({0, 0}, 1, true);
+		FShipPartTransform p({0, 0}, -1, true);
+		FShipPartTransform r({0, 0}, -1, true);
 		FShipPartTransform composed = r(p);
 
 		CHECK(composed(FIntVector2(2, 1)) == FIntVector2(2, 1));
@@ -162,7 +162,7 @@ TEST_CASE_NAMED(FPartTransformTest, "ShipEditor::PartTransform", "[ShipEditor][P
 
 	SECTION("To Rotator 90")
 	{
-		FShipPartTransform transform({0, 0}, -1, false);
+		FShipPartTransform transform({0, 0}, 1, false);
 		FRotator rotator = transform.ToRotator();
 
 		CHECK(rotator.Pitch == 90.0f);
@@ -172,7 +172,7 @@ TEST_CASE_NAMED(FPartTransformTest, "ShipEditor::PartTransform", "[ShipEditor][P
 
 	SECTION("To Rotator -90")
 	{
-		FShipPartTransform transform({0, 0}, 1, false);
+		FShipPartTransform transform({0, 0}, -1, false);
 		FRotator rotator = transform.ToRotator();
 
 		CHECK(rotator.Pitch == -90.0f);
@@ -182,7 +182,7 @@ TEST_CASE_NAMED(FPartTransformTest, "ShipEditor::PartTransform", "[ShipEditor][P
 
 	SECTION("To Rotator 90 + mirror")
 	{
-		FShipPartTransform transform({0, 0}, -1, true);
+		FShipPartTransform transform({0, 0}, 1, true);
 		FRotator rotator = transform.ToRotator();
 
 		CHECK(rotator.Pitch == 90.0f);
@@ -192,7 +192,7 @@ TEST_CASE_NAMED(FPartTransformTest, "ShipEditor::PartTransform", "[ShipEditor][P
 
 	SECTION("To Rotator -90 + mirror")
 	{
-		FShipPartTransform transform({0, 0}, 1, true);
+		FShipPartTransform transform({0, 0}, -1, true);
 		FRotator rotator = transform.ToRotator();
 
 		CHECK(rotator.Pitch == 270.0f);
