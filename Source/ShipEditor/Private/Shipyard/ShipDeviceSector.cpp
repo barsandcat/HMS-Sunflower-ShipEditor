@@ -13,12 +13,12 @@ float ClampWidthDegrees(float width)
 	{
 		return 0.0f;
 	}
-	return FMath::Clamp(width, 0.0f, DeviceSectorMath::kFullCircleDegrees);
+	return FMath::Clamp(width, 0.0f, kFullSectorDegrees);
 }
 
 bool IsNormalizedSector(const FDeviceSector& sector)
 {
-	return FMath::IsFinite(sector.Rotation) && FMath::IsFinite(sector.Width) && sector.Rotation >= -kAngleTolerance && sector.Rotation < DeviceSectorMath::kFullCircleDegrees + kAngleTolerance && sector.Width >= -kAngleTolerance && sector.Width <= DeviceSectorMath::kFullCircleDegrees + kAngleTolerance;
+	return FMath::IsFinite(sector.Rotation) && FMath::IsFinite(sector.Width) && sector.Rotation >= -kAngleTolerance && sector.Rotation < kFullSectorDegrees + kAngleTolerance && sector.Width >= -kAngleTolerance && sector.Width <= kFullSectorDegrees + kAngleTolerance;
 }
 
 }    // namespace
@@ -44,11 +44,11 @@ FDeviceSector FindAvailableSector(const FIntVector2& device_center, const FIntVe
 	    cabin_world + FVector2D(1.0f, 1.0f),
 	};
 
-	for (const FVector2D& corner : corners)
+		for (const FVector2D& corner : corners)
 	{
 		const FVector2D to_corner = corner - device_world;
 		const float angle = FMath::RadiansToDegrees(FMath::Atan2(to_corner.Y, to_corner.X));
-		angles.Add(DeviceSectorMath::NormalizeAngleDegrees(angle));
+		angles.Add(NormalizeSectorAngle(angle));
 	}
 
 	angles.Sort();
@@ -62,7 +62,7 @@ FDeviceSector FindAvailableSector(const FIntVector2& device_center, const FIntVe
 		float next = angles[next_index];
 		if (next_index == 0)
 		{
-			next += DeviceSectorMath::kFullCircleDegrees;
+			next += kFullSectorDegrees;
 		}
 		const float current = angles[i];
 		const float gap = next - current;
@@ -73,7 +73,7 @@ FDeviceSector FindAvailableSector(const FIntVector2& device_center, const FIntVe
 		}
 	}
 
-	const float rotation = DeviceSectorMath::NormalizeAngleDegrees(start_of_max_gap + max_gap * 0.5f);
+	const float rotation = NormalizeSectorAngle(start_of_max_gap + max_gap * 0.5f);
 
 	return {rotation, max_gap};
 }
@@ -83,13 +83,13 @@ bool DoSectorsOverlap(const FDeviceSector& a, const FDeviceSector& b)
 	checkf(IsNormalizedSector(a), TEXT("Expected normalized device sector A (Rotation in [0, 360), Width in [0, 360])."));
 	checkf(IsNormalizedSector(b), TEXT("Expected normalized device sector B (Rotation in [0, 360), Width in [0, 360])."));
 
-	if (a.Width >= DeviceSectorMath::kFullCircleDegrees - kAngleTolerance || b.Width >= DeviceSectorMath::kFullCircleDegrees - kAngleTolerance)
+	if (a.Width >= kFullSectorDegrees - kAngleTolerance || b.Width >= kFullSectorDegrees - kAngleTolerance)
 	{
 		return true;
 	}
 
 	const float half_sum = (a.Width + b.Width) * 0.5f;
-	const float distance = FMath::Abs(DeviceSectorMath::DeltaAngleDegrees(a.Rotation, b.Rotation));
+	const float distance = FMath::Abs(DeltaSectorAngle(a.Rotation, b.Rotation));
 	return distance <= half_sum + kAngleTolerance;
 }
 
@@ -100,21 +100,21 @@ FDeviceSector CombineSectors(const FDeviceSector& a, const FDeviceSector& b)
 		return {};
 	}
 
-	if (a.Width >= DeviceSectorMath::kFullCircleDegrees - kAngleTolerance || b.Width >= DeviceSectorMath::kFullCircleDegrees - kAngleTolerance)
+	if (a.Width >= kFullSectorDegrees - kAngleTolerance || b.Width >= kFullSectorDegrees - kAngleTolerance)
 	{
-		return {0.0f, DeviceSectorMath::kFullCircleDegrees};
+		return {0.0f, kFullSectorDegrees};
 	}
 
 	// Make sure diff between rotations is less than 180 degrees
 	// i.e. 350 and 10 are just 20 degrees apart, not 340 degrees
 	float rotation_b = b.Rotation;
-	if (rotation_b - a.Rotation > DeviceSectorMath::kHalfCircleDegrees)
+	if (rotation_b - a.Rotation > kHalfSectorDegrees)
 	{
-		rotation_b -= DeviceSectorMath::kFullCircleDegrees;
+		rotation_b -= kFullSectorDegrees;
 	}
-	else if (rotation_b - a.Rotation < -DeviceSectorMath::kHalfCircleDegrees)
+	else if (rotation_b - a.Rotation < -kHalfSectorDegrees)
 	{
-		rotation_b += DeviceSectorMath::kFullCircleDegrees;
+		rotation_b += kFullSectorDegrees;
 	}
 
 	const float start_a = a.Rotation - a.Width * 0.5f;
@@ -126,12 +126,12 @@ FDeviceSector CombineSectors(const FDeviceSector& a, const FDeviceSector& b)
 	const float union_end = FMath::Max(end_a, end_b);
 	const float union_width = union_end - union_start;
 
-	if (union_width >= DeviceSectorMath::kFullCircleDegrees - kAngleTolerance)
+	if (union_width >= kFullSectorDegrees - kAngleTolerance)
 	{
-		return {0.0f, DeviceSectorMath::kFullCircleDegrees};
+		return {0.0f, kFullSectorDegrees};
 	}
 
-	const float union_rotation = DeviceSectorMath::NormalizeAngleDegrees(union_start + union_width * 0.5f);
+	const float union_rotation = NormalizeSectorAngle(union_start + union_width * 0.5f);
 	return {union_rotation, ClampWidthDegrees(union_width)};
 }
 
@@ -145,23 +145,23 @@ FDeviceSector FindCommonSector(const FDeviceSector& a, const FDeviceSector& b)
 		return {};
 	}
 
-	if (a.Width >= DeviceSectorMath::kFullCircleDegrees - kAngleTolerance)
+	if (a.Width >= kFullSectorDegrees - kAngleTolerance)
 	{
 		return b;
 	}
-	if (b.Width >= DeviceSectorMath::kFullCircleDegrees - kAngleTolerance)
+	if (b.Width >= kFullSectorDegrees - kAngleTolerance)
 	{
 		return a;
 	}
 
 	float rotation_b = b.Rotation;
-	if (rotation_b - a.Rotation > DeviceSectorMath::kHalfCircleDegrees)
+	if (rotation_b - a.Rotation > kHalfSectorDegrees)
 	{
-		rotation_b -= DeviceSectorMath::kFullCircleDegrees;
+		rotation_b -= kFullSectorDegrees;
 	}
-	else if (rotation_b - a.Rotation < -DeviceSectorMath::kHalfCircleDegrees)
+	else if (rotation_b - a.Rotation < -kHalfSectorDegrees)
 	{
-		rotation_b += DeviceSectorMath::kFullCircleDegrees;
+		rotation_b += kFullSectorDegrees;
 	}
 
 	const float start_a = a.Rotation - a.Width * 0.5f;
@@ -178,6 +178,11 @@ FDeviceSector FindCommonSector(const FDeviceSector& a, const FDeviceSector& b)
 		return {};
 	}
 
-	const float common_rotation = DeviceSectorMath::NormalizeAngleDegrees(common_start + common_width * 0.5f);
+	const float common_rotation = NormalizeSectorAngle(common_start + common_width * 0.5f);
 	return {common_rotation, ClampWidthDegrees(common_width)};
+}
+
+bool IsSectorAngleNear(float angle, float expected)
+{
+	return FMath::Abs(DeltaSectorAngle(angle, expected)) <= kSectorAngleTol;
 }

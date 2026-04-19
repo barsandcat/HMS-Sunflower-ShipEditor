@@ -38,7 +38,7 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 	{
 		UShipPartInstance* part_instance = part_instances[i];
 		FRotator part_rotation = render_transform(part_instance->Transform).ToRotator();
-		float rotation = DeviceSectorMath::NormalizeAngleDegrees(part_rotation.Pitch);
+		float rotation = NormalizeSectorAngle(part_rotation.Pitch);
 		TSharedPtr<FShipStructureDevice> device =
 		    MakeShared<FShipStructureDevice>(part_instance->PartAsset->Device->Stats,
 		        render_transform(part_instance->Transform), rotation, update);
@@ -387,8 +387,8 @@ void FShipStructure::CalculateDeviceSectors()
 		{
 			device->AvailableSectors.Sort([&device](const FDeviceSector& a, const FDeviceSector& b)
 			    {
-				const float distance_a = FMath::Abs(DeviceSectorMath::DeltaAngleDegrees(a.Rotation, device->Sector.Rotation));
-				const float distance_b = FMath::Abs(DeviceSectorMath::DeltaAngleDegrees(b.Rotation, device->Sector.Rotation));
+					const float distance_a = FMath::Abs(DeltaSectorAngle(a.Rotation, device->Sector.Rotation));
+					const float distance_b = FMath::Abs(DeltaSectorAngle(b.Rotation, device->Sector.Rotation));
 
 				if (!FMath::IsNearlyEqual(distance_a, distance_b))
 				{

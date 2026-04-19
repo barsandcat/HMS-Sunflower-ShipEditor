@@ -7,13 +7,7 @@
 namespace
 {
 
-constexpr float kAngleTol = 0.05f;
 constexpr float kUsageTol = 0.001f;
-
-bool IsAngleNear(float angle, float expected)
-{
-	return FMath::Abs(DeviceSectorMath::DeltaAngleDegrees(angle, expected)) <= kAngleTol;
-}
 
 TSharedPtr<FShipStructureDevice> MakeDevice(EDeviceType type,
     const FIntVector2& pos,
@@ -187,8 +181,8 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		structure.Process();
 
 		CHECK(gun_device->AvailableSector.IsValid());
-		CHECK(IsAngleNear(gun_device->AvailableSector.Rotation, 45.f + 45.f / 2.0f));
-		CHECK(FMath::IsNearlyEqual(gun_device->AvailableSector.Width, 45.f, kAngleTol));
+		CHECK(IsSectorAngleNear(gun_device->AvailableSector.Rotation, 45.f + 45.f / 2.0f));
+		CHECK(IsSectorAngleNear(gun_device->AvailableSector.Width, 45.f));
 	}
 
 	SECTION("Split device sector keeps the side closest to the device rotation")
@@ -206,8 +200,8 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		structure.Process();
 
 		CHECK(gun_device->AvailableSector.IsValid());
-		CHECK(IsAngleNear(gun_device->AvailableSector.Rotation, 202.5f));
-		CHECK(FMath::IsNearlyEqual(gun_device->AvailableSector.Width, 90.f + 45.f, kAngleTol));
+		CHECK(IsSectorAngleNear(gun_device->AvailableSector.Rotation, 202.5f));
+		CHECK(IsSectorAngleNear(gun_device->AvailableSector.Width, 90.f + 45.f));
 	}
 
 	SECTION("Disconnected corridor roots compute fuel usage separately")

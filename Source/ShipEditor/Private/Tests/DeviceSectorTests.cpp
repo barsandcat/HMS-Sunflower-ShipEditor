@@ -3,34 +3,22 @@
 #include "Shipyard/ShipDeviceSector.h"
 #include "Tests/TestHarnessAdapter.h"
 
-namespace
-{
-
-constexpr float kAngleTol = 0.05f;
-
-bool IsAngleNear(float angle, float expected)
-{
-	return FMath::Abs(DeviceSectorMath::DeltaAngleDegrees(angle, expected)) <= kAngleTol;
-}
-
-}    // namespace
-
 TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][DeviceSector]")
 {
 	SECTION("Available sector for cabin to the right")
 	{
 		FDeviceSector sector = FindAvailableSector(FIntVector2(0, 0), FIntVector2(2, 0));
 
-		CHECK(IsAngleNear(sector.Rotation, 180));
-		CHECK(IsAngleNear(sector.Width, 270));
+		CHECK(IsSectorAngleNear(sector.Rotation, 180));
+		CHECK(IsSectorAngleNear(sector.Width, 270));
 	}
 
 	SECTION("Available sector for cabin above")
 	{
 		FDeviceSector sector = FindAvailableSector(FIntVector2(0, 0), FIntVector2(0, 2));
 
-		CHECK(IsAngleNear(sector.Rotation, 270));
-		CHECK(IsAngleNear(sector.Width, 270));
+		CHECK(IsSectorAngleNear(sector.Rotation, 270));
+		CHECK(IsSectorAngleNear(sector.Width, 270));
 	}
 
 	SECTION("Available sector symmetry")
@@ -40,9 +28,9 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 		FDeviceSector sector3 = FindAvailableSector(FIntVector2(0, 0), FIntVector2(2, -2));
 		FDeviceSector sector4 = FindAvailableSector(FIntVector2(0, 0), FIntVector2(-2, -2));
 
-		CHECK(IsAngleNear(sector1.Width, sector2.Width));
-		CHECK(IsAngleNear(sector1.Width, sector3.Width));
-		CHECK(IsAngleNear(sector1.Width, sector4.Width));
+		CHECK(IsSectorAngleNear(sector1.Width, sector2.Width));
+		CHECK(IsSectorAngleNear(sector1.Width, sector3.Width));
+		CHECK(IsSectorAngleNear(sector1.Width, sector4.Width));
 	}
 
 	SECTION("Device inside cabin returns invalid sector")
@@ -70,8 +58,8 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 
 		FDeviceSector combined = CombineSectors(a, b);
 		CHECK(combined.IsValid());
-		CHECK(IsAngleNear(combined.Rotation, 0.0f));
-		CHECK(IsAngleNear(combined.Width, 50));
+		CHECK(IsSectorAngleNear(combined.Rotation, 0.0f));
+		CHECK(IsSectorAngleNear(combined.Width, 50));
 	}
 
 	SECTION("Combine two 180 degree sectors into full circle")
@@ -81,8 +69,8 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 
 		FDeviceSector combined = CombineSectors(a, b);
 		CHECK(combined.IsValid());
-		CHECK(IsAngleNear(combined.Rotation, 0.0f));
-		CHECK(IsAngleNear(combined.Width, 360));
+		CHECK(IsSectorAngleNear(combined.Rotation, 0.0f));
+		CHECK(IsSectorAngleNear(combined.Width, 360));
 	}
 
 	SECTION("Combine fails for non-overlapping sectors")
@@ -104,9 +92,9 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 		FDeviceSector common_ad = FindCommonSector(a, d);
 		CHECK(common_ab.IsValid());
 		CHECK(common_ad.IsValid());
-		CHECK(IsAngleNear(common_ab.Rotation, 5));
-		CHECK(IsAngleNear(common_ad.Rotation, 355));
-		CHECK(IsAngleNear(common_ab.Width, common_ad.Width));
+		CHECK(IsSectorAngleNear(common_ab.Rotation, 5));
+		CHECK(IsSectorAngleNear(common_ad.Rotation, 355));
+		CHECK(IsSectorAngleNear(common_ab.Width, common_ad.Width));
 	}
 
 	SECTION("Find common sector returns invalid when no overlap")
@@ -125,7 +113,7 @@ TEST_CASE_NAMED(FDeviceSectorTest, "ShipEditor::DeviceSector", "[ShipEditor][Dev
 
 		FDeviceSector common = FindCommonSector(a, b);
 		CHECK(common.IsValid());
-		CHECK(IsAngleNear(common.Rotation, 10));
-		CHECK(IsAngleNear(common.Width, 30));
+		CHECK(IsSectorAngleNear(common.Rotation, 10));
+		CHECK(IsSectorAngleNear(common.Width, 30));
 	}
 }

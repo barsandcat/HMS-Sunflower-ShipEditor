@@ -48,33 +48,31 @@ struct FDeviceSector
 	}
 };
 
-namespace DeviceSectorMath
-{
+constexpr float kFullSectorDegrees = 360.0f;
+constexpr float kHalfSectorDegrees = 180.0f;
+constexpr float kSectorAngleTol = 0.05f;
 
-constexpr float kFullCircleDegrees = 360.0f;
-constexpr float kHalfCircleDegrees = 180.0f;
-
-FORCEINLINE float NormalizeAngleDegrees(float angle)
+FORCEINLINE float NormalizeSectorAngle(float angle)
 {
-	float normalized = FMath::Fmod(angle, kFullCircleDegrees);
+	float normalized = FMath::Fmod(angle, kFullSectorDegrees);
 	if (normalized < 0.0f)
 	{
-		normalized += kFullCircleDegrees;
+		normalized += kFullSectorDegrees;
 	}
 	return normalized;
 }
 
-FORCEINLINE float DeltaAngleDegrees(float angle, float reference)
+FORCEINLINE float DeltaSectorAngle(float angle, float reference)
 {
-	float delta = NormalizeAngleDegrees(angle - reference);
-	if (delta > kHalfCircleDegrees)
+	float delta = NormalizeSectorAngle(angle - reference);
+	if (delta > kHalfSectorDegrees)
 	{
-		delta -= kFullCircleDegrees;
+		delta -= kFullSectorDegrees;
 	}
 	return delta;
 }
 
-}    // namespace DeviceSectorMath
+bool IsSectorAngleNear(float angle, float expected);
 
 // Returns the angular sector (in degrees) that is not obstructed by a cabin around a device center.
 FDeviceSector FindAvailableSector(const FIntVector2& device_center, const FIntVector2& cabin_position);

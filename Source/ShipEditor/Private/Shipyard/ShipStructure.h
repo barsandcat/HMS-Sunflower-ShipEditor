@@ -22,7 +22,7 @@ struct FShipStructureDevice
 	    : Stats(stats)
 	    , Transform(transform)
 	    , Update(update)
-	    , Sector(rotation, FMath::Clamp(stats.SectorWidth, 0.0f, DeviceSectorMath::kFullCircleDegrees))
+	    , Sector(rotation, FMath::Clamp(stats.SectorWidth, 0.0f, kFullSectorDegrees))
 	{
 	}
 
