@@ -10,11 +10,6 @@ void FShipDevicesUpdate::SetDeviceStatus(const FText& name, const FIntVector2& d
 {
 	CurrentCells.Remove(device_pos);
 	VMDevices.UpdateDeviceStatus(name, device_pos, usage, sector, available_sector);
-	if (sector.IsValid())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Device %s at (%d, %d) usage: %.2f%% sector: %s available sector: %s"),
-		    *name.ToString(), device_pos.X, device_pos.Y, usage * 100.0f, *sector.ToDebugString(), *available_sector.ToDebugString());
-	}
 }
 
 FShipDevicesUpdate::~FShipDevicesUpdate()

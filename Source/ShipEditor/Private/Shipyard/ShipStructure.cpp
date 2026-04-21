@@ -365,16 +365,19 @@ void FShipStructure::CalculateDeviceSectors()
 	{
 		const FIntVector2& cabin_pos = pair.Key;
 		const TSharedPtr<FShipStructureCell>& cell = pair.Value;
-		if (cell && IsCabinCell(cell->CellType) && cell->CellType != ECellType::CABIN_BLOCKED)
+		if (cell && IsCabinCell(cell->CellType))
 		{
 			for (const TSharedPtr<FShipStructureDevice>& device : Devices)
 			{
 				if (device->Sector.IsValid())
 				{
-					const FDeviceSector available_sector = FindAvailableSector(device->Transform.Position, cabin_pos);
-					if (available_sector.IsValid())
+					if (cell->CellType != ECellType::CABIN_BLOCKED || device != cell->Device)
 					{
-						device->AvailableSectors.Add(available_sector);
+						const FDeviceSector available_sector = FindAvailableSector(device->Transform.Position, cabin_pos);
+						if (available_sector.IsValid())
+						{
+							device->AvailableSectors.Add(available_sector);
+						}
 					}
 				}
 			}

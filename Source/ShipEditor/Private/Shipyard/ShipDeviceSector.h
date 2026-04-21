@@ -17,7 +17,7 @@ struct FDeviceSector
 
 	// Angular width in degrees, clamped to [0, 360].
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Width = 0.0f;
+	float Width = -1.0f;
 
 	FDeviceSector() = default;
 	FDeviceSector(float rotation, float width)
