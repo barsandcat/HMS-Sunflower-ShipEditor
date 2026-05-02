@@ -14,6 +14,9 @@ AShipPlanRender::AShipPlanRender()
 	PrimaryActorTick.bCanEverTick = false;
 
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+	LayerSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("LayerSceneComponent"));
+	LayerSceneComponent->SetupAttachment(SceneComponent);
+	LayerSceneComponent->SetVisibility(false);
 	RootComponent = SceneComponent;
 }
 
@@ -81,16 +84,20 @@ void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType c
 			break;
 		case ECellType::CABIN:
 			SetCellMeshComponent(cell_pos_local, CellMesh);
+			SetLayerCellMeshComponent(cell_pos_local, ArmorMesh);
 			break;
 		case ECellType::CABIN_TECHNICAL_CORRIDOR:
 			SetCellMeshComponent(cell_pos_local, TechnicalCorridorMesh);
+			SetLayerCellMeshComponent(cell_pos_local, ArmorMesh);
 			break;
 		case ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT:
 			SetCellMeshComponent(cell_pos_local, TechnicalCorridorRootMesh);
+			SetLayerCellMeshComponent(cell_pos_local, ArmorMesh);
 			break;
 		case ECellType::NONE:
 		case ECellType::CABIN_BLOCKED:
 			RemoveCellMeshComponent(cell_pos_local);
+			RemoveLayerCellMeshComponent(cell_pos_local);
 			break;
 		default:
 			break;
@@ -153,6 +160,10 @@ void AShipPlanRender::SetOverlayMaterial(UShipPartInstance* part, UMaterialInter
 		if (TObjectPtr<UStaticMeshComponent> static_mesh = CellMeshComponents.FindRef(part->Transform(cell.Position)))
 		{
 			static_mesh->SetOverlayMaterial(material);
+		}
+		if (TObjectPtr<UStaticMeshComponent> mesh_component = LayerCellMeshComponents.FindRef(part->Transform(cell.Position)))
+		{
+			mesh_component->SetOverlayMaterial(material);
 		}
 	}
 	if (TObjectPtr<UStaticMeshComponent> mesh_component = DeviceMeshComponents.FindRef(part->Transform.Position))
@@ -237,6 +248,18 @@ void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)
 			static_mesh->DestroyComponent();
 			CellMeshComponents.Remove(cell_pos_local);
 		}
+		if (TObjectPtr<UStaticMeshComponent> static_mesh = LayerCellMeshComponents.FindRef(cell_pos_local))
+		{
+			static_mesh->UnregisterComponent();
+			static_mesh->DestroyComponent();
+			LayerCellMeshComponents.Remove(cell_pos_local);
+		}
+		if (TObjectPtr<UStaticMeshComponent> static_mesh = DeviceMeshComponents.FindRef(cell_pos_local))
+		{
+			static_mesh->UnregisterComponent();
+			static_mesh->DestroyComponent();
+			DeviceMeshComponents.Remove(cell_pos_local);
+		}
 	}
 	ShipPartInstances.Remove(part);
 }
@@ -249,6 +272,36 @@ bool AShipPlanRender::IsWall(const FIntVector2& cell_pos) const
 UMaterialInterface* AShipPlanRender::GetRenderOverlayMaterial() const
 {
 	return IsOk() ? OkOverlayMaterial : ErrorOverlayMaterial;
+}
+
+void AShipPlanRender::SetLayerCellMeshComponent(const FIntVector2& cell_pos_local, UStaticMesh* static_mesh)
+{
+	if (!static_mesh)
+	{
+		return;
+	}
+
+	UStaticMeshComponent* mesh = LayerCellMeshComponents.FindRef(cell_pos_local);
+	if (!mesh)
+	{
+		// Create mesh components at runtime and attach to the scene root
+		const FString name = FString::Printf(TEXT("%s_LayerMeshComponent_%d_%d"), *GetName(), cell_pos_local.X, cell_pos_local.Y);
+		mesh = NewObject<UStaticMeshComponent>(this, *name);
+		mesh->AttachToComponent(LayerSceneComponent, FAttachmentTransformRules::KeepRelativeTransform);
+		mesh->SetVisibility(LayerSceneComponent->IsVisible());
+		mesh->RegisterComponent();
+		LayerCellMeshComponents.Add(cell_pos_local, mesh);
+	}
+	check(mesh);
+
+	mesh->SetStaticMesh(static_mesh);
+	FIntVector2 cell_pos = Transform(cell_pos_local);
+	mesh->SetWorldLocation(FVector(cell_pos.X * MeshSpacing, GetActorLocation().Y, cell_pos.Y * MeshSpacing));
+	mesh->UpdateComponentToWorld();
+	if (auto* overlay_material = GetRenderOverlayMaterial())
+	{
+		mesh->SetOverlayMaterial(overlay_material);
+	}
 }
 
 void AShipPlanRender::SetCellMeshComponent(const FIntVector2& cell_pos_local, UStaticMesh* static_mesh)
@@ -290,6 +343,16 @@ void AShipPlanRender::RemoveCellMeshComponent(const FIntVector2& cell_pos_local)
 	}
 }
 
+void AShipPlanRender::RemoveLayerCellMeshComponent(const FIntVector2& cell_pos_local)
+{
+	if (TObjectPtr<UStaticMeshComponent> mesh = LayerCellMeshComponents.FindRef(cell_pos_local))
+	{
+		mesh->UnregisterComponent();
+		mesh->DestroyComponent();
+		LayerCellMeshComponents.Remove(cell_pos_local);
+	}
+}
+
 void AShipPlanRender::Clear()
 {
 	ClearMeshes();
@@ -316,6 +379,15 @@ void AShipPlanRender::ClearMeshes()
 			mesh->DestroyComponent();
 		}
 	}
+	for (auto& [key, mesh] : LayerCellMeshComponents)
+	{
+		if (mesh)
+		{
+			mesh->UnregisterComponent();
+			mesh->DestroyComponent();
+		}
+	}
+	LayerCellMeshComponents.Empty();
 	DeviceMeshComponents.Empty();
 }
 

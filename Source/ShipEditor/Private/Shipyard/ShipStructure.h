@@ -86,13 +86,13 @@ struct FShipStructure
 	void CalculateFuelConsumption(const TSet<TSharedPtr<FShipStructureDevice>>& device_set);
 	void CalculateAmmoConsumption(const TSet<TSharedPtr<FShipStructureDevice>>& device_set);
 
-	TOptional<FIntVector2> Root;
-	TMap<FIntVector2, TSharedPtr<FShipStructureCell>> Cells;
+	TOptional<FIntVector3> Root;
+	TMap<FIntVector3, TSharedPtr<FShipStructureCell>> Cells;
 	TArray<TSharedPtr<FShipStructureDevice>> Devices;
 	FShipDevicesUpdate* DevicesUpdate = nullptr;
 
-	static inline const FIntVector2 dirs[4] = {FIntVector2(1, 0), FIntVector2(-1, 0), FIntVector2(0, 1), FIntVector2(0, -1)};
-	static inline const FIntVector2 diagonal_dirs[4] = {FIntVector2(1, 1), FIntVector2(1, -1), FIntVector2(-1, 1), FIntVector2(-1, -1)};
-	static inline const FIntVector2 vertical_dirs[2] = {FIntVector2(0, 1), FIntVector2(0, -1)};
-	static inline const FIntVector2 horizontal_dirs[2] = {FIntVector2(1, 0), FIntVector2(-1, 0)};
+	static inline const FIntVector3 dirs[4] = {FIntVector3(1, 0, 0), FIntVector3(-1, 0, 0), FIntVector3(0, 1, 0), FIntVector3(0, -1, 0)};
+	static inline const FIntVector3 diagonal_dirs[4] = {FIntVector3(1, 1, 0), FIntVector3(1, -1, 0), FIntVector3(-1, 1, 0), FIntVector3(-1, -1, 0)};
+	static inline const FIntVector3 vertical_dirs[2] = {FIntVector3(0, 1, 0), FIntVector3(0, -1, 0)};
+	static inline const FIntVector3 horizontal_dirs[2] = {FIntVector3(1, 0, 0), FIntVector3(-1, 0, 0)};
 };

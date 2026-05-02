@@ -86,8 +86,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
 	TObjectPtr<UStaticMesh> TechnicalCorridorRootMesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCategory")
+	TObjectPtr<UStaticMesh> ArmorMesh;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> SceneComponent;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USceneComponent> LayerSceneComponent;
 
 	const FShipPartTransform& GetPartTransform() const { return Transform; }
 	void SetPartTransform(const FShipPartTransform& transform) { Transform = transform; }
@@ -101,6 +107,8 @@ private:
 	void AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
 	void SetCellMeshComponent(const FIntVector2& cell_pos_local, UStaticMesh* static_mesh);
 	void RemoveCellMeshComponent(const FIntVector2& cell_pos_local);
+	void SetLayerCellMeshComponent(const FIntVector2& cell_pos_local, UStaticMesh* static_mesh);
+	void RemoveLayerCellMeshComponent(const FIntVector2& cell_pos_local);
 	bool IsWall(const FIntVector2& cell_pos) const;
 	UMaterialInterface* GetRenderOverlayMaterial() const;
 	void ClearMeshes();
@@ -108,6 +116,9 @@ private:
 
 	UPROPERTY()
 	TMap<FIntVector2, TObjectPtr<UStaticMeshComponent>> CellMeshComponents;
+
+	UPROPERTY()
+	TMap<FIntVector2, TObjectPtr<UStaticMeshComponent>> LayerCellMeshComponents;
 
 	UPROPERTY()
 	TMap<FIntVector2, TObjectPtr<UStaticMeshComponent>> DeviceMeshComponents;

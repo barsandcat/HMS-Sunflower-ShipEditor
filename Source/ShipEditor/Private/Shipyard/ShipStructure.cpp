@@ -9,22 +9,22 @@
 namespace
 {
 
-bool IsDeckIntersection(const FIntVector2& pos)
+bool IsDeckIntersection(const FIntVector3& pos)
 {
 	return pos.X % 2 != 0 && pos.Y % 2 != 0;
 }
 
-bool IsDeckVertical(const FIntVector2& pos)
+bool IsDeckVertical(const FIntVector3& pos)
 {
 	return pos.X % 2 != 0 && pos.Y % 2 == 0;
 }
 
-bool IsDeckHorizontal(const FIntVector2& pos)
+bool IsDeckHorizontal(const FIntVector3& pos)
 {
 	return pos.X % 2 == 0 && pos.Y % 2 != 0;
 }
 
-bool IsCabin(const FIntVector2& pos)
+bool IsCabin(const FIntVector3& pos)
 {
 	return pos.X % 2 == 0 && pos.Y % 2 == 0;
 }
@@ -45,15 +45,17 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 		Devices[i] = device;
 		for (FShipCellData& cell : part_instance->PartAsset->Cells)
 		{
+			FIntVector2 cell_pos = render_transform(part_instance->Transform(cell.Position));
 			if (IsIntersectionRootCell(cell.CellType))
 			{
 				device->RequiresPhoneConnection = true;
 				if (device->Stats.DeviceType == EDeviceType::BRIDGE)
 				{
-					Root = render_transform(part_instance->Transform(cell.Position));
+					Root = {cell_pos.X, cell_pos.Y, 0};
 				}
 			}
-			Cells.Add(render_transform(part_instance->Transform(cell.Position)), MakeShared<FShipStructureCell>(cell.CellType, device, update));
+
+			Cells.Add({cell_pos.X, cell_pos.Y, 0}, MakeShared<FShipStructureCell>(cell.CellType, device, update));
 		}
 	}
 }
@@ -122,14 +124,14 @@ void FShipStructure::Process()
 
 void FShipStructure::AddArmor()
 {
-	TArray<FIntVector2> empty_queue;
+	TArray<FIntVector3> empty_queue;
 	empty_queue.Reserve(Cells.Num());
 	int32 empty_queue_head = 0;
 
 	// Enqueue empty neighbors of root
-	for (const FIntVector2& d : diagonal_dirs)
+	for (const FIntVector3& d : diagonal_dirs)
 	{
-		FIntVector2 neighbor_cabin_pos = *Root + d;
+		FIntVector3 neighbor_cabin_pos = *Root + d;
 		if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
 		{
 			if (IsCabinTraversableCell(neighbor_cell->CellType))
@@ -143,7 +145,7 @@ void FShipStructure::AddArmor()
 
 	while (empty_queue_head < empty_queue.Num())
 	{
-		FIntVector2 cabin_pos = empty_queue[empty_queue_head++];
+		FIntVector3 cabin_pos = empty_queue[empty_queue_head++];
 		TSharedPtr<FShipStructureCell> cell = Cells.FindRef(cabin_pos);
 		if (!cell)
 		{
@@ -151,10 +153,10 @@ void FShipStructure::AddArmor()
 		}
 
 		// For each neighbor of this empty cell, if there is no cell present in structure => add armor there
-		for (const FIntVector2& d : dirs)
+		for (const FIntVector3& d : dirs)
 		{
-			FIntVector2 neighbor_cabin_pos = cabin_pos + d * 2;
-			FIntVector2 neighbor_deck_pos = cabin_pos + d;
+			FIntVector3 neighbor_cabin_pos = cabin_pos + d * 2;
+			FIntVector3 neighbor_deck_pos = cabin_pos + d;
 
 			TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos);
 
@@ -182,11 +184,11 @@ void FShipStructure::AddArmor()
 void FShipStructure::ConnectDecks()
 {
 	// BFS along decks to mark structural decks
-	TArray<FIntVector2> deck_queue;
+	TArray<FIntVector3> deck_queue;
 	deck_queue.Reserve(Cells.Num());
 	int32 deck_queue_head = 0;
 
-	TSet<FIntVector2> visited_intersections;
+	TSet<FIntVector3> visited_intersections;
 
 	// Enqueue root
 	deck_queue.Add(*Root);
@@ -195,7 +197,7 @@ void FShipStructure::ConnectDecks()
 	// Process deck BFS
 	while (deck_queue_head < deck_queue.Num())
 	{
-		FIntVector2 deck_pos = deck_queue[deck_queue_head++];
+		FIntVector3 deck_pos = deck_queue[deck_queue_head++];
 		TSharedPtr<FShipStructureCell> cell = Cells.FindRef(deck_pos);
 
 		if (IsDeckIntersection(deck_pos))
@@ -205,9 +207,9 @@ void FShipStructure::ConnectDecks()
 				cell->Device->CanPhoneTheBridge = true;
 			}
 
-			for (const FIntVector2& d : dirs)
+			for (const FIntVector3& d : dirs)
 			{
-				FIntVector2 neighbor_deck_pos = deck_pos + d;
+				FIntVector3 neighbor_deck_pos = deck_pos + d;
 				TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_deck_pos);
 				if (neighbor_cell && neighbor_cell->Visited != 1 && IsDeckCell(neighbor_cell->CellType))
 				{
@@ -226,9 +228,9 @@ void FShipStructure::ConnectDecks()
 		{
 			if (IsDeckVertical(deck_pos))
 			{
-				for (const FIntVector2& d : vertical_dirs)
+				for (const FIntVector3& d : vertical_dirs)
 				{
-					FIntVector2 neighbor_deck_pos = deck_pos + d;
+					FIntVector3 neighbor_deck_pos = deck_pos + d;
 					if (!visited_intersections.Contains(neighbor_deck_pos))
 					{
 						deck_queue.Add(neighbor_deck_pos);
@@ -237,9 +239,9 @@ void FShipStructure::ConnectDecks()
 			}
 			if (IsDeckHorizontal(deck_pos))
 			{
-				for (const FIntVector2& d : horizontal_dirs)
+				for (const FIntVector3& d : horizontal_dirs)
 				{
-					FIntVector2 neighbor_deck_pos = deck_pos + d;
+					FIntVector3 neighbor_deck_pos = deck_pos + d;
 					if (!visited_intersections.Contains(neighbor_deck_pos))
 					{
 						deck_queue.Add(neighbor_deck_pos);
@@ -259,7 +261,7 @@ void FShipStructure::CallUpdate() const
 {
 	for (const auto& i : Cells)
 	{
-		const FIntVector2& cell_pos = i.Key;
+		FIntVector2 cell_pos = {i.Key.X, i.Key.Y};
 		const TSharedPtr<FShipStructureCell> cell = i.Value;
 		cell->Update->SetCellMesh(cell_pos, cell->CellType);
 	}
@@ -277,7 +279,7 @@ void FShipStructure::CallUpdate() const
 void FShipStructure::ConnectTechnicalCorridors()
 {
 	// Gather unvisited technical corridor roots that belong to the ship (device is wall-connected)
-	TSet<FIntVector2> unvisited_roots;
+	TSet<FIntVector3> unvisited_roots;
 	for (const auto& pair : Cells)
 	{
 		const TSharedPtr<FShipStructureCell> cell = pair.Value;
@@ -299,11 +301,11 @@ void FShipStructure::ConnectTechnicalCorridors()
 		devices_in_net.Reserve(8);
 
 		// Pick a start root from the set
-		FIntVector2 start_pos = unvisited_roots.Array()[0];
+		FIntVector3 start_pos = unvisited_roots.Array()[0];
 		unvisited_roots.Remove(start_pos);
 
 		// BFS queue of corridor positions
-		TArray<FIntVector2> queue;
+		TArray<FIntVector3> queue;
 		queue.Add(start_pos);
 		int32 queue_head = 0;
 
@@ -317,7 +319,7 @@ void FShipStructure::ConnectTechnicalCorridors()
 		// Traverse
 		while (queue_head < queue.Num())
 		{
-			FIntVector2 pos = queue[queue_head++];
+			FIntVector3 pos = queue[queue_head++];
 			TSharedPtr<FShipStructureCell> cell = Cells.FindRef(pos);
 			if (!cell)
 			{
@@ -325,9 +327,9 @@ void FShipStructure::ConnectTechnicalCorridors()
 			}
 
 			// Explore 4 cardinal neighbors for technical corridor connectivity
-			for (const FIntVector2& d : dirs)
+			for (const FIntVector3& d : dirs)
 			{
-				FIntVector2 neighbor_pos = pos + d * 2;
+				FIntVector3 neighbor_pos = pos + d * 2;
 				if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_pos))
 				{
 					// Only traverse along technical corridor cells or corridor roots
@@ -363,7 +365,7 @@ void FShipStructure::CalculateDeviceSectors()
 {
 	for (const auto& pair : Cells)
 	{
-		const FIntVector2& cabin_pos = pair.Key;
+		FIntVector2 cabin_pos = {pair.Key.X, pair.Key.Y};
 		const TSharedPtr<FShipStructureCell>& cell = pair.Value;
 		if (cell && IsCabinCell(cell->CellType))
 		{
