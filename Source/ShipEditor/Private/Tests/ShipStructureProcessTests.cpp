@@ -9,7 +9,8 @@ namespace
 
 constexpr float kUsageTol = 0.001f;
 
-TSharedPtr<FShipStructureDevice> MakeDevice(EDeviceType type,
+TSharedPtr<FShipStructureDevice> MakeDevice(FShipStructure& structure,
+    EDeviceType type,
     const FIntVector3& pos,
     float fuel = 0.0f,
     float ammo = 0.0f,
@@ -21,7 +22,10 @@ TSharedPtr<FShipStructureDevice> MakeDevice(EDeviceType type,
 	stats.FuelConsumption = fuel;
 	stats.AmmoConsumption = ammo;
 	stats.SectorWidth = sector_width;
-	return MakeShared<FShipStructureDevice>(stats, FShipPartTransform({pos.X, pos.Y}, 0, false), sector_rotation, nullptr);
+	TSharedPtr<FShipStructureDevice> device =
+	    MakeShared<FShipStructureDevice>(stats, FShipPartTransform({pos.X, pos.Y}, 0, false), sector_rotation, nullptr);
+	structure.Devices.Add(device);
+	return device;
 }
 
 void AddCell(FShipStructure& structure, const FIntVector3& pos, ECellType type, const TSharedPtr<FShipStructureDevice>& device)
@@ -31,10 +35,9 @@ void AddCell(FShipStructure& structure, const FIntVector3& pos, ECellType type, 
 
 TSharedPtr<FShipStructureDevice> AddBridgeRoot(FShipStructure& structure, const FIntVector3& pos)
 {
-	TSharedPtr<FShipStructureDevice> bridge = MakeDevice(EDeviceType::BRIDGE, pos);
+	TSharedPtr<FShipStructureDevice> bridge = MakeDevice(structure, EDeviceType::BRIDGE, pos);
 	bridge->RequiresPhoneConnection = true;
 	structure.Root = pos;
-	structure.Devices.Add(bridge);
 	AddCell(structure, pos, ECellType::INTERSECTION_PHONE_LINE_ROOT, bridge);
 	return bridge;
 }
@@ -46,11 +49,8 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 	SECTION("Decks connected to root become DECK_PHONE_LINE")
 	{
 		FShipStructure structure;
-		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-
-		TSharedPtr<FShipStructureDevice> deck_device = MakeDevice(EDeviceType::NONE, FIntVector3(1, 2, 0));
-		structure.Devices.Add(deck_device);
-		AddCell(structure, FIntVector3(1, 2, 0), ECellType::DECK, deck_device);
+		auto bridge = AddBridgeRoot(structure, FIntVector3(1, 1, 0));
+		AddCell(structure, FIntVector3(1, 2, 0), ECellType::DECK, bridge);
 
 		structure.Process();
 
@@ -62,11 +62,9 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 	SECTION("Decks not connected to root stay DECK")
 	{
 		FShipStructure structure;
-		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
+		auto bridge = AddBridgeRoot(structure, FIntVector3(1, 1, 0));
 
-		TSharedPtr<FShipStructureDevice> deck_device = MakeDevice(EDeviceType::NONE, FIntVector3(5, 4, 0));
-		structure.Devices.Add(deck_device);
-		AddCell(structure, FIntVector3(5, 4, 0), ECellType::DECK, deck_device);
+		AddCell(structure, FIntVector3(5, 4, 0), ECellType::DECK, bridge);
 
 		structure.Process();
 
@@ -80,9 +78,8 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		FShipStructure structure;
 		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
 
-		TSharedPtr<FShipStructureDevice> phone_device = MakeDevice(EDeviceType::ENGINE, FIntVector3(3, 1, 0));
+		TSharedPtr<FShipStructureDevice> phone_device = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(3, 1, 0));
 		phone_device->RequiresPhoneConnection = true;
-		structure.Devices.Add(phone_device);
 
 		AddCell(structure, FIntVector3(2, 1, 0), ECellType::DECK, phone_device);
 		AddCell(structure, FIntVector3(3, 1, 0), ECellType::INTERSECTION_PHONE_LINE_ROOT, phone_device);
@@ -97,9 +94,8 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		FShipStructure structure;
 		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
 
-		TSharedPtr<FShipStructureDevice> phone_device = MakeDevice(EDeviceType::ENGINE, FIntVector3(5, 5, 0));
+		TSharedPtr<FShipStructureDevice> phone_device = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(5, 5, 0));
 		phone_device->RequiresPhoneConnection = true;
-		structure.Devices.Add(phone_device);
 
 		AddCell(structure, FIntVector3(5, 5, 0), ECellType::INTERSECTION_PHONE_LINE_ROOT, phone_device);
 
@@ -113,8 +109,7 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		FShipStructure structure;
 		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
 
-		TSharedPtr<FShipStructureDevice> cabin_device = MakeDevice(EDeviceType::QUARTERS, FIntVector3(0, 0, 0));
-		structure.Devices.Add(cabin_device);
+		TSharedPtr<FShipStructureDevice> cabin_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(0, 0, 0));
 
 		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN, cabin_device);
 
@@ -128,12 +123,9 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		FShipStructure structure;
 		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
 
-		TSharedPtr<FShipStructureDevice> front_device = MakeDevice(EDeviceType::QUARTERS, FIntVector3(0, 0, 0));
-		TSharedPtr<FShipStructureDevice> blocked_device = MakeDevice(EDeviceType::QUARTERS, FIntVector3(2, 0, 0));
-		TSharedPtr<FShipStructureDevice> far_device = MakeDevice(EDeviceType::QUARTERS, FIntVector3(4, 0, 0));
-		structure.Devices.Add(front_device);
-		structure.Devices.Add(blocked_device);
-		structure.Devices.Add(far_device);
+		TSharedPtr<FShipStructureDevice> front_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(0, 0, 0));
+		TSharedPtr<FShipStructureDevice> blocked_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(2, 0, 0));
+		TSharedPtr<FShipStructureDevice> far_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(4, 0, 0));
 
 		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN, front_device);
 		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN_BLOCKED, blocked_device);
@@ -150,10 +142,8 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		FShipStructure structure;
 		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
 
-		TSharedPtr<FShipStructureDevice> left_device = MakeDevice(EDeviceType::QUARTERS, FIntVector3(0, 0, 0));
-		TSharedPtr<FShipStructureDevice> right_device = MakeDevice(EDeviceType::QUARTERS, FIntVector3(2, 0, 0));
-		structure.Devices.Add(left_device);
-		structure.Devices.Add(right_device);
+		TSharedPtr<FShipStructureDevice> left_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(0, 0, 0));
+		TSharedPtr<FShipStructureDevice> right_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(2, 0, 0));
 
 		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN, left_device);
 		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN, right_device);
@@ -172,8 +162,7 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		AddBridgeRoot(structure, FIntVector3(10, 10, 0));
 
 		TSharedPtr<FShipStructureDevice> gun_device =
-		    MakeDevice(EDeviceType::GUN, FIntVector3(0, 0, 0), 0.0f, 0.0f, 90.f, 45.f);
-		structure.Devices.Add(gun_device);
+		    MakeDevice(structure, EDeviceType::GUN, FIntVector3(0, 0, 0), 0.0f, 0.0f, 90.f, 45.f);
 
 		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_BLOCKED, gun_device);
 		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN, gun_device);
@@ -191,8 +180,7 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		AddBridgeRoot(structure, FIntVector3(10, 10, 0));
 
 		TSharedPtr<FShipStructureDevice> gun_device =
-		    MakeDevice(EDeviceType::GUN, FIntVector3(0, 0, 0), 0.0f, 0.0f, 270.f, 90.f + 45.f);
-		structure.Devices.Add(gun_device);
+		    MakeDevice(structure, EDeviceType::GUN, FIntVector3(0, 0, 0), 0.0f, 0.0f, 270.f, 90.f + 45.f);
 
 		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_BLOCKED, gun_device);
 		AddCell(structure, FIntVector3(0, 2, 0), ECellType::CABIN, gun_device);
@@ -209,16 +197,11 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		FShipStructure structure;
 		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
 
-		TSharedPtr<FShipStructureDevice> producer_a = MakeDevice(EDeviceType::ENGINE, FIntVector3(0, 0, 0), -10.0f);
-		TSharedPtr<FShipStructureDevice> consumer_a = MakeDevice(EDeviceType::ENGINE, FIntVector3(0, 2, 0), 5.0f);
-		TSharedPtr<FShipStructureDevice> ignored_a = MakeDevice(EDeviceType::ENGINE, FIntVector3(0, 4, 0), 100.0f);
-		TSharedPtr<FShipStructureDevice> producer_b = MakeDevice(EDeviceType::ENGINE, FIntVector3(10, 0, 0), -4.0f);
-		TSharedPtr<FShipStructureDevice> consumer_b = MakeDevice(EDeviceType::ENGINE, FIntVector3(12, 0, 0), 8.0f);
-		structure.Devices.Add(producer_a);
-		structure.Devices.Add(consumer_a);
-		structure.Devices.Add(ignored_a);
-		structure.Devices.Add(producer_b);
-		structure.Devices.Add(consumer_b);
+		TSharedPtr<FShipStructureDevice> producer_a = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 0, 0), -10.0f);
+		TSharedPtr<FShipStructureDevice> consumer_a = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 2, 0), 5.0f);
+		TSharedPtr<FShipStructureDevice> ignored_a = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 4, 0), 100.0f);
+		TSharedPtr<FShipStructureDevice> producer_b = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(10, 0, 0), -4.0f);
+		TSharedPtr<FShipStructureDevice> consumer_b = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(12, 0, 0), 8.0f);
 
 		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, producer_a);
 		AddCell(structure, FIntVector3(0, 2, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, consumer_a);
@@ -241,16 +224,12 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		FShipStructure structure;
 		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
 
-		TSharedPtr<FShipStructureDevice> producer_a = MakeDevice(EDeviceType::ENGINE, FIntVector3(0, 0, 0), -10.0f);
-		TSharedPtr<FShipStructureDevice> consumer_a = MakeDevice(EDeviceType::ENGINE, FIntVector3(0, 2, 0), 5.0f);
-		TSharedPtr<FShipStructureDevice> producer_b = MakeDevice(EDeviceType::ENGINE, FIntVector3(4, 0, 0), -4.0f);
-		TSharedPtr<FShipStructureDevice> consumer_b = MakeDevice(EDeviceType::ENGINE, FIntVector3(4, 2, 0), 8.0f);
+		TSharedPtr<FShipStructureDevice> producer_a = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 0, 0), -10.0f);
+		TSharedPtr<FShipStructureDevice> consumer_a = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 2, 0), 5.0f);
+		TSharedPtr<FShipStructureDevice> producer_b = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(4, 0, 0), -4.0f);
+		TSharedPtr<FShipStructureDevice> consumer_b = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(4, 2, 0), 8.0f);
 		producer_b->RequiresPhoneConnection = true;
 		consumer_b->RequiresPhoneConnection = true;
-		structure.Devices.Add(producer_a);
-		structure.Devices.Add(consumer_a);
-		structure.Devices.Add(producer_b);
-		structure.Devices.Add(consumer_b);
 
 		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, producer_a);
 		AddCell(structure, FIntVector3(0, 2, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, consumer_a);
@@ -273,10 +252,8 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 			FShipStructure structure;
 			AddBridgeRoot(structure, FIntVector3(1, 1, 0));
 
-			TSharedPtr<FShipStructureDevice> producer = MakeDevice(EDeviceType::ENGINE, FIntVector3(0, 0, 0), -10.0f);
-			TSharedPtr<FShipStructureDevice> consumer = MakeDevice(EDeviceType::ENGINE, FIntVector3(0, 2, 0), 5.0f);
-			structure.Devices.Add(producer);
-			structure.Devices.Add(consumer);
+			TSharedPtr<FShipStructureDevice> producer = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 0, 0), -10.0f);
+			TSharedPtr<FShipStructureDevice> consumer = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 2, 0), 5.0f);
 
 			AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, producer);
 			AddCell(structure, FIntVector3(0, 2, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, consumer);
@@ -291,10 +268,8 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 			FShipStructure structure;
 			AddBridgeRoot(structure, FIntVector3(1, 1, 0));
 
-			TSharedPtr<FShipStructureDevice> producer = MakeDevice(EDeviceType::ENGINE, FIntVector3(0, 0, 0), -5.0f);
-			TSharedPtr<FShipStructureDevice> consumer = MakeDevice(EDeviceType::ENGINE, FIntVector3(0, 2, 0), 10.0f);
-			structure.Devices.Add(producer);
-			structure.Devices.Add(consumer);
+			TSharedPtr<FShipStructureDevice> producer = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 0, 0), -5.0f);
+			TSharedPtr<FShipStructureDevice> consumer = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 2, 0), 10.0f);
 
 			AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, producer);
 			AddCell(structure, FIntVector3(0, 2, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, consumer);
