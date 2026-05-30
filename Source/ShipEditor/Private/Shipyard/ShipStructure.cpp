@@ -55,7 +55,12 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 				}
 			}
 
+			// int32 to = part_instance->PartAsset->Height;
+			// int32 from = -to;
+			// for (int32 z = from; z <= to; z++)
+			//{
 			Cells.Add({cell_pos.X, cell_pos.Y, 0}, MakeShared<FShipStructureCell>(cell.CellType, device, update));
+			//}
 		}
 	}
 }
@@ -129,7 +134,7 @@ void FShipStructure::AddArmor()
 	int32 empty_queue_head = 0;
 
 	// Enqueue empty neighbors of root
-	for (const FIntVector3& d : diagonal_dirs)
+	for (const FIntVector3& d : DIAGONAL_DIRS)
 	{
 		FIntVector3 neighbor_cabin_pos = *Root + d;
 		if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
@@ -153,27 +158,28 @@ void FShipStructure::AddArmor()
 		}
 
 		// For each neighbor of this empty cell, if there is no cell present in structure => add armor there
-		for (const FIntVector3& d : dirs)
+		for (const FIntVector3& d : DIRS)
 		{
 			FIntVector3 neighbor_cabin_pos = cabin_pos + d * 2;
 			FIntVector3 neighbor_deck_pos = cabin_pos + d;
 
-			TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos);
+			TSharedPtr<FShipStructureCell> neighbor_cabin = Cells.FindRef(neighbor_cabin_pos);
+			TSharedPtr<FShipStructureCell> neighbor_deck = Cells.FindRef(neighbor_deck_pos);
 
 			// Add armor between traversable cabin and exterior
-			if (IsCabinTraversableCell(cell->CellType) && (!neighbor_cell || neighbor_cell->CellType == ECellType::NONE))
+			if (IsCabinTraversableCell(cell->CellType) && (!neighbor_cabin || neighbor_cabin->CellType == ECellType::NONE) && !neighbor_deck)
 			{
 				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK_ARMOR, cell->Device, cell->Update);
 				Cells.Add(neighbor_deck_pos, armor_cell);
 			}
 
 			// Add neighbor to BFS if it's traversable and not visited yet
-			if (neighbor_cell && IsCabinTraversableCell(neighbor_cell->CellType) && (neighbor_cell->Device->CanPhoneTheBridge || !neighbor_cell->Device->RequiresPhoneConnection))
+			if (neighbor_cabin && IsCabinTraversableCell(neighbor_cabin->CellType) && (neighbor_cabin->Device->CanPhoneTheBridge || !neighbor_cabin->Device->RequiresPhoneConnection))
 			{
-				if (neighbor_cell->Visited != 2)
+				if (neighbor_cabin->Visited != 2)
 				{
-					neighbor_cell->Visited = 2;
-					neighbor_cell->Device->CanReachTheBridge = true;
+					neighbor_cabin->Visited = 2;
+					neighbor_cabin->Device->CanReachTheBridge = true;
 					empty_queue.Add(neighbor_cabin_pos);
 				}
 			}
@@ -207,7 +213,7 @@ void FShipStructure::ConnectDecks()
 				cell->Device->CanPhoneTheBridge = true;
 			}
 
-			for (const FIntVector3& d : dirs)
+			for (const FIntVector3& d : DIRS)
 			{
 				FIntVector3 neighbor_deck_pos = deck_pos + d;
 				TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_deck_pos);
@@ -228,7 +234,7 @@ void FShipStructure::ConnectDecks()
 		{
 			if (IsDeckVertical(deck_pos))
 			{
-				for (const FIntVector3& d : vertical_dirs)
+				for (const FIntVector3& d : VERTICAL_DIRS)
 				{
 					FIntVector3 neighbor_deck_pos = deck_pos + d;
 					if (!visited_intersections.Contains(neighbor_deck_pos))
@@ -239,7 +245,7 @@ void FShipStructure::ConnectDecks()
 			}
 			if (IsDeckHorizontal(deck_pos))
 			{
-				for (const FIntVector3& d : horizontal_dirs)
+				for (const FIntVector3& d : HORIZONTAL_DIRS)
 				{
 					FIntVector3 neighbor_deck_pos = deck_pos + d;
 					if (!visited_intersections.Contains(neighbor_deck_pos))
@@ -327,7 +333,7 @@ void FShipStructure::ConnectTechnicalCorridors()
 			}
 
 			// Explore 4 cardinal neighbors for technical corridor connectivity
-			for (const FIntVector3& d : dirs)
+			for (const FIntVector3& d : DIRS)
 			{
 				FIntVector3 neighbor_pos = pos + d * 2;
 				if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_pos))

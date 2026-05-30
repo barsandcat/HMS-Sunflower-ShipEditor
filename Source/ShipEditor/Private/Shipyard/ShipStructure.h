@@ -91,8 +91,9 @@ struct FShipStructure
 	TArray<TSharedPtr<FShipStructureDevice>> Devices;
 	FShipDevicesUpdate* DevicesUpdate = nullptr;
 
-	static inline const FIntVector3 dirs[4] = {FIntVector3(1, 0, 0), FIntVector3(-1, 0, 0), FIntVector3(0, 1, 0), FIntVector3(0, -1, 0)};
-	static inline const FIntVector3 diagonal_dirs[4] = {FIntVector3(1, 1, 0), FIntVector3(1, -1, 0), FIntVector3(-1, 1, 0), FIntVector3(-1, -1, 0)};
-	static inline const FIntVector3 vertical_dirs[2] = {FIntVector3(0, 1, 0), FIntVector3(0, -1, 0)};
-	static inline const FIntVector3 horizontal_dirs[2] = {FIntVector3(1, 0, 0), FIntVector3(-1, 0, 0)};
+	static inline const FIntVector3 DIRS[4] = {FIntVector3(1, 0, 0), FIntVector3(-1, 0, 0), FIntVector3(0, 1, 0), FIntVector3(0, -1, 0)};
+	static inline const FIntVector3 DIRS3D[6] = {FIntVector3(1, 0, 0), FIntVector3(-1, 0, 0), FIntVector3(0, 1, 0), FIntVector3(0, -1, 0), FIntVector3(0, 0, 1), FIntVector3(0, 0, -1)};
+	static inline const FIntVector3 DIAGONAL_DIRS[4] = {FIntVector3(1, 1, 0), FIntVector3(1, -1, 0), FIntVector3(-1, 1, 0), FIntVector3(-1, -1, 0)};
+	static inline const FIntVector3 VERTICAL_DIRS[2] = {FIntVector3(0, 1, 0), FIntVector3(0, -1, 0)};
+	static inline const FIntVector3 HORIZONTAL_DIRS[2] = {FIntVector3(1, 0, 0), FIntVector3(-1, 0, 0)};
 };

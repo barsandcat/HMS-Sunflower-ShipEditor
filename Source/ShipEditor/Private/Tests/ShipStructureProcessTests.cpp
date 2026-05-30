@@ -152,6 +152,24 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		CHECK(!structure.Cells.Contains(FIntVector3(1, 0, 0)));
 	}
 
+	SECTION("Armor is not placed where holes are")
+	{
+		FShipStructure structure;
+		auto bridge = AddBridgeRoot(structure, FIntVector3(1, 1, 0));
+
+		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN, bridge);
+		AddCell(structure, FIntVector3(1, 0, 0), ECellType::DECK_HOLE, bridge);
+
+		structure.Process();
+
+		TSharedPtr<FShipStructureCell> exterior_armor = structure.Cells.FindRef(FIntVector3(-1, 0, 0));
+		TSharedPtr<FShipStructureCell> hole_cell = structure.Cells.FindRef(FIntVector3(1, 0, 0));
+		CHECK(exterior_armor);
+		CHECK(exterior_armor->CellType == ECellType::DECK_ARMOR);
+		CHECK(hole_cell);
+		CHECK(hole_cell->CellType == ECellType::DECK_HOLE);
+	}
+
 	SECTION("Device sector is partially blocked by one cabin cell")
 	{
 		FShipStructure structure;

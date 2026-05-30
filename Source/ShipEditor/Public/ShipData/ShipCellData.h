@@ -41,6 +41,7 @@ enum class ECellType : uint8
 	DECK_PHONE_LINE = ECellTypeFlag::DECK | ECellTypeFlag::SUBTYPE1,
 	INTERSECTION_PHONE_LINE_ROOT = ECellTypeFlag::INTERSECTION | ECellTypeFlag::SUBTYPE1 | ECellTypeFlag::ROOT,
 	DECK_ARMOR = ECellTypeFlag::DECK | ECellTypeFlag::SUBTYPE2,
+	DECK_HOLE = ECellTypeFlag::DECK | ECellTypeFlag::SUBTYPE3,
 };
 
 FORCEINLINE bool HasCellTypeFlag(ECellType cell_type, ECellTypeFlag flag)

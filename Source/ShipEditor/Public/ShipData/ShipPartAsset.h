@@ -27,5 +27,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FShipCellData> Cells;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSet<FIntVector2> DeviceCells;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Height = 0;
+
 	bool RequiresPhoneConnection() const;
 };
