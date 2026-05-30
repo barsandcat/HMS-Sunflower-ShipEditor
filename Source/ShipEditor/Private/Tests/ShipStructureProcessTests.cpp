@@ -124,11 +124,10 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
 
 		TSharedPtr<FShipStructureDevice> front_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(0, 0, 0));
-		TSharedPtr<FShipStructureDevice> blocked_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(2, 0, 0));
 		TSharedPtr<FShipStructureDevice> far_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(4, 0, 0));
 
 		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN, front_device);
-		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN_BLOCKED, blocked_device);
+		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN_BLOCKED, front_device);
 		AddCell(structure, FIntVector3(4, 0, 0), ECellType::CABIN, far_device);
 
 		structure.Process();
@@ -140,13 +139,10 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 	SECTION("Armor is placed only between reachable cabin and empty exterior")
 	{
 		FShipStructure structure;
-		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
+		auto bridge = AddBridgeRoot(structure, FIntVector3(1, 1, 0));
 
-		TSharedPtr<FShipStructureDevice> left_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(0, 0, 0));
-		TSharedPtr<FShipStructureDevice> right_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(2, 0, 0));
-
-		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN, left_device);
-		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN, right_device);
+		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN, bridge);
+		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN, bridge);
 
 		structure.Process();
 
