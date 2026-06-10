@@ -14,6 +14,15 @@
 class FShipRenderUpdate;
 struct FShipStructureDevice;
 
+enum class EShipStructureVisitState : uint8
+{
+	None,
+	ConnectedDeck,
+	CanReachBridge,
+	ArmorPlacement,
+	TechnicalCorridor,
+};
+
 struct FShipStructureDevice
 {
 	FShipStructureDevice() = default;
@@ -57,7 +66,7 @@ struct FShipStructureCell
 	ECellType CellType = ECellType::NONE;
 
 	TSharedPtr<FShipStructureDevice> Device;    // Multiple cells point to same device
-	int32 Visited = 0;
+	EShipStructureVisitState Visited = EShipStructureVisitState::None;
 	FShipRenderUpdate* Update = nullptr;
 };
 
@@ -72,6 +81,8 @@ struct FShipStructure
 	    FShipStructure& out_merged_structure);
 
 	void Process();
+
+	void SetCanReachTheBridge();
 
 	void AddArmor();
 
