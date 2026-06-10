@@ -166,14 +166,14 @@ void FShipStructure::AddArmor()
 			TSharedPtr<FShipStructureCell> neighbor_cabin = Cells.FindRef(neighbor_cabin_pos);
 			TSharedPtr<FShipStructureCell> neighbor_deck = Cells.FindRef(neighbor_deck_pos);
 
-			// Add armor between traversable cabin and exterior
-			if (IsCabinTraversableCell(cell->CellType) && (!neighbor_cabin || neighbor_cabin->CellType == ECellType::NONE) && !neighbor_deck)
+			// Add armor between cabin and exterior
+			if (IsCabinCell(cell->CellType) && (!neighbor_cabin || neighbor_cabin->CellType == ECellType::NONE) && !neighbor_deck)
 			{
 				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK_ARMOR, cell->Device, cell->Update);
 				Cells.Add(neighbor_deck_pos, armor_cell);
 			}
 
-			// Add neighbor to BFS if it's traversable and not visited yet
+			// Add neighbor to BFS if it's cabin and not visited yet
 			if (neighbor_cabin && IsCabinTraversableCell(neighbor_cabin->CellType) && (neighbor_cabin->Device->CanPhoneTheBridge || !neighbor_cabin->Device->RequiresPhoneConnection))
 			{
 				if (neighbor_cabin->Visited != 2)
