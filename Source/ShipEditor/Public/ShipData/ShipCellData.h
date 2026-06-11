@@ -32,7 +32,7 @@ enum ECellTypeFlag : uint8
 UENUM(BlueprintType)
 enum class ECellType : uint8
 {
-	NONE = 0b000000,
+	NONE = 0b000000,    // No cell
 	CABIN = ECellTypeFlag::CABIN,
 	CABIN_TECHNICAL_CORRIDOR = ECellTypeFlag::CABIN | ECellTypeFlag::SUBTYPE1,
 	CABIN_TECHNICAL_CORRIDOR_ROOT = ECellTypeFlag::CABIN | ECellTypeFlag::SUBTYPE1 | ECellTypeFlag::ROOT,

@@ -175,6 +175,15 @@ void FShipStructure::SetCanReachTheBridge()
 	}
 }
 
+ECellType FShipStructure::GetCellType(const FIntVector3& pos) const
+{
+	if (TSharedPtr<FShipStructureCell> cell = Cells.FindRef(pos))
+	{
+		return cell->CellType;
+	}
+	return ECellType::NONE;
+}
+
 void FShipStructure::AddArmor()
 {
 	TArray<FIntVector3> cabin_queue;
@@ -201,7 +210,7 @@ void FShipStructure::AddArmor()
 
 		if (cell && IsCabinCell(cell->CellType))
 		{
-			for (const FIntVector3& d : DIRS)
+			for (const FIntVector3& d : DIRS3D)
 			{
 				FIntVector3 neighbor_cabin_pos = cabin_pos + d * 2;
 				FIntVector3 neighbor_deck_pos = cabin_pos + d;
