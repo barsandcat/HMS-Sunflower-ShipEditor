@@ -147,6 +147,8 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		structure.Process();
 
 		CHECK(structure.GetCellType(FIntVector3(-1, 0, 0)) == ECellType::DECK_ARMOR);
+		CHECK(structure.GetCellType(FIntVector3(0, 1, 0)) == ECellType::DECK_ARMOR);
+		CHECK(structure.GetCellType(FIntVector3(0, 0, 1)) == ECellType::DECK_ARMOR);
 		CHECK(!structure.Cells.Contains(FIntVector3(1, 0, 0)));
 	}
 
