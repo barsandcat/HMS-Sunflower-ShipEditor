@@ -317,9 +317,8 @@ void FShipStructure::CallUpdate() const
 {
 	for (const auto& i : Cells)
 	{
-		FIntVector2 cell_pos = {i.Key.X, i.Key.Y};
 		const TSharedPtr<FShipStructureCell> cell = i.Value;
-		cell->Update->SetCellMesh(cell_pos, cell->CellType);
+		cell->Update->SetCellMesh(i.Key, cell->CellType);
 	}
 
 	for (TSharedPtr<FShipStructureDevice> device : Devices)

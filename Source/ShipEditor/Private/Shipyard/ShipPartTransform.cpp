@@ -4,6 +4,7 @@
 
 namespace
 {
+
 FIntVector2 RotatePoint(const FIntVector2& point, int32 rotation)
 {
 	FIntVector2 result = point;
@@ -74,6 +75,12 @@ void FShipPartTransform::Flip()
 FIntVector2 FShipPartTransform::operator()(const FIntVector2& point) const
 {
 	return MirrorPoint(RotatePoint(point, Rotation), Mirror) + Position;
+}
+
+FIntVector3 FShipPartTransform::operator()(const FIntVector3& point) const
+{
+	FIntVector2 tmp = MirrorPoint(RotatePoint({point.X, point.Y}, Rotation), Mirror) + Position;
+	return {tmp.X, tmp.Y, point.Z};
 }
 
 FShipPartTransform FShipPartTransform::operator()(const FShipPartTransform& t) const

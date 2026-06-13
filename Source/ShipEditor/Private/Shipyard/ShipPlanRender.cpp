@@ -48,7 +48,7 @@ void AShipPlanRender::AddPart(UShipPartAsset* part_asset, const FShipPartTransfo
 
 FShipRenderUpdate AShipPlanRender::CreateRenderUpdate()
 {
-	TSet<FIntVector2> current_cells;
+	TSet<FIntVector3> current_cells;
 	for (const auto& pair : CellMeshComponents)
 	{
 		current_cells.Add(pair.Key);
@@ -66,7 +66,7 @@ FShipStructure AShipPlanRender::CreateStructure(FShipRenderUpdate* update)
 	return FShipStructure(Transform, ShipPartInstances, update);
 }
 
-void AShipPlanRender::SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type)
+void AShipPlanRender::SetCellMesh(const FIntVector3& cell_pos_local, ECellType cell_type)
 {
 	switch (cell_type)
 	{
@@ -157,13 +157,18 @@ void AShipPlanRender::SetOverlayMaterial(UShipPartInstance* part, UMaterialInter
 {
 	for (const auto& cell : part->PartAsset->Cells)
 	{
-		if (TObjectPtr<UStaticMeshComponent> static_mesh = CellMeshComponents.FindRef(part->Transform(cell.Position)))
+		FIntVector2 cell_pos_local = part->Transform(cell.Position);
+		for (int32 z = -part->PartAsset->Height; z < part->PartAsset->Height; ++z)
 		{
-			static_mesh->SetOverlayMaterial(material);
-		}
-		if (TObjectPtr<UStaticMeshComponent> mesh_component = LayerCellMeshComponents.FindRef(part->Transform(cell.Position)))
-		{
-			mesh_component->SetOverlayMaterial(material);
+			FIntVector3 cell_pos_local_3d = {cell_pos_local.X, cell_pos_local.Y, z};
+			if (TObjectPtr<UStaticMeshComponent> static_mesh = CellMeshComponents.FindRef(cell_pos_local_3d))
+			{
+				static_mesh->SetOverlayMaterial(material);
+			}
+			if (TObjectPtr<UStaticMeshComponent> mesh_component = LayerCellMeshComponents.FindRef(cell_pos_local_3d))
+			{
+				mesh_component->SetOverlayMaterial(material);
+			}
 		}
 	}
 	if (TObjectPtr<UStaticMeshComponent> mesh_component = DeviceMeshComponents.FindRef(part->Transform.Position))
@@ -242,17 +247,21 @@ void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)
 	for (const auto& cell : part->PartAsset->Cells)
 	{
 		FIntVector2 cell_pos_local = part->Transform(cell.Position);
-		if (TObjectPtr<UStaticMeshComponent> static_mesh = CellMeshComponents.FindRef(cell_pos_local))
+		for (int32 z = -part->PartAsset->Height; z < part->PartAsset->Height; ++z)
 		{
-			static_mesh->UnregisterComponent();
-			static_mesh->DestroyComponent();
-			CellMeshComponents.Remove(cell_pos_local);
-		}
-		if (TObjectPtr<UStaticMeshComponent> static_mesh = LayerCellMeshComponents.FindRef(cell_pos_local))
-		{
-			static_mesh->UnregisterComponent();
-			static_mesh->DestroyComponent();
-			LayerCellMeshComponents.Remove(cell_pos_local);
+			FIntVector3 cell_pos_local_3d = {cell_pos_local.X, cell_pos_local.Y, z};
+			if (TObjectPtr<UStaticMeshComponent> static_mesh = CellMeshComponents.FindRef(cell_pos_local_3d))
+			{
+				static_mesh->UnregisterComponent();
+				static_mesh->DestroyComponent();
+				CellMeshComponents.Remove(cell_pos_local_3d);
+			}
+			if (TObjectPtr<UStaticMeshComponent> static_mesh = LayerCellMeshComponents.FindRef(cell_pos_local_3d))
+			{
+				static_mesh->UnregisterComponent();
+				static_mesh->DestroyComponent();
+				LayerCellMeshComponents.Remove(cell_pos_local_3d);
+			}
 		}
 		if (TObjectPtr<UStaticMeshComponent> static_mesh = DeviceMeshComponents.FindRef(cell_pos_local))
 		{
@@ -264,7 +273,7 @@ void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)
 	ShipPartInstances.Remove(part);
 }
 
-bool AShipPlanRender::IsWall(const FIntVector2& cell_pos) const
+bool AShipPlanRender::IsWall(const FIntVector3& cell_pos) const
 {
 	return cell_pos.Y % 2 == 0 && cell_pos.X % 2 != 0;
 }
@@ -274,7 +283,7 @@ UMaterialInterface* AShipPlanRender::GetRenderOverlayMaterial() const
 	return IsOk() ? OkOverlayMaterial : ErrorOverlayMaterial;
 }
 
-void AShipPlanRender::SetLayerCellMeshComponent(const FIntVector2& cell_pos_local, UStaticMesh* static_mesh)
+void AShipPlanRender::SetLayerCellMeshComponent(const FIntVector3& cell_pos_local, UStaticMesh* static_mesh)
 {
 	if (!static_mesh)
 	{
@@ -295,7 +304,7 @@ void AShipPlanRender::SetLayerCellMeshComponent(const FIntVector2& cell_pos_loca
 	check(mesh);
 
 	mesh->SetStaticMesh(static_mesh);
-	FIntVector2 cell_pos = Transform(cell_pos_local);
+	FIntVector3 cell_pos = Transform(cell_pos_local);
 	mesh->SetWorldLocation(FVector(cell_pos.X * MeshSpacing, GetActorLocation().Y, cell_pos.Y * MeshSpacing));
 	mesh->UpdateComponentToWorld();
 	if (auto* overlay_material = GetRenderOverlayMaterial())
@@ -304,7 +313,7 @@ void AShipPlanRender::SetLayerCellMeshComponent(const FIntVector2& cell_pos_loca
 	}
 }
 
-void AShipPlanRender::SetCellMeshComponent(const FIntVector2& cell_pos_local, UStaticMesh* static_mesh)
+void AShipPlanRender::SetCellMeshComponent(const FIntVector3& cell_pos_local, UStaticMesh* static_mesh)
 {
 	if (!static_mesh)
 	{
@@ -324,7 +333,7 @@ void AShipPlanRender::SetCellMeshComponent(const FIntVector2& cell_pos_local, US
 	check(mesh);
 
 	mesh->SetStaticMesh(static_mesh);
-	FIntVector2 cell_pos = Transform(cell_pos_local);
+	FIntVector3 cell_pos = Transform(cell_pos_local);
 	mesh->SetWorldLocation(FVector(cell_pos.X * MeshSpacing, GetActorLocation().Y, cell_pos.Y * MeshSpacing));
 	mesh->UpdateComponentToWorld();
 	if (auto* overlay_material = GetRenderOverlayMaterial())
@@ -333,7 +342,7 @@ void AShipPlanRender::SetCellMeshComponent(const FIntVector2& cell_pos_local, US
 	}
 }
 
-void AShipPlanRender::RemoveCellMeshComponent(const FIntVector2& cell_pos_local)
+void AShipPlanRender::RemoveCellMeshComponent(const FIntVector3& cell_pos_local)
 {
 	if (TObjectPtr<UStaticMeshComponent> mesh = CellMeshComponents.FindRef(cell_pos_local))
 	{
@@ -343,7 +352,7 @@ void AShipPlanRender::RemoveCellMeshComponent(const FIntVector2& cell_pos_local)
 	}
 }
 
-void AShipPlanRender::RemoveLayerCellMeshComponent(const FIntVector2& cell_pos_local)
+void AShipPlanRender::RemoveLayerCellMeshComponent(const FIntVector3& cell_pos_local)
 {
 	if (TObjectPtr<UStaticMeshComponent> mesh = LayerCellMeshComponents.FindRef(cell_pos_local))
 	{
@@ -391,14 +400,14 @@ void AShipPlanRender::ClearMeshes()
 	DeviceMeshComponents.Empty();
 }
 
-FShipRenderUpdate::FShipRenderUpdate(AShipPlanRender& owner, TSet<FIntVector2> current_cells, TSet<FIntVector2> current_device_cells)
+FShipRenderUpdate::FShipRenderUpdate(AShipPlanRender& owner, TSet<FIntVector3> current_cells, TSet<FIntVector2> current_device_cells)
     : Owner(owner), CurrentCells(current_cells), CurrentDeviceCells(current_device_cells)
 {
 }
 
-void FShipRenderUpdate::SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type)
+void FShipRenderUpdate::SetCellMesh(const FIntVector3& cell_pos, ECellType cell_type)
 {
-	FIntVector2 cell_pos_local = Owner.GetPartTransform().Inverse()(cell_pos);
+	FIntVector3 cell_pos_local = Owner.GetPartTransform().Inverse()(cell_pos);
 	CurrentCells.Remove(cell_pos_local);
 	Owner.SetCellMesh(cell_pos_local, cell_type);
 }
@@ -412,7 +421,7 @@ void FShipRenderUpdate::SetDeviceMesh(const FShipPartTransform& device_transform
 
 FShipRenderUpdate::~FShipRenderUpdate()
 {
-	for (const FIntVector2& cell_pos_local : CurrentCells)
+	for (const FIntVector3& cell_pos_local : CurrentCells)
 	{
 		Owner.SetCellMesh(cell_pos_local, ECellType::NONE);
 	}

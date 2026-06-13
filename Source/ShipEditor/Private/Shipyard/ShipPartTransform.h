@@ -42,6 +42,7 @@ struct FShipPartTransform
 	void Flip();
 
 	FIntVector2 operator()(const FIntVector2& point) const;
+	FIntVector3 operator()(const FIntVector3& point) const;
 
 	FShipPartTransform operator()(const FShipPartTransform& point) const;
 	FShipPartTransform Inverse() const;

@@ -19,15 +19,15 @@ class FShipRenderUpdate
 {
 public:
 	FShipRenderUpdate() = delete;
-	FShipRenderUpdate(AShipPlanRender& owner, TSet<FIntVector2> current_cells, TSet<FIntVector2> current_device_cells);
+	FShipRenderUpdate(AShipPlanRender& owner, TSet<FIntVector3> current_cells, TSet<FIntVector2> current_device_cells);
 	void SetDeviceStatus(const FIntVector2& device_pos, float usage);
-	void SetCellMesh(const FIntVector2& cell_pos, ECellType cell_type);
+	void SetCellMesh(const FIntVector3& cell_pos, ECellType cell_type);
 	void SetDeviceMesh(const FShipPartTransform& device_transform, UStaticMesh* static_mesh);
 	~FShipRenderUpdate();
 
 private:
 	AShipPlanRender& Owner;
-	TSet<FIntVector2> CurrentCells;          // Keys for current cell meshes in local space
+	TSet<FIntVector3> CurrentCells;          // Keys for current cell meshes in local space
 	TSet<FIntVector2> CurrentDeviceCells;    // Keys for current device meshes in local space
 };
 
@@ -100,25 +100,25 @@ public:
 
 	FShipRenderUpdate CreateRenderUpdate();
 	FShipStructure CreateStructure(FShipRenderUpdate* update);
-	void SetCellMesh(const FIntVector2& cell_pos_local, ECellType cell_type);             // None to remove
+	void SetCellMesh(const FIntVector3& cell_pos_local, ECellType cell_type);                          // None to remove
 	void SetDeviceMesh(const FShipPartTransform& device_transform_local, UStaticMesh* static_mesh);    // nullptr to remove
 
 private:
 	void AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
-	void SetCellMeshComponent(const FIntVector2& cell_pos_local, UStaticMesh* static_mesh);
-	void RemoveCellMeshComponent(const FIntVector2& cell_pos_local);
-	void SetLayerCellMeshComponent(const FIntVector2& cell_pos_local, UStaticMesh* static_mesh);
-	void RemoveLayerCellMeshComponent(const FIntVector2& cell_pos_local);
-	bool IsWall(const FIntVector2& cell_pos) const;
+	void SetCellMeshComponent(const FIntVector3& cell_pos_local, UStaticMesh* static_mesh);
+	void RemoveCellMeshComponent(const FIntVector3& cell_pos_local);
+	void SetLayerCellMeshComponent(const FIntVector3& cell_pos_local, UStaticMesh* static_mesh);
+	void RemoveLayerCellMeshComponent(const FIntVector3& cell_pos_local);
+	bool IsWall(const FIntVector3& cell_pos) const;
 	UMaterialInterface* GetRenderOverlayMaterial() const;
 	void ClearMeshes();
 	bool CanPlacePart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform) const;
 
 	UPROPERTY()
-	TMap<FIntVector2, TObjectPtr<UStaticMeshComponent>> CellMeshComponents;
+	TMap<FIntVector, TObjectPtr<UStaticMeshComponent>> CellMeshComponents;
 
 	UPROPERTY()
-	TMap<FIntVector2, TObjectPtr<UStaticMeshComponent>> LayerCellMeshComponents;
+	TMap<FIntVector, TObjectPtr<UStaticMeshComponent>> LayerCellMeshComponents;
 
 	UPROPERTY()
 	TMap<FIntVector2, TObjectPtr<UStaticMeshComponent>> DeviceMeshComponents;
