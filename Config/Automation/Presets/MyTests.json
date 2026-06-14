@@ -3,6 +3,7 @@
 	"name": "MyTests",
 	"enabledTests": [
 		"ShipEditor.ShipStructure.Process",
+		"ShipEditor.ShipStructure.Lifecycle",
 		"ShipEditor.DeviceSector",
 		"ShipEditor.PartTransform"
 	]

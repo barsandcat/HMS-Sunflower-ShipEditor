@@ -55,12 +55,12 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 				}
 			}
 
-			// int32 to = part_instance->PartAsset->Height;
-			// int32 from = -to;
-			// for (int32 z = from; z <= to; z++)
-			//{
-			Cells.Add({cell_pos.X, cell_pos.Y, 0}, MakeShared<FShipStructureCell>(cell.CellType, device, update));
-			//}
+			int32 to = part_instance->PartAsset->Height;
+			int32 from = -to;
+			for (int32 z = from; z <= to; z++)
+			{
+				Cells.Add({cell_pos.X, cell_pos.Y, z}, MakeShared<FShipStructureCell>(cell.CellType, device, update));
+			}
 		}
 	}
 }

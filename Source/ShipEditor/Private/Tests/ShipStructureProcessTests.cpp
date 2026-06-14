@@ -42,6 +42,33 @@ TSharedPtr<FShipStructureDevice> AddBridgeRoot(FShipStructure& structure, const 
 	return bridge;
 }
 
+UShipPartInstance* MakeSingleCabinPartInstance(int32 height)
+{
+	UShipDeviceAsset* device_asset = NewObject<UShipDeviceAsset>();
+	device_asset->Stats.DeviceType = EDeviceType::QUARTERS;
+
+	UShipPartAsset* part_asset = NewObject<UShipPartAsset>();
+	part_asset->Device = device_asset;
+	part_asset->Height = height;
+
+	FShipCellData cell;
+	cell.Position = FIntVector2(0, 0);
+	cell.CellType = ECellType::CABIN;
+	part_asset->Cells.Add(cell);
+
+	UShipPartInstance* part_instance = NewObject<UShipPartInstance>();
+	part_instance->PartAsset = part_asset;
+	part_instance->Transform = FShipPartTransform();
+	return part_instance;
+}
+
+FShipStructure MakeSingleCabinStructure(int32 height)
+{
+	TArray<TObjectPtr<UShipPartInstance>> part_instances;
+	part_instances.Add(MakeSingleCabinPartInstance(height));
+	return FShipStructure(FShipPartTransform(), part_instances, nullptr);
+}
+
 }    // namespace
 
 TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process", "[ShipEditor][ShipStructure]")
@@ -288,6 +315,75 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 
 			CHECK(FMath::IsNearlyEqual(consumer->Usage, 0.5f, kUsageTol));
 			CHECK(FMath::IsNearlyEqual(producer->Usage, 1.0f, kUsageTol));
+		}
+	}
+}
+
+TEST_CASE_NAMED(FShipStructureLifecycleTest, "ShipEditor::ShipStructure::Lifecycle", "[ShipEditor][ShipStructure]")
+{
+	SECTION("Height 0 creates only base layer")
+	{
+		FShipStructure structure = MakeSingleCabinStructure(0);
+
+		CHECK(structure.Cells.Num() == 1);
+
+		TSharedPtr<FShipStructureCell> base_cell = structure.Cells.FindRef(FIntVector3(0, 0, 0));
+		CHECK(base_cell);
+		if (base_cell)
+		{
+			CHECK(base_cell->CellType == ECellType::CABIN);
+		}
+		CHECK(!structure.Cells.Contains(FIntVector3(0, 0, -1)));
+		CHECK(!structure.Cells.Contains(FIntVector3(0, 0, 1)));
+	}
+
+	SECTION("Height 1 creates base, upper, and lower layers")
+	{
+		FShipStructure structure = MakeSingleCabinStructure(1);
+
+		CHECK(structure.Cells.Num() == 3);
+
+		TSharedPtr<FShipStructureDevice> shared_device;
+		for (int32 z = -1; z <= 1; z++)
+		{
+			TSharedPtr<FShipStructureCell> cell = structure.Cells.FindRef(FIntVector3(0, 0, z));
+			CHECK(cell);
+			if (cell)
+			{
+				CHECK(cell->CellType == ECellType::CABIN);
+				CHECK(cell->Device);
+				if (shared_device)
+				{
+					CHECK(cell->Device == shared_device);
+				}
+				else
+				{
+					shared_device = cell->Device;
+				}
+			}
+		}
+	}
+
+	SECTION("Destructor releases generated cells")
+	{
+		TArray<TWeakPtr<FShipStructureCell>> weak_cells;
+		{
+			FShipStructure structure = MakeSingleCabinStructure(1);
+			for (int32 z = -1; z <= 1; z++)
+			{
+				TSharedPtr<FShipStructureCell> cell = structure.Cells.FindRef(FIntVector3(0, 0, z));
+				CHECK(cell);
+				if (cell)
+				{
+					weak_cells.Add(cell);
+				}
+			}
+		}
+
+		CHECK(weak_cells.Num() == 3);
+		for (const TWeakPtr<FShipStructureCell>& weak_cell : weak_cells)
+		{
+			CHECK(!weak_cell.IsValid());
 		}
 	}
 }
