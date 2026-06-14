@@ -344,7 +344,7 @@ TEST_CASE_NAMED(FShipStructureLifecycleTest, "ShipEditor::ShipStructure::Lifecyc
 		CHECK(structure.Cells.Num() == 3);
 
 		TSharedPtr<FShipStructureDevice> shared_device;
-		for (int32 z = -1; z <= 1; z++)
+		for (int32 z = -2; z <= 2; z += 2)
 		{
 			TSharedPtr<FShipStructureCell> cell = structure.Cells.FindRef(FIntVector3(0, 0, z));
 			CHECK(cell);
@@ -369,7 +369,7 @@ TEST_CASE_NAMED(FShipStructureLifecycleTest, "ShipEditor::ShipStructure::Lifecyc
 		TArray<TWeakPtr<FShipStructureCell>> weak_cells;
 		{
 			FShipStructure structure = MakeSingleCabinStructure(1);
-			for (int32 z = -1; z <= 1; z++)
+			for (int32 z = -2; z <= 2; z += 2)
 			{
 				TSharedPtr<FShipStructureCell> cell = structure.Cells.FindRef(FIntVector3(0, 0, z));
 				CHECK(cell);
