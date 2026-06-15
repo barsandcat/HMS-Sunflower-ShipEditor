@@ -319,7 +319,9 @@ void AShipPlanRender::SetCellMeshComponent(const FIntVector3& cell_pos_local, US
 		// Create mesh components at runtime and attach to the scene root
 		const FString name = FString::Printf(TEXT("%s_MeshComponent_%d_%d_%d"), *GetName(), cell_pos_local.X, cell_pos_local.Y, cell_pos_local.Z);
 		mesh = NewObject<UStaticMeshComponent>(this, *name);
-		mesh->AttachToComponent(GetSceneComponent(cell_pos_local), FAttachmentTransformRules::KeepRelativeTransform);
+		auto scene_component = GetSceneComponent(cell_pos_local);
+		mesh->AttachToComponent(scene_component, FAttachmentTransformRules::KeepRelativeTransform);
+		mesh->SetVisibility(scene_component->IsVisible());
 		mesh->RegisterComponent();
 		CellMeshComponents.Add(cell_pos_local, mesh);
 	}
