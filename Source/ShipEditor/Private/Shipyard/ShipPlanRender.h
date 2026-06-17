@@ -107,10 +107,6 @@ private:
 	void AddPart(UShipPartAsset* part_asset, const FShipPartTransform& part_transform);
 	void SetCellMeshComponent(const FIntVector3& cell_pos_local, UStaticMesh* static_mesh);
 	void RemoveCellMeshComponent(const FIntVector3& cell_pos_local);
-	bool IsWall(const FIntVector3& cell_pos) const;
-	bool IsFloor(const FIntVector3& cell_pos) const;
-	bool IsBackgroundWall(const FIntVector3& cell_pos) const;
-	bool IsForegroundWall(const FIntVector3& cell_pos) const;
 
 	UMaterialInterface* GetRenderOverlayMaterial() const;
 	void ClearMeshes();

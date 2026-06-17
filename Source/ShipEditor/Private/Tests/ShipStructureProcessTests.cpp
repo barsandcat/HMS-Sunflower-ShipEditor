@@ -163,19 +163,26 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		CHECK(!far_device->CanReachTheBridge);
 	}
 
-	SECTION("Armor is placed only between reachable cabin and empty exterior")
+	SECTION("Wall and floor armor is only placed around ship parts")
 	{
 		FShipStructure structure;
 		auto bridge = AddBridgeRoot(structure, FIntVector3(1, 1, 0));
+		TSharedPtr<FShipStructureDevice> disconnected_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(20, 20, 0));
 
 		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN, bridge);
 		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN, bridge);
+		AddCell(structure, FIntVector3(20, 20, 0), ECellType::CABIN, disconnected_device);
 
 		structure.Process();
 
 		CHECK(structure.GetCellType(FIntVector3(-1, 0, 0)) == ECellType::DECK_ARMOR);
 		CHECK(structure.GetCellType(FIntVector3(0, 1, 0)) == ECellType::DECK_ARMOR);
 		CHECK(structure.GetCellType(FIntVector3(0, 0, 1)) == ECellType::DECK_ARMOR);
+		CHECK(structure.GetCellType(FIntVector3(20, 20, -1)) == ECellType::DECK_ARMOR);
+		CHECK(structure.GetCellType(FIntVector3(20, 20, 1)) == ECellType::DECK_ARMOR);
+		CHECK(structure.GetCellType(FIntVector3(19, 20, 0)) == ECellType::NONE);
+		CHECK(structure.GetCellType(FIntVector3(20, 19, 0)) == ECellType::NONE);
+		CHECK(!disconnected_device->CanReachTheBridge);
 		CHECK(!structure.Cells.Contains(FIntVector3(1, 0, 0)));
 	}
 

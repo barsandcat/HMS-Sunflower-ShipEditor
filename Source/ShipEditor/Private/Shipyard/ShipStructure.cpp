@@ -31,6 +31,26 @@ bool IsCabin(const FIntVector3& pos)
 
 }    // namespace
 
+bool IsFloor(const FIntVector3& cell_pos)
+{
+	return cell_pos.Y % 2 != 0 && cell_pos.X % 2 == 0 && cell_pos.Z % 2 == 0;
+}
+
+bool IsWall(const FIntVector3& cell_pos)
+{
+	return cell_pos.Y % 2 == 0 && cell_pos.X % 2 != 0 && cell_pos.Z % 2 == 0;
+}
+
+bool IsBackgroundWall(const FIntVector3& cell_pos)
+{
+	return cell_pos.Y % 2 == 0 && cell_pos.X % 2 == 0 && cell_pos.Z % 2 != 0 && cell_pos.Z < 0;
+}
+
+bool IsForegroundWall(const FIntVector3& cell_pos)
+{
+	return cell_pos.Y % 2 == 0 && cell_pos.X % 2 == 0 && cell_pos.Z % 2 != 0 && cell_pos.Z >= 0;
+}
+
 FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const TArray<TObjectPtr<UShipPartInstance>>& part_instances, FShipRenderUpdate* update)
 {
 	Devices.SetNum(part_instances.Num());
@@ -186,52 +206,41 @@ ECellType FShipStructure::GetCellType(const FIntVector3& pos) const
 
 void FShipStructure::AddArmor()
 {
-	TArray<FIntVector3> cabin_queue;
-	cabin_queue.Reserve(Cells.Num());
-	int32 cabin_queue_head = 0;
+	TArray<FIntVector3> cabin_positions;
+	cabin_positions.Reserve(Cells.Num());
 
-	for (const FIntVector3& d : DIAGONAL_DIRS)
+	for (const TPair<FIntVector3, TSharedPtr<FShipStructureCell>>& pair : Cells)
 	{
-		FIntVector3 neighbor_cabin_pos = *Root + d;
-		if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
+		if (pair.Value && IsCabinCell(pair.Value->CellType))
 		{
-			if (IsCabinTraversableCell(neighbor_cell->CellType))
-			{
-				neighbor_cell->Visited = EShipStructureVisitState::ArmorPlacement;
-				cabin_queue.Add(neighbor_cabin_pos);
-			}
+			cabin_positions.Add(pair.Key);
 		}
 	}
 
-	while (cabin_queue_head < cabin_queue.Num())
+	for (const FIntVector3& cabin_pos : cabin_positions)
 	{
-		FIntVector3 cabin_pos = cabin_queue[cabin_queue_head++];
 		TSharedPtr<FShipStructureCell> cell = Cells.FindRef(cabin_pos);
-
-		if (cell && IsCabinCell(cell->CellType))
+		if (!cell || !IsCabinCell(cell->CellType))
 		{
-			for (const FIntVector3& d : DIRS3D)
+			continue;
+		}
+
+		for (const FIntVector3& d : DIRS3D)
+		{
+			FIntVector3 neighbor_cabin_pos = cabin_pos + d * 2;
+			FIntVector3 neighbor_deck_pos = cabin_pos + d;
+			const bool is_wall_or_floor_armor = IsWall(neighbor_deck_pos) || IsFloor(neighbor_deck_pos);
+			const bool is_background_or_foreground_armor = IsBackgroundWall(neighbor_deck_pos) || IsForegroundWall(neighbor_deck_pos);
+			const bool should_add_armor =
+			    is_background_or_foreground_armor || (is_wall_or_floor_armor && cell->Device && cell->Device->IsPartOfTheShip());
+
+			TSharedPtr<FShipStructureCell> neighbor_cabin = Cells.FindRef(neighbor_cabin_pos);
+			TSharedPtr<FShipStructureCell> neighbor_deck = Cells.FindRef(neighbor_deck_pos);
+
+			if (should_add_armor && (!neighbor_cabin || neighbor_cabin->CellType == ECellType::NONE) && !neighbor_deck)
 			{
-				FIntVector3 neighbor_cabin_pos = cabin_pos + d * 2;
-				FIntVector3 neighbor_deck_pos = cabin_pos + d;
-
-				TSharedPtr<FShipStructureCell> neighbor_cabin = Cells.FindRef(neighbor_cabin_pos);
-				TSharedPtr<FShipStructureCell> neighbor_deck = Cells.FindRef(neighbor_deck_pos);
-
-				if ((!neighbor_cabin || neighbor_cabin->CellType == ECellType::NONE) && !neighbor_deck)
-				{
-					TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK_ARMOR, cell->Device, cell->Update);
-					Cells.Add(neighbor_deck_pos, armor_cell);
-				}
-
-				if (neighbor_cabin && IsCabinTraversableCell(neighbor_cabin->CellType) && (neighbor_cabin->Device->CanPhoneTheBridge || !neighbor_cabin->Device->RequiresPhoneConnection))
-				{
-					if (neighbor_cabin->Visited != EShipStructureVisitState::ArmorPlacement)
-					{
-						neighbor_cabin->Visited = EShipStructureVisitState::ArmorPlacement;
-						cabin_queue.Add(neighbor_cabin_pos);
-					}
-				}
+				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK_ARMOR, cell->Device, cell->Update);
+				Cells.Add(neighbor_deck_pos, armor_cell);
 			}
 		}
 	}

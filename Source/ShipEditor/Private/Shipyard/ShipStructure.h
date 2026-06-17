@@ -23,6 +23,11 @@ enum class EShipStructureVisitState : uint8
 	TechnicalCorridor,
 };
 
+bool IsFloor(const FIntVector3& cell_pos);
+bool IsWall(const FIntVector3& cell_pos);
+bool IsBackgroundWall(const FIntVector3& cell_pos);
+bool IsForegroundWall(const FIntVector3& cell_pos);
+
 struct FShipStructureDevice
 {
 	FShipStructureDevice() = default;

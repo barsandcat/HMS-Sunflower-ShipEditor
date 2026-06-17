@@ -272,26 +272,6 @@ void AShipPlanRender::DeletePartInstance(UShipPartInstance* part)
 	ShipPartInstances.Remove(part);
 }
 
-bool AShipPlanRender::IsFloor(const FIntVector3& cell_pos) const
-{
-	return cell_pos.Y % 2 != 0 && cell_pos.X % 2 == 0 && cell_pos.Z % 2 == 0;
-}
-
-bool AShipPlanRender::IsWall(const FIntVector3& cell_pos) const
-{
-	return cell_pos.Y % 2 == 0 && cell_pos.X % 2 != 0 && cell_pos.Z % 2 == 0;
-}
-
-bool AShipPlanRender::IsBackgroundWall(const FIntVector3& cell_pos) const
-{
-	return cell_pos.Y % 2 == 0 && cell_pos.X % 2 == 0 && cell_pos.Z % 2 != 0 && cell_pos.Z < 0;
-}
-
-bool AShipPlanRender::IsForegroundWall(const FIntVector3& cell_pos) const
-{
-	return cell_pos.Y % 2 == 0 && cell_pos.X % 2 == 0 && cell_pos.Z % 2 != 0 && cell_pos.Z >= 0;
-}
-
 UMaterialInterface* AShipPlanRender::GetRenderOverlayMaterial() const
 {
 	return IsOk() ? OkOverlayMaterial : ErrorOverlayMaterial;
