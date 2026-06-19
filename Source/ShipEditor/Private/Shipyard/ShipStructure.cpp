@@ -118,11 +118,6 @@ bool FShipStructure::MergeStructures(const FShipStructure& structure_a, const FS
 
 void FShipStructure::Process()
 {
-	if (!Root)
-	{
-		// No root, nothing to process
-		return;
-	}
 	// Example structure:
 	// Y
 	// 3
@@ -133,10 +128,6 @@ void FShipStructure::Process()
 	//-2
 	//   -2-1 0 1 2 X
 	//
-	// Find root (*), should be only one
-	// Iterate BFS from root along decks (|, -) setting deck type to structural
-	// Iterate BFS from root along cabins (C) to mark reachable devices
-	// Add armor between reachable cabins and empty exterior
 
 	ConnectDecks();
 
@@ -152,6 +143,11 @@ void FShipStructure::Process()
 
 void FShipStructure::SetCanReachTheBridge()
 {
+	if (!Root)
+	{
+		// No root, nothing to process
+		return;
+	}
 	TArray<FIntVector3> cabin_queue;
 	cabin_queue.Reserve(Cells.Num());
 	int32 cabin_queue_head = 0;
@@ -229,15 +225,15 @@ void FShipStructure::AddArmor()
 		{
 			FIntVector3 neighbor_cabin_pos = cabin_pos + d * 2;
 			FIntVector3 neighbor_deck_pos = cabin_pos + d;
-			const bool is_wall_or_floor_armor = IsWall(neighbor_deck_pos) || IsFloor(neighbor_deck_pos);
-			const bool is_background_or_foreground_armor = IsBackgroundWall(neighbor_deck_pos) || IsForegroundWall(neighbor_deck_pos);
-			const bool should_add_armor =
-			    is_background_or_foreground_armor || (is_wall_or_floor_armor && cell->Device && cell->Device->IsPartOfTheShip());
+			const bool neighbor_deck_is_background_or_foreground_armor = IsBackgroundWall(neighbor_deck_pos) || IsForegroundWall(neighbor_deck_pos);
+			const bool cabin_is_part_of_ship = cell->Device && cell->Device->IsPartOfTheShip();
 
 			TSharedPtr<FShipStructureCell> neighbor_cabin = Cells.FindRef(neighbor_cabin_pos);
+			const bool neighbor_cabin_is_part_of_ship = neighbor_cabin && neighbor_cabin->Device && neighbor_cabin->Device->IsPartOfTheShip();
+
 			TSharedPtr<FShipStructureCell> neighbor_deck = Cells.FindRef(neighbor_deck_pos);
 
-			if (should_add_armor && (!neighbor_cabin || neighbor_cabin->CellType == ECellType::NONE) && !neighbor_deck)
+			if (!neighbor_deck && (neighbor_deck_is_background_or_foreground_armor || (cabin_is_part_of_ship && !neighbor_cabin_is_part_of_ship)))
 			{
 				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK_ARMOR, cell->Device, cell->Update);
 				Cells.Add(neighbor_deck_pos, armor_cell);
@@ -248,6 +244,12 @@ void FShipStructure::AddArmor()
 
 void FShipStructure::ConnectDecks()
 {
+	if (!Root)
+	{
+		// No root, nothing to process
+		return;
+	}
+
 	// BFS along decks to mark structural decks
 	TArray<FIntVector3> deck_queue;
 	deck_queue.Reserve(Cells.Num());
