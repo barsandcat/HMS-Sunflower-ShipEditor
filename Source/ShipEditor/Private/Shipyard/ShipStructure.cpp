@@ -29,6 +29,20 @@ bool IsCabin(const FIntVector3& pos)
 	return pos.X % 2 == 0 && pos.Y % 2 == 0;
 }
 
+void UpgradeDeckPhoneLineAlongZ(TMap<FIntVector3, TSharedPtr<FShipStructureCell>>& cells, const FIntVector3& deck_pos, int32 z_direction)
+{
+	for (FIntVector3 phone_line_pos = deck_pos + FIntVector3(0, 0, z_direction);; phone_line_pos.Z += z_direction)
+	{
+		TSharedPtr<FShipStructureCell> phone_line_cell = cells.FindRef(phone_line_pos);
+		if (!phone_line_cell || phone_line_cell->CellType != ECellType::DECK)
+		{
+			return;
+		}
+
+		phone_line_cell->CellType = ECellType::DECK_PHONE_LINE;
+	}
+}
+
 }    // namespace
 
 bool IsFloor(const FIntVector3& cell_pos)
@@ -158,12 +172,12 @@ void FShipStructure::SetCanReachTheBridge()
 		FIntVector3 neighbor_cabin_pos = *Root + d;
 		if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_cabin_pos))
 		{
-				if (IsCabinTraversableCell(neighbor_cell->CellType))
-				{
-					neighbor_cell->Visited = EShipStructureVisitState::CanReachBridge;
-					neighbor_cell->Device->CanReachTheBridge = true;
-					cabin_queue.Add(neighbor_cabin_pos);
-				}
+			if (IsCabinTraversableCell(neighbor_cell->CellType))
+			{
+				neighbor_cell->Visited = EShipStructureVisitState::CanReachBridge;
+				neighbor_cell->Device->CanReachTheBridge = true;
+				cabin_queue.Add(neighbor_cabin_pos);
+			}
 		}
 	}
 
@@ -225,13 +239,12 @@ void FShipStructure::AddArmor()
 		{
 			FIntVector3 neighbor_cabin_pos = cabin_pos + d * 2;
 			FIntVector3 neighbor_deck_pos = cabin_pos + d;
-			const bool neighbor_deck_is_background_or_foreground_armor = IsBackgroundWall(neighbor_deck_pos) || IsForegroundWall(neighbor_deck_pos);
-			const bool cabin_is_part_of_ship = cell->Device && cell->Device->IsPartOfTheShip();
-
 			TSharedPtr<FShipStructureCell> neighbor_cabin = Cells.FindRef(neighbor_cabin_pos);
 			const bool neighbor_cabin_is_part_of_ship = neighbor_cabin && neighbor_cabin->Device && neighbor_cabin->Device->IsPartOfTheShip();
+			const bool neighbor_deck_is_background_or_foreground_armor = !neighbor_cabin && (IsBackgroundWall(neighbor_deck_pos) || IsForegroundWall(neighbor_deck_pos));
 
 			TSharedPtr<FShipStructureCell> neighbor_deck = Cells.FindRef(neighbor_deck_pos);
+			const bool cabin_is_part_of_ship = cell->Device && cell->Device->IsPartOfTheShip();
 
 			if (!neighbor_deck && (neighbor_deck_is_background_or_foreground_armor || (cabin_is_part_of_ship && !neighbor_cabin_is_part_of_ship)))
 			{
@@ -275,20 +288,22 @@ void FShipStructure::ConnectDecks()
 			}
 
 			for (const FIntVector3& d : DIRS)
+			{
+				FIntVector3 neighbor_deck_pos = deck_pos + d;
+				TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_deck_pos);
+				if (neighbor_cell && neighbor_cell->Visited != EShipStructureVisitState::ConnectedDeck && IsDeckCell(neighbor_cell->CellType))
 				{
-					FIntVector3 neighbor_deck_pos = deck_pos + d;
-					TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_deck_pos);
-					if (neighbor_cell && neighbor_cell->Visited != EShipStructureVisitState::ConnectedDeck && IsDeckCell(neighbor_cell->CellType))
-					{
-						neighbor_cell->Visited = EShipStructureVisitState::ConnectedDeck;
-						deck_queue.Add(neighbor_deck_pos);
-					}
+					neighbor_cell->Visited = EShipStructureVisitState::ConnectedDeck;
+					deck_queue.Add(neighbor_deck_pos);
 				}
+			}
 		}
 
 		if (cell && cell->CellType == ECellType::DECK)
 		{
 			cell->CellType = ECellType::DECK_PHONE_LINE;
+			UpgradeDeckPhoneLineAlongZ(Cells, deck_pos, -2);
+			UpgradeDeckPhoneLineAlongZ(Cells, deck_pos, 2);
 		}
 
 		if (cell)
@@ -375,12 +390,12 @@ void FShipStructure::ConnectTechnicalCorridors()
 		queue.Add(start_pos);
 		int32 queue_head = 0;
 
-			// Mark the start position as visited for fuel traversal.
-			if (TSharedPtr<FShipStructureCell> start_cell = Cells.FindRef(start_pos))
-			{
-				start_cell->Visited = EShipStructureVisitState::TechnicalCorridor;
-				devices_in_net.Add(start_cell->Device);
-			}
+		// Mark the start position as visited for fuel traversal.
+		if (TSharedPtr<FShipStructureCell> start_cell = Cells.FindRef(start_pos))
+		{
+			start_cell->Visited = EShipStructureVisitState::TechnicalCorridor;
+			devices_in_net.Add(start_cell->Device);
+		}
 
 		// Traverse
 		while (queue_head < queue.Num())
@@ -393,13 +408,13 @@ void FShipStructure::ConnectTechnicalCorridors()
 				for (const FIntVector3& d : DIRS)
 				{
 					FIntVector3 neighbor_pos = pos + d * 2;
-						if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_pos))
+					if (TSharedPtr<FShipStructureCell> neighbor_cell = Cells.FindRef(neighbor_pos))
+					{
+						// Only traverse along technical corridor cells or corridor roots
+						if (IsTechnicalCorridorCell(neighbor_cell->CellType) && cell->Device->IsPartOfTheShip() == neighbor_cell->Device->IsPartOfTheShip() && neighbor_cell->Visited != EShipStructureVisitState::TechnicalCorridor)
 						{
-							// Only traverse along technical corridor cells or corridor roots
-							if (IsTechnicalCorridorCell(neighbor_cell->CellType) && cell->Device->IsPartOfTheShip() == neighbor_cell->Device->IsPartOfTheShip() && neighbor_cell->Visited != EShipStructureVisitState::TechnicalCorridor)
-							{
-								neighbor_cell->Visited = EShipStructureVisitState::TechnicalCorridor;
-								queue.Add(neighbor_pos);
+							neighbor_cell->Visited = EShipStructureVisitState::TechnicalCorridor;
+							queue.Add(neighbor_pos);
 
 							// If this neighbor is a corridor root that was in the unvisited set, remove it
 							if (neighbor_cell->CellType == ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT)

@@ -42,10 +42,10 @@ TSharedPtr<FShipStructureDevice> AddBridgeRoot(FShipStructure& structure, const 
 	return bridge;
 }
 
-UShipPartInstance* MakeSingleCabinPartInstance(int32 height)
+UShipPartInstance* MakeSingleCabinPartInstance(int32 height, EDeviceType device_type = EDeviceType::QUARTERS)
 {
 	UShipDeviceAsset* device_asset = NewObject<UShipDeviceAsset>();
-	device_asset->Stats.DeviceType = EDeviceType::QUARTERS;
+	device_asset->Stats.DeviceType = device_type;
 
 	UShipPartAsset* part_asset = NewObject<UShipPartAsset>();
 	part_asset->Device = device_asset;
@@ -62,10 +62,10 @@ UShipPartInstance* MakeSingleCabinPartInstance(int32 height)
 	return part_instance;
 }
 
-FShipStructure MakeSingleCabinStructure(int32 height)
+FShipStructure MakeSingleCabinStructure(int32 height, EDeviceType device_type = EDeviceType::QUARTERS)
 {
 	TArray<TObjectPtr<UShipPartInstance>> part_instances;
-	part_instances.Add(MakeSingleCabinPartInstance(height));
+	part_instances.Add(MakeSingleCabinPartInstance(height, device_type));
 	return FShipStructure(FShipPartTransform(), part_instances, nullptr);
 }
 
@@ -84,6 +84,27 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		TSharedPtr<FShipStructureCell> deck_cell = structure.Cells.FindRef(FIntVector3(1, 2, 0));
 		CHECK(deck_cell);
 		CHECK(deck_cell->CellType == ECellType::DECK_PHONE_LINE);
+	}
+
+	SECTION("Connected deck phone lines continue through contiguous deck layers")
+	{
+		FShipStructure structure;
+		auto bridge = AddBridgeRoot(structure, FIntVector3(1, 1, 0));
+		AddCell(structure, FIntVector3(1, 2, -4), ECellType::DECK, bridge);
+		AddCell(structure, FIntVector3(1, 2, -2), ECellType::DECK, bridge);
+		AddCell(structure, FIntVector3(1, 2, 0), ECellType::DECK, bridge);
+		AddCell(structure, FIntVector3(1, 2, 2), ECellType::DECK, bridge);
+		AddCell(structure, FIntVector3(1, 2, 4), ECellType::DECK_HOLE, bridge);
+		AddCell(structure, FIntVector3(1, 2, 6), ECellType::DECK, bridge);
+
+		structure.Process();
+
+		CHECK(structure.GetCellType(FIntVector3(1, 2, -4)) == ECellType::DECK_PHONE_LINE);
+		CHECK(structure.GetCellType(FIntVector3(1, 2, -2)) == ECellType::DECK_PHONE_LINE);
+		CHECK(structure.GetCellType(FIntVector3(1, 2, 0)) == ECellType::DECK_PHONE_LINE);
+		CHECK(structure.GetCellType(FIntVector3(1, 2, 2)) == ECellType::DECK_PHONE_LINE);
+		CHECK(structure.GetCellType(FIntVector3(1, 2, 4)) == ECellType::DECK_HOLE);
+		CHECK(structure.GetCellType(FIntVector3(1, 2, 6)) == ECellType::DECK);
 	}
 
 	SECTION("Decks not connected to root stay DECK")
@@ -185,6 +206,21 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		CHECK(structure.GetCellType(FIntVector3(4, -1, 0)) == ECellType::NONE);
 		CHECK(!disconnected_device->CanReachTheBridge);
 		CHECK(!structure.Cells.Contains(FIntVector3(1, 0, 0)));
+	}
+
+	SECTION("Armor is not placed between height layers of a bridge cabin")
+	{
+		FShipStructure structure = MakeSingleCabinStructure(1, EDeviceType::BRIDGE);
+
+		structure.Process();
+
+		CHECK(structure.GetCellType(FIntVector3(0, 0, -2)) == ECellType::CABIN);
+		CHECK(structure.GetCellType(FIntVector3(0, 0, 0)) == ECellType::CABIN);
+		CHECK(structure.GetCellType(FIntVector3(0, 0, 2)) == ECellType::CABIN);
+		CHECK(structure.GetCellType(FIntVector3(0, 0, -1)) == ECellType::NONE);
+		CHECK(structure.GetCellType(FIntVector3(0, 0, 1)) == ECellType::NONE);
+		CHECK(structure.GetCellType(FIntVector3(0, 0, -3)) == ECellType::DECK_ARMOR);
+		CHECK(structure.GetCellType(FIntVector3(0, 0, 3)) == ECellType::DECK_ARMOR);
 	}
 
 	SECTION("Armor is not placed where holes are")
