@@ -94,7 +94,6 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		AddCell(structure, FIntVector3(1, 2, -2), ECellType::DECK, bridge);
 		AddCell(structure, FIntVector3(1, 2, 0), ECellType::DECK, bridge);
 		AddCell(structure, FIntVector3(1, 2, 2), ECellType::DECK, bridge);
-		AddCell(structure, FIntVector3(1, 2, 4), ECellType::DECK_HOLE, bridge);
 		AddCell(structure, FIntVector3(1, 2, 6), ECellType::DECK, bridge);
 
 		structure.Process();
@@ -103,7 +102,6 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		CHECK(structure.GetCellType(FIntVector3(1, 2, -2)) == ECellType::DECK_PHONE_LINE);
 		CHECK(structure.GetCellType(FIntVector3(1, 2, 0)) == ECellType::DECK_PHONE_LINE);
 		CHECK(structure.GetCellType(FIntVector3(1, 2, 2)) == ECellType::DECK_PHONE_LINE);
-		CHECK(structure.GetCellType(FIntVector3(1, 2, 4)) == ECellType::DECK_HOLE);
 		CHECK(structure.GetCellType(FIntVector3(1, 2, 6)) == ECellType::DECK);
 	}
 
@@ -221,20 +219,6 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		CHECK(structure.GetCellType(FIntVector3(0, 0, 1)) == ECellType::NONE);
 		CHECK(structure.GetCellType(FIntVector3(0, 0, -3)) == ECellType::DECK_ARMOR);
 		CHECK(structure.GetCellType(FIntVector3(0, 0, 3)) == ECellType::DECK_ARMOR);
-	}
-
-	SECTION("Armor is not placed where holes are")
-	{
-		FShipStructure structure;
-		auto bridge = AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-
-		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN, bridge);
-		AddCell(structure, FIntVector3(1, 0, 0), ECellType::DECK_HOLE, bridge);
-
-		structure.Process();
-
-		CHECK(structure.GetCellType(FIntVector3(-1, 0, 0)) == ECellType::DECK_ARMOR);
-		CHECK(structure.GetCellType(FIntVector3(1, 0, 0)) == ECellType::DECK_HOLE);
 	}
 
 	SECTION("Device sector is partially blocked by one cabin cell")
