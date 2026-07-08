@@ -64,6 +64,11 @@ FORCEINLINE bool IsCabinCell(ECellType cell_type)
 	return IsTypeCell(cell_type, ECellTypeFlag::CABIN);
 }
 
+FORCEINLINE bool IsOutsideCabinCell(ECellType cell_type)
+{
+	return cell_type == ECellType::CABIN_OUTSIDE;
+}
+
 FORCEINLINE bool IsDeckCell(ECellType cell_type)
 {
 	return IsTypeCell(cell_type, ECellTypeFlag::DECK);

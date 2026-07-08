@@ -182,6 +182,23 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		CHECK(!far_device->CanReachTheBridge);
 	}
 
+	SECTION("Device 0 vs armor test")
+	{
+		FShipStructure structure;
+		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
+		TSharedPtr<FShipStructureDevice> device = MakeDevice(structure, EDeviceType::GUN, FIntVector3(0, 0, 0));
+		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_BLOCKED, device);
+		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN_OUTSIDE, device);
+
+		structure.Process();
+
+		CHECK(structure.GetCellType(FIntVector3(-1, 0, 0)) == ECellType::DECK_ARMOR);
+		CHECK(structure.GetCellType(FIntVector3(1, 0, 0)) == ECellType::NONE);
+		CHECK(structure.GetCellType(FIntVector3(3, 0, 0)) == ECellType::NONE);
+		CHECK(structure.GetCellType(FIntVector3(0, 0, 1)) == ECellType::DECK_ARMOR);
+		CHECK(structure.GetCellType(FIntVector3(2, 0, 1)) == ECellType::NONE);
+	}
+
 	SECTION("Wall and floor armor is only placed around ship parts")
 	{
 		FShipStructure structure;

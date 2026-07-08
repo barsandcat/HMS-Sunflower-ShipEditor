@@ -33,5 +33,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Height = 0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 DeviceHeight = 0;
+
 	bool RequiresPhoneConnection() const;
 };
