@@ -37,6 +37,7 @@ enum class ECellType : uint8
 	CABIN_TECHNICAL_CORRIDOR = ECellTypeFlag::CABIN | ECellTypeFlag::SUBTYPE1,
 	CABIN_TECHNICAL_CORRIDOR_ROOT = ECellTypeFlag::CABIN | ECellTypeFlag::SUBTYPE1 | ECellTypeFlag::ROOT,
 	CABIN_BLOCKED = ECellTypeFlag::CABIN | ECellTypeFlag::SUBTYPE2,
+	CABIN_OUTSIDE = ECellTypeFlag::CABIN | ECellTypeFlag::SUBTYPE3,
 	DECK = ECellTypeFlag::DECK,
 	DECK_PHONE_LINE = ECellTypeFlag::DECK | ECellTypeFlag::SUBTYPE1,
 	INTERSECTION_PHONE_LINE_ROOT = ECellTypeFlag::INTERSECTION | ECellTypeFlag::SUBTYPE1 | ECellTypeFlag::ROOT,

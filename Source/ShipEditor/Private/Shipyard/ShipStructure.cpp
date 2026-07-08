@@ -240,13 +240,13 @@ void FShipStructure::AddArmor()
 			FIntVector3 neighbor_cabin_pos = cabin_pos + d * 2;
 			FIntVector3 neighbor_deck_pos = cabin_pos + d;
 			TSharedPtr<FShipStructureCell> neighbor_cabin = Cells.FindRef(neighbor_cabin_pos);
-			const bool neighbor_cabin_is_part_of_ship = neighbor_cabin && neighbor_cabin->Device && neighbor_cabin->Device->IsPartOfTheShip();
+			const bool neighbor_cabin_is_part_of_ship = neighbor_cabin && neighbor_cabin->Device && neighbor_cabin->Device->IsPartOfTheShip() && neighbor_cabin->CellType != ECellType::CABIN_OUTSIDE;
 			const bool neighbor_deck_is_background_or_foreground_armor = !neighbor_cabin && (IsBackgroundWall(neighbor_deck_pos) || IsForegroundWall(neighbor_deck_pos));
 
 			TSharedPtr<FShipStructureCell> neighbor_deck = Cells.FindRef(neighbor_deck_pos);
-			const bool cabin_is_part_of_ship = cell->Device && cell->Device->IsPartOfTheShip();
+			const bool cabin_is_part_of_ship = cell->Device && cell->Device->IsPartOfTheShip() && cell->CellType != ECellType::CABIN_OUTSIDE;
 
-			if (!neighbor_deck && (neighbor_deck_is_background_or_foreground_armor || (cabin_is_part_of_ship && !neighbor_cabin_is_part_of_ship)))
+			if (!neighbor_deck && (neighbor_deck_is_background_or_foreground_armor && cell->CellType != ECellType::CABIN_OUTSIDE || cabin_is_part_of_ship && !neighbor_cabin_is_part_of_ship))
 			{
 				TSharedPtr<FShipStructureCell> armor_cell = MakeShared<FShipStructureCell>(ECellType::DECK_ARMOR, cell->Device, cell->Update);
 				Cells.Add(neighbor_deck_pos, armor_cell);
