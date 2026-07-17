@@ -1,6 +1,9 @@
 // Copyright (c) 2025, sillygilly. All rights reserved.
 
+#include "ShipData/ShipDeviceAsset.h"
+#include "ShipData/ShipPartAsset.h"
 #include "Shipyard/ShipDeviceSector.h"
+#include "Shipyard/ShipPartInstance.h"
 #include "Shipyard/ShipStructure.h"
 #include "Tests/TestHarnessAdapter.h"
 
@@ -9,64 +12,100 @@ namespace
 
 constexpr float kUsageTol = 0.001f;
 
-TSharedPtr<FShipStructureDevice> MakeDevice(FShipStructure& structure,
-    EDeviceType type,
-    const FIntVector3& pos,
-    float fuel = 0.0f,
-    float ammo = 0.0f,
-    float sector_width = 0.0f,
-    float sector_rotation = 0.0f)
+FDeviceStats MakeStats(EDeviceType device_type, float fuel = 0.0f, float ammo = 0.0f, float sector_width = 0.0f)
 {
 	FDeviceStats stats;
-	stats.DeviceType = type;
+	stats.DeviceType = device_type;
 	stats.FuelConsumption = fuel;
 	stats.AmmoConsumption = ammo;
 	stats.SectorWidth = sector_width;
-	TSharedPtr<FShipStructureDevice> device =
-	    MakeShared<FShipStructureDevice>(stats, FShipPartTransform({pos.X, pos.Y}, 0, false), sector_rotation, nullptr);
-	structure.Devices.Add(device);
-	return device;
+	return stats;
 }
 
-void AddCell(FShipStructure& structure, const FIntVector3& pos, ECellType type, const TSharedPtr<FShipStructureDevice>& device)
+FShipCellData MakeCell(const FIntVector2& position, ECellType type)
 {
-	structure.Cells.Add(pos, MakeShared<FShipStructureCell>(type, device, nullptr));
+	FShipCellData cell;
+	cell.Position = position;
+	cell.CellType = type;
+	return cell;
 }
 
-TSharedPtr<FShipStructureDevice> AddBridgeRoot(FShipStructure& structure, const FIntVector3& pos)
-{
-	TSharedPtr<FShipStructureDevice> bridge = MakeDevice(structure, EDeviceType::BRIDGE, pos);
-	bridge->RequiresPhoneConnection = true;
-	structure.Root = pos;
-	AddCell(structure, pos, ECellType::INTERSECTION_PHONE_LINE_ROOT, bridge);
-	return bridge;
-}
-
-UShipPartInstance* MakeSingleCabinPartInstance(int32 height, EDeviceType device_type = EDeviceType::QUARTERS)
+UShipPartInstance* MakePart(const FDeviceStats& stats,
+    const FShipPartTransform& transform,
+    std::initializer_list<FShipCellData> cells,
+    int32 height = 0,
+    int32 device_height = 0)
 {
 	UShipDeviceAsset* device_asset = NewObject<UShipDeviceAsset>();
-	device_asset->Stats.DeviceType = device_type;
+	device_asset->Stats = stats;
 
 	UShipPartAsset* part_asset = NewObject<UShipPartAsset>();
 	part_asset->Device = device_asset;
 	part_asset->Height = height;
-
-	FShipCellData cell;
-	cell.Position = FIntVector2(0, 0);
-	cell.CellType = ECellType::CABIN;
-	part_asset->Cells.Add(cell);
+	part_asset->DeviceHeight = device_height;
+	part_asset->Cells.Reserve(static_cast<int32>(cells.size()));
+	for (const FShipCellData& cell : cells)
+	{
+		part_asset->Cells.Add(cell);
+	}
 
 	UShipPartInstance* part_instance = NewObject<UShipPartInstance>();
 	part_instance->PartAsset = part_asset;
-	part_instance->Transform = FShipPartTransform();
+	part_instance->Transform = transform;
 	return part_instance;
 }
 
-FShipStructure MakeSingleCabinStructure(int32 height, EDeviceType device_type = EDeviceType::QUARTERS)
+UShipPartInstance* MakePart(const FDeviceStats& stats,
+    const FIntVector2& position,
+    std::initializer_list<FShipCellData> cells,
+    int32 height = 0,
+    int32 device_height = 0)
 {
-	TArray<TObjectPtr<UShipPartInstance>> part_instances;
-	part_instances.Add(MakeSingleCabinPartInstance(height, device_type));
-	return FShipStructure(FShipPartTransform(), part_instances, nullptr);
+	return MakePart(stats, FShipPartTransform(position, 0, false), cells, height, device_height);
+}
+
+UShipPartInstance* MakeBridge(const FIntVector2& position, std::initializer_list<FShipCellData> cells, int32 height = 0)
+{
+	return MakePart(MakeStats(EDeviceType::BRIDGE), position, cells, height);
+}
+
+UShipPartInstance* MakeEngine(const FIntVector2& position, std::initializer_list<FShipCellData> cells, int32 height = 0, float fuel = 0.0f, float ammo = 0.0f, float sector_width = 0.0f)
+{
+	return MakePart(MakeStats(EDeviceType::ENGINE, fuel, ammo, sector_width), position, cells, height);
+}
+
+FShipStructure MakeStructure(std::initializer_list<UShipPartInstance*> part_instances)
+{
+	TArray<TObjectPtr<UShipPartInstance>> part_instance_array;
+	part_instance_array.Reserve(static_cast<int32>(part_instances.size()));
+	for (UShipPartInstance* part_instance : part_instances)
+	{
+		part_instance_array.Add(part_instance);
+	}
+	return FShipStructure(FShipPartTransform(), part_instance_array, nullptr);
+}
+
+TSharedPtr<FShipStructureDevice> GetDeviceAt(const FShipStructure& structure, const FIntVector3& pos)
+{
+	if (TSharedPtr<FShipStructureCell> cell = structure.Cells.FindRef(pos))
+	{
+		return cell->Device;
+	}
+	return nullptr;
+}
+
+UShipPartInstance* MakeSingleCabinPartInstance(int32 height,
+    EDeviceType device_type = EDeviceType::QUARTERS,
+    int32 device_height = 0)
+{
+	return MakePart(MakeStats(device_type), FShipPartTransform(), {MakeCell({0, 0}, ECellType::CABIN)}, height, device_height);
+}
+
+FShipStructure MakeSingleCabinStructure(int32 height,
+    EDeviceType device_type = EDeviceType::QUARTERS,
+    int32 device_height = 0)
+{
+	return MakeStructure({MakeSingleCabinPartInstance(height, device_type, device_height)});
 }
 
 }    // namespace
@@ -75,9 +114,12 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 {
 	SECTION("Decks connected to root become DECK_PHONE_LINE")
 	{
-		FShipStructure structure;
-		auto bridge = AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-		AddCell(structure, FIntVector3(1, 2, 0), ECellType::DECK, bridge);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({0, 0}, {
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                           MakeCell({1, 2}, ECellType::DECK),
+		                       }),
+		});
 
 		structure.Process();
 
@@ -86,15 +128,15 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		CHECK(deck_cell->CellType == ECellType::DECK_PHONE_LINE);
 	}
 
-	SECTION("Connected deck phone lines continue through contiguous deck layers")
+	SECTION("Connected deck phone lines continue through generated height layers")
 	{
-		FShipStructure structure;
-		auto bridge = AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-		AddCell(structure, FIntVector3(1, 2, -4), ECellType::DECK, bridge);
-		AddCell(structure, FIntVector3(1, 2, -2), ECellType::DECK, bridge);
-		AddCell(structure, FIntVector3(1, 2, 0), ECellType::DECK, bridge);
-		AddCell(structure, FIntVector3(1, 2, 2), ECellType::DECK, bridge);
-		AddCell(structure, FIntVector3(1, 2, 6), ECellType::DECK, bridge);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({0, 0}, {
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                           MakeCell({1, 2}, ECellType::DECK),
+		                       },
+		        2),
+		});
 
 		structure.Process();
 
@@ -102,15 +144,17 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		CHECK(structure.GetCellType(FIntVector3(1, 2, -2)) == ECellType::DECK_PHONE_LINE);
 		CHECK(structure.GetCellType(FIntVector3(1, 2, 0)) == ECellType::DECK_PHONE_LINE);
 		CHECK(structure.GetCellType(FIntVector3(1, 2, 2)) == ECellType::DECK_PHONE_LINE);
-		CHECK(structure.GetCellType(FIntVector3(1, 2, 6)) == ECellType::DECK);
+		CHECK(structure.GetCellType(FIntVector3(1, 2, 4)) == ECellType::DECK_PHONE_LINE);
 	}
 
 	SECTION("Decks not connected to root stay DECK")
 	{
-		FShipStructure structure;
-		auto bridge = AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-
-		AddCell(structure, FIntVector3(5, 4, 0), ECellType::DECK, bridge);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({0, 0}, {
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                           MakeCell({5, 4}, ECellType::DECK),
+		                       }),
+		});
 
 		structure.Process();
 
@@ -121,14 +165,16 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 
 	SECTION("Intersection root on phone line can phone the bridge")
 	{
-		FShipStructure structure;
-		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-
-		TSharedPtr<FShipStructureDevice> phone_device = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(3, 1, 0));
-		phone_device->RequiresPhoneConnection = true;
-
-		AddCell(structure, FIntVector3(2, 1, 0), ECellType::DECK, phone_device);
-		AddCell(structure, FIntVector3(3, 1, 0), ECellType::INTERSECTION_PHONE_LINE_ROOT, phone_device);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({0, 0}, {
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                       }),
+		    MakeEngine({2, 0}, {
+		                           MakeCell({0, 1}, ECellType::DECK),
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                       }),
+		});
+		TSharedPtr<FShipStructureDevice> phone_device = GetDeviceAt(structure, FIntVector3(3, 1, 0));
 
 		structure.Process();
 
@@ -137,13 +183,15 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 
 	SECTION("Intersection root not on phone line cannot phone the bridge")
 	{
-		FShipStructure structure;
-		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-
-		TSharedPtr<FShipStructureDevice> phone_device = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(5, 5, 0));
-		phone_device->RequiresPhoneConnection = true;
-
-		AddCell(structure, FIntVector3(5, 5, 0), ECellType::INTERSECTION_PHONE_LINE_ROOT, phone_device);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({0, 0}, {
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                       }),
+		    MakeEngine({4, 0}, {
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                       }),
+		});
+		TSharedPtr<FShipStructureDevice> phone_device = GetDeviceAt(structure, FIntVector3(5, 1, 0));
 
 		structure.Process();
 
@@ -152,12 +200,16 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 
 	SECTION("Traversable cabins connected to root can reach the bridge")
 	{
-		FShipStructure structure;
-		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-
-		TSharedPtr<FShipStructureDevice> cabin_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(0, 0, 0));
-
-		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN, cabin_device);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({0, 0}, {
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                           MakeCell({0, 0}, ECellType::CABIN),
+		                       }),
+		    MakeEngine({2, 0}, {
+		                           MakeCell({0, 0}, ECellType::CABIN),
+		                       }),
+		});
+		TSharedPtr<FShipStructureDevice> cabin_device = GetDeviceAt(structure, FIntVector3(2, 0, 0));
 
 		structure.Process();
 
@@ -166,15 +218,20 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 
 	SECTION("CABIN_BLOCKED stops interior reach beyond it")
 	{
-		FShipStructure structure;
-		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-
-		TSharedPtr<FShipStructureDevice> front_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(0, 0, 0));
-		TSharedPtr<FShipStructureDevice> far_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(4, 0, 0));
-
-		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN, front_device);
-		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN_BLOCKED, front_device);
-		AddCell(structure, FIntVector3(4, 0, 0), ECellType::CABIN, far_device);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({0, 0}, {
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                           MakeCell({0, 0}, ECellType::CABIN),
+		                       }),
+		    MakeEngine({2, 0}, {
+		                           MakeCell({0, 0}, ECellType::CABIN_BLOCKED),
+		                       }),
+		    MakeEngine({4, 0}, {
+		                           MakeCell({0, 0}, ECellType::CABIN),
+		                       }),
+		});
+		TSharedPtr<FShipStructureDevice> front_device = GetDeviceAt(structure, FIntVector3(0, 0, 0));
+		TSharedPtr<FShipStructureDevice> far_device = GetDeviceAt(structure, FIntVector3(4, 0, 0));
 
 		structure.Process();
 
@@ -184,11 +241,16 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 
 	SECTION("Device 0 vs armor test")
 	{
-		FShipStructure structure;
-		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-		TSharedPtr<FShipStructureDevice> device = MakeDevice(structure, EDeviceType::GUN, FIntVector3(0, 0, 0));
-		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_BLOCKED, device);
-		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN_OUTSIDE, device);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({0, 0}, {
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                           MakeCell({0, 0}, ECellType::CABIN_BLOCKED),
+		                           MakeCell({0, 2}, ECellType::CABIN),
+		                       }),
+		    MakeEngine({2, 0}, {
+		                           MakeCell({0, 0}, ECellType::CABIN_OUTSIDE),
+		                       }),
+		});
 
 		structure.Process();
 
@@ -199,16 +261,24 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		CHECK(structure.GetCellType(FIntVector3(2, 0, 1)) == ECellType::NONE);
 	}
 
+	SECTION("Device 1 vs armor test")
+	{
+	}
+
 	SECTION("Wall and floor armor is only placed around ship parts")
 	{
-		FShipStructure structure;
-		auto bridge = AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-		TSharedPtr<FShipStructureDevice> disconnected_device = MakeDevice(structure, EDeviceType::QUARTERS, FIntVector3(20, 20, 0));
-		disconnected_device->RequiresPhoneConnection = true;
-
-		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN, bridge);
-		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN, bridge);
-		AddCell(structure, FIntVector3(4, 0, 0), ECellType::CABIN, disconnected_device);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({0, 0}, {
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                           MakeCell({0, 0}, ECellType::CABIN),
+		                           MakeCell({2, 0}, ECellType::CABIN),
+		                       }),
+		    MakeEngine({4, 0}, {
+		                           MakeCell({0, 0}, ECellType::CABIN),
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                       }),
+		});
+		TSharedPtr<FShipStructureDevice> disconnected_device = GetDeviceAt(structure, FIntVector3(4, 0, 0));
 
 		structure.Process();
 
@@ -240,57 +310,77 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 
 	SECTION("Device sector is partially blocked by one cabin cell")
 	{
-		FShipStructure structure;
-		AddBridgeRoot(structure, FIntVector3(10, 10, 0));
-
-		TSharedPtr<FShipStructureDevice> gun_device =
-		    MakeDevice(structure, EDeviceType::GUN, FIntVector3(0, 0, 0), 0.0f, 0.0f, 90.f, 45.f);
-
-		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_BLOCKED, gun_device);
-		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN, gun_device);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({10, 10}, {
+		                             MakeCell({0, 0}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                         }),
+		    MakeEngine({0, 0}, {
+		                           MakeCell({0, 0}, ECellType::CABIN_BLOCKED),
+		                           MakeCell({2, 0}, ECellType::CABIN),
+		                       },
+		        0, 0.0f, 0.0f, 180.0f),
+		});
+		TSharedPtr<FShipStructureDevice> gun_device = GetDeviceAt(structure, FIntVector3(0, 0, 0));
 
 		structure.Process();
 
 		CHECK(gun_device->AvailableSector.IsValid());
-		CHECK(IsSectorAngleNear(gun_device->AvailableSector.Rotation, 45.f + 45.f / 2.0f));
-		CHECK(IsSectorAngleNear(gun_device->AvailableSector.Width, 45.f));
+		CHECK(IsSectorAngleNear(gun_device->AvailableSector.Rotation, 67.5f));
+		CHECK(IsSectorAngleNear(gun_device->AvailableSector.Width, 45.0f));
 	}
 
 	SECTION("Split device sector keeps the side closest to the device rotation")
 	{
-		FShipStructure structure;
-		AddBridgeRoot(structure, FIntVector3(10, 10, 0));
-
-		TSharedPtr<FShipStructureDevice> gun_device =
-		    MakeDevice(structure, EDeviceType::GUN, FIntVector3(0, 0, 0), 0.0f, 0.0f, 270.f, 90.f + 45.f);
-
-		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_BLOCKED, gun_device);
-		AddCell(structure, FIntVector3(0, 2, 0), ECellType::CABIN, gun_device);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({10, 10}, {
+		                            MakeCell({0, 0}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                        }),
+		    MakePart(MakeStats(EDeviceType::GUN, 0.0f, 0.0f, 270.0f), FShipPartTransform({0, 0}, 1, false), {
+		                                                                                                      MakeCell({0, 0}, ECellType::CABIN_BLOCKED),
+		                                                                                                      MakeCell({2, 0}, ECellType::CABIN),
+		                                                                                                  }),
+		});
+		TSharedPtr<FShipStructureDevice> gun_device = GetDeviceAt(structure, FIntVector3(0, 0, 0));
 
 		structure.Process();
 
 		CHECK(gun_device->AvailableSector.IsValid());
-		CHECK(IsSectorAngleNear(gun_device->AvailableSector.Rotation, 202.5f));
-		CHECK(IsSectorAngleNear(gun_device->AvailableSector.Width, 90.f + 45.f));
+		CHECK(IsSectorAngleNear(gun_device->AvailableSector.Rotation, 180.0f));
+		CHECK(IsSectorAngleNear(gun_device->AvailableSector.Width, 90.0f));
 	}
 
 	SECTION("Disconnected corridor roots compute fuel usage separately")
 	{
-		FShipStructure structure;
-		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-
-		TSharedPtr<FShipStructureDevice> producer_a = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 0, 0), -10.0f);
-		TSharedPtr<FShipStructureDevice> consumer_a = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 2, 0), 5.0f);
-		TSharedPtr<FShipStructureDevice> ignored_a = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 4, 0), 100.0f);
-		TSharedPtr<FShipStructureDevice> producer_b = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(10, 0, 0), -4.0f);
-		TSharedPtr<FShipStructureDevice> consumer_b = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(12, 0, 0), 8.0f);
-
-		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, producer_a);
-		AddCell(structure, FIntVector3(0, 2, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, consumer_a);
-		AddCell(structure, FIntVector3(0, 4, 0), ECellType::CABIN_TECHNICAL_CORRIDOR, ignored_a);
-
-		AddCell(structure, FIntVector3(10, 0, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, producer_b);
-		AddCell(structure, FIntVector3(12, 0, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, consumer_b);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({1, 1}, {
+		                           MakeCell({0, 0}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                       }),
+		    MakeEngine({0, 0}, {
+		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
+		                       },
+		        0, -10.0f),
+		    MakeEngine({0, 2}, {
+		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
+		                       },
+		        0, 5.0f),
+		    MakeEngine({0, 4}, {
+		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR),
+		                       },
+		        0, 100.0f),
+		    MakeEngine({10, 0}, {
+		                            MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
+		                        },
+		        0, -4.0f),
+		    MakeEngine({12, 0}, {
+		                            MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
+		                        },
+		        0, 8.0f),
+		});
+		TSharedPtr<FShipStructureDevice> producer_a = GetDeviceAt(structure, FIntVector3(0, 0, 0));
+		TSharedPtr<FShipStructureDevice> consumer_a = GetDeviceAt(structure, FIntVector3(0, 2, 0));
+		TSharedPtr<FShipStructureDevice> ignored_a = GetDeviceAt(structure, FIntVector3(0, 4, 0));
+		TSharedPtr<FShipStructureDevice> producer_b = GetDeviceAt(structure, FIntVector3(10, 0, 0));
+		TSharedPtr<FShipStructureDevice> consumer_b = GetDeviceAt(structure, FIntVector3(12, 0, 0));
 
 		structure.Process();
 
@@ -303,22 +393,34 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 
 	SECTION("Connected corridors with mixed IsPartOfTheShip split subnetworks")
 	{
-		FShipStructure structure;
-		AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-
-		TSharedPtr<FShipStructureDevice> producer_a = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 0, 0), -10.0f);
-		TSharedPtr<FShipStructureDevice> consumer_a = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 2, 0), 5.0f);
-		TSharedPtr<FShipStructureDevice> producer_b = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(4, 0, 0), -4.0f);
-		TSharedPtr<FShipStructureDevice> consumer_b = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(4, 2, 0), 8.0f);
-		producer_b->RequiresPhoneConnection = true;
-		consumer_b->RequiresPhoneConnection = true;
-
-		AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, producer_a);
-		AddCell(structure, FIntVector3(0, 2, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, consumer_a);
-		AddCell(structure, FIntVector3(2, 0, 0), ECellType::CABIN_TECHNICAL_CORRIDOR, producer_a);
-
-		AddCell(structure, FIntVector3(4, 0, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, producer_b);
-		AddCell(structure, FIntVector3(4, 2, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, consumer_b);
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({1, 1}, {
+		                           MakeCell({0, 0}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                       }),
+		    MakeEngine({0, 0}, {
+		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
+		                           MakeCell({2, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR),
+		                       },
+		        0, -10.0f),
+		    MakeEngine({0, 2}, {
+		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
+		                       },
+		        0, 5.0f),
+		    MakeEngine({4, 0}, {
+		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
+		                           MakeCell({100, 100}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                       },
+		        0, -4.0f),
+		    MakeEngine({4, 2}, {
+		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
+		                           MakeCell({100, 100}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                       },
+		        0, 8.0f),
+		});
+		TSharedPtr<FShipStructureDevice> producer_a = GetDeviceAt(structure, FIntVector3(0, 0, 0));
+		TSharedPtr<FShipStructureDevice> consumer_a = GetDeviceAt(structure, FIntVector3(0, 2, 0));
+		TSharedPtr<FShipStructureDevice> producer_b = GetDeviceAt(structure, FIntVector3(4, 0, 0));
+		TSharedPtr<FShipStructureDevice> consumer_b = GetDeviceAt(structure, FIntVector3(4, 2, 0));
 
 		structure.Process();
 
@@ -331,14 +433,21 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 	SECTION("Fuel usage fractions reflect production vs consumption balance")
 	{
 		{
-			FShipStructure structure;
-			AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-
-			TSharedPtr<FShipStructureDevice> producer = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 0, 0), -10.0f);
-			TSharedPtr<FShipStructureDevice> consumer = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 2, 0), 5.0f);
-
-			AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, producer);
-			AddCell(structure, FIntVector3(0, 2, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, consumer);
+			FShipStructure structure = MakeStructure({
+			    MakeBridge({1, 1}, {
+			                           MakeCell({0, 0}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+			                       }),
+			    MakeEngine({0, 0}, {
+			                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
+			                       },
+			        0, -10.0f),
+			    MakeEngine({0, 2}, {
+			                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
+			                       },
+			        0, 5.0f),
+			});
+			TSharedPtr<FShipStructureDevice> producer = GetDeviceAt(structure, FIntVector3(0, 0, 0));
+			TSharedPtr<FShipStructureDevice> consumer = GetDeviceAt(structure, FIntVector3(0, 2, 0));
 
 			structure.Process();
 
@@ -347,14 +456,21 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		}
 
 		{
-			FShipStructure structure;
-			AddBridgeRoot(structure, FIntVector3(1, 1, 0));
-
-			TSharedPtr<FShipStructureDevice> producer = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 0, 0), -5.0f);
-			TSharedPtr<FShipStructureDevice> consumer = MakeDevice(structure, EDeviceType::ENGINE, FIntVector3(0, 2, 0), 10.0f);
-
-			AddCell(structure, FIntVector3(0, 0, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, producer);
-			AddCell(structure, FIntVector3(0, 2, 0), ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT, consumer);
+			FShipStructure structure = MakeStructure({
+			    MakeBridge({1, 1}, {
+			                           MakeCell({0, 0}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+			                       }),
+			    MakeEngine({0, 0}, {
+			                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
+			                       },
+			        0, -5.0f),
+			    MakeEngine({0, 2}, {
+			                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
+			                       },
+			        0, 10.0f),
+			});
+			TSharedPtr<FShipStructureDevice> producer = GetDeviceAt(structure, FIntVector3(0, 0, 0));
+			TSharedPtr<FShipStructureDevice> consumer = GetDeviceAt(structure, FIntVector3(0, 2, 0));
 
 			structure.Process();
 
