@@ -34,7 +34,8 @@ UShipPartInstance* MakePart(const FDeviceStats& stats,
     const FShipPartTransform& transform,
     std::initializer_list<FShipCellData> cells,
     int32 height = 0,
-    int32 device_height = 0)
+    int32 device_height = 0,
+    TSet<FIntVector2> device_cells = {})
 {
 	UShipDeviceAsset* device_asset = NewObject<UShipDeviceAsset>();
 	device_asset->Stats = stats;
@@ -43,6 +44,7 @@ UShipPartInstance* MakePart(const FDeviceStats& stats,
 	part_asset->Device = device_asset;
 	part_asset->Height = height;
 	part_asset->DeviceHeight = device_height;
+	part_asset->DeviceCells = device_cells;
 	part_asset->Cells.Reserve(static_cast<int32>(cells.size()));
 	for (const FShipCellData& cell : cells)
 	{
@@ -55,23 +57,14 @@ UShipPartInstance* MakePart(const FDeviceStats& stats,
 	return part_instance;
 }
 
-UShipPartInstance* MakePart(const FDeviceStats& stats,
-    const FIntVector2& position,
-    std::initializer_list<FShipCellData> cells,
-    int32 height = 0,
-    int32 device_height = 0)
-{
-	return MakePart(stats, FShipPartTransform(position, 0, false), cells, height, device_height);
-}
-
 UShipPartInstance* MakeBridge(const FIntVector2& position, std::initializer_list<FShipCellData> cells, int32 height = 0)
 {
-	return MakePart(MakeStats(EDeviceType::BRIDGE), position, cells, height);
+	return MakePart(MakeStats(EDeviceType::BRIDGE), FShipPartTransform(position, 0, false), cells, height);
 }
 
-UShipPartInstance* MakeEngine(const FIntVector2& position, std::initializer_list<FShipCellData> cells, int32 height = 0, float fuel = 0.0f, float ammo = 0.0f, float sector_width = 0.0f)
+UShipPartInstance* MakeEngine(const FIntVector2& position, std::initializer_list<FShipCellData> cells, int32 height = 0, int32 device_height = 0, float fuel = 0.0f, float ammo = 0.0f, float sector_width = 0.0f, TSet<FIntVector2> device_cells = {})
 {
-	return MakePart(MakeStats(EDeviceType::ENGINE, fuel, ammo, sector_width), position, cells, height);
+	return MakePart(MakeStats(EDeviceType::ENGINE, fuel, ammo, sector_width), FShipPartTransform(position, 0, false), cells, height, device_height, device_cells);
 }
 
 FShipStructure MakeStructure(std::initializer_list<UShipPartInstance*> part_instances)
@@ -263,6 +256,30 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 
 	SECTION("Device 1 vs armor test")
 	{
+		FShipStructure structure = MakeStructure({
+		    MakeBridge({0, 0}, {
+		                           MakeCell({1, 1}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
+		                           MakeCell({0, 0}, ECellType::CABIN),
+		                       }),
+		    MakeEngine({2, 0}, {
+		                           MakeCell({0, 0}, ECellType::CABIN),
+		                           MakeCell({2, 0}, ECellType::CABIN_BLOCKED),
+		                       },
+		        0, 1),
+		});
+
+		structure.Process();
+
+		CHECK(structure.GetCellType(FIntVector3(-1, 0, 0)) == ECellType::DECK_ARMOR);
+		CHECK(structure.GetCellType(FIntVector3(2, 0, 1)) == ECellType::DECK_ARMOR);
+		CHECK(structure.GetCellType(FIntVector3(3, 0, 0)) == ECellType::NONE);
+		CHECK(structure.GetCellType(FIntVector3(5, 0, 0)) == ECellType::DECK_ARMOR);
+		CHECK(structure.GetCellType(FIntVector3(4, 0, 1)) == ECellType::NONE);
+		CHECK(structure.GetCellType(FIntVector3(2, 0, 2)) == ECellType::NONE);
+		CHECK(structure.GetCellType(FIntVector3(4, 0, 2)) == ECellType::CABIN_OUTSIDE);
+		CHECK(structure.GetCellType(FIntVector3(4, 0, 3)) == ECellType::NONE);
+		CHECK(structure.GetCellType(FIntVector3(3, 0, 2)) == ECellType::NONE);
+		CHECK(structure.GetCellType(FIntVector3(5, 0, 2)) == ECellType::NONE);
 	}
 
 	SECTION("Wall and floor armor is only placed around ship parts")
@@ -318,7 +335,7 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		                           MakeCell({0, 0}, ECellType::CABIN_BLOCKED),
 		                           MakeCell({2, 0}, ECellType::CABIN),
 		                       },
-		        0, 0.0f, 0.0f, 180.0f),
+		        0, 0, 0.0f, 0.0f, 180.0f),
 		});
 		TSharedPtr<FShipStructureDevice> gun_device = GetDeviceAt(structure, FIntVector3(0, 0, 0));
 
@@ -358,23 +375,23 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		    MakeEngine({0, 0}, {
 		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
 		                       },
-		        0, -10.0f),
+		        0, 0, -10.0f),
 		    MakeEngine({0, 2}, {
 		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
 		                       },
-		        0, 5.0f),
+		        0, 0, 5.0f),
 		    MakeEngine({0, 4}, {
 		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR),
 		                       },
-		        0, 100.0f),
+		        0, 0, 100.0f),
 		    MakeEngine({10, 0}, {
 		                            MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
 		                        },
-		        0, -4.0f),
+		        0, 0, -4.0f),
 		    MakeEngine({12, 0}, {
 		                            MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
 		                        },
-		        0, 8.0f),
+		        0, 0, 8.0f),
 		});
 		TSharedPtr<FShipStructureDevice> producer_a = GetDeviceAt(structure, FIntVector3(0, 0, 0));
 		TSharedPtr<FShipStructureDevice> consumer_a = GetDeviceAt(structure, FIntVector3(0, 2, 0));
@@ -401,21 +418,21 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
 		                           MakeCell({2, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR),
 		                       },
-		        0, -10.0f),
+		        0, 0, -10.0f),
 		    MakeEngine({0, 2}, {
 		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
 		                       },
-		        0, 5.0f),
+		        0, 0, 5.0f),
 		    MakeEngine({4, 0}, {
 		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
 		                           MakeCell({100, 100}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
 		                       },
-		        0, -4.0f),
+		        0, 0, -4.0f),
 		    MakeEngine({4, 2}, {
 		                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
 		                           MakeCell({100, 100}, ECellType::INTERSECTION_PHONE_LINE_ROOT),
 		                       },
-		        0, 8.0f),
+		        0, 0, 8.0f),
 		});
 		TSharedPtr<FShipStructureDevice> producer_a = GetDeviceAt(structure, FIntVector3(0, 0, 0));
 		TSharedPtr<FShipStructureDevice> consumer_a = GetDeviceAt(structure, FIntVector3(0, 2, 0));
@@ -440,11 +457,11 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 			    MakeEngine({0, 0}, {
 			                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
 			                       },
-			        0, -10.0f),
+			        0, 0, -10.0f),
 			    MakeEngine({0, 2}, {
 			                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
 			                       },
-			        0, 5.0f),
+			        0, 0, 5.0f),
 			});
 			TSharedPtr<FShipStructureDevice> producer = GetDeviceAt(structure, FIntVector3(0, 0, 0));
 			TSharedPtr<FShipStructureDevice> consumer = GetDeviceAt(structure, FIntVector3(0, 2, 0));
@@ -463,11 +480,11 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 			    MakeEngine({0, 0}, {
 			                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
 			                       },
-			        0, -5.0f),
+			        0, 0, -5.0f),
 			    MakeEngine({0, 2}, {
 			                           MakeCell({0, 0}, ECellType::CABIN_TECHNICAL_CORRIDOR_ROOT),
 			                       },
-			        0, 10.0f),
+			        0, 0, 10.0f),
 			});
 			TSharedPtr<FShipStructureDevice> producer = GetDeviceAt(structure, FIntVector3(0, 0, 0));
 			TSharedPtr<FShipStructureDevice> consumer = GetDeviceAt(structure, FIntVector3(0, 2, 0));
