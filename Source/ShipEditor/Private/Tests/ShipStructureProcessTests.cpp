@@ -265,7 +265,7 @@ TEST_CASE_NAMED(FShipStructureProcessTest, "ShipEditor::ShipStructure::Process",
 		                           MakeCell({0, 0}, ECellType::CABIN),
 		                           MakeCell({2, 0}, ECellType::CABIN_BLOCKED),
 		                       },
-		        0, 1),
+		        0, 1, 0.0f, 0.0f, 0.0f, {FIntVector2(2, 0)}),
 		});
 
 		structure.Process();

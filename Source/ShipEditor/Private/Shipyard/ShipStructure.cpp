@@ -89,11 +89,21 @@ FShipStructure::FShipStructure(const FShipPartTransform& render_transform, const
 				}
 			}
 
-			int32 to = part_instance->PartAsset->Height * 2;
-			int32 from = -to;
-			for (int32 z = from; z <= to; z += 2)
+			int32 top_device_z = FMath::Max(part_instance->PartAsset->DeviceHeight, part_instance->PartAsset->Height) * 2;
+			int32 top_z = part_instance->PartAsset->Height * 2;
+			for (int32 z = -top_device_z; z <= top_device_z; z += 2)
 			{
-				Cells.Add({cell_pos.X, cell_pos.Y, z}, MakeShared<FShipStructureCell>(cell.CellType, device, update));
+				if (z > top_z || z < -top_z)
+				{
+					if (part_instance->PartAsset->DeviceCells.Contains(cell.Position))
+					{
+						Cells.Add({cell_pos.X, cell_pos.Y, z}, MakeShared<FShipStructureCell>(ECellType::CABIN_OUTSIDE, device, update));
+					}
+				}
+				else
+				{
+					Cells.Add({cell_pos.X, cell_pos.Y, z}, MakeShared<FShipStructureCell>(cell.CellType, device, update));
+				}
 			}
 		}
 	}
